@@ -43,26 +43,26 @@
 
 ## Milestone 1 — Project Setup & Environment
 
-- [ ] Install Python 3.12+
-- [ ] Adopt `uv` as the exclusive package/dependency manager (no `pip install`, no `venv`/`python -m venv` directly)
-- [ ] Initialize project with `uv init` / `pyproject.toml`
-- [ ] Configure `pyproject.toml`: name, version (`0.1.0` start), description, license, authors
-- [ ] Add core dependencies via `uv add`: `scapy`, `fastapi`, `uvicorn`, `sqlalchemy`, `pydantic`, `pyyaml`
-- [ ] Add dev dependencies via `uv add --dev`: `pytest`, `pytest-cov`, `ruff`, `mypy`, `httpx`
-- [ ] Generate and commit `uv.lock`
-- [ ] Configure Ruff in `pyproject.toml` (`line-length = 100`, target `py312`, rule sets `E,F,W,I,N,UP,B,C4,SIM`)
-- [ ] Configure MyPy (strict mode where feasible)
-- [ ] Configure `pytest` and `[tool.coverage]` sections (`fail_under = 85`)
-- [ ] Set up pre-commit hooks (ruff, mypy, pytest quick-check)
-- [ ] Create `src/network_defender/` package layout (see Project Structure section)
-- [ ] Create `src/network_defender/__init__.py` exporting public API and `__version__`
-- [ ] Create `src/network_defender/constants.py` for immutable project constants
-- [ ] Create `src/network_defender/shared/version.py` starting at version `1.00`
-- [ ] Create `.env-example` with placeholder values for all secrets/config
-- [ ] Verify `.env`, `*.key`, `*.pem`, `credentials.json` are in `.gitignore`
-- [ ] Set up Git branching convention (`main`, `develop`, `feature/*`) and commit message convention
-- [ ] Write initial `README.md` skeleton (Installation, Usage, badges placeholder)
-- [ ] Configure GitHub repo settings: branch protection on `main`, required PR reviews
+- [x] Install Python 3.12+
+- [x] Adopt `uv` as the exclusive package/dependency manager (no `pip install`, no `venv`/`python -m venv` directly)
+- [x] Initialize project with `uv init` / `pyproject.toml`
+- [x] Configure `pyproject.toml`: name, version (`0.1.0` start), description, license, authors
+- [x] Add core dependencies via `uv add`: `scapy`, `fastapi`, `uvicorn`, `sqlalchemy`, `pydantic`, `pyyaml`
+- [x] Add dev dependencies via `uv add --dev`: `pytest`, `pytest-cov`, `ruff`, `mypy`, `httpx`
+- [x] Generate and commit `uv.lock`
+- [x] Configure Ruff in `pyproject.toml` (`line-length = 100`, target `py312`, rule sets `E,F,W,I,N,UP,B,C4,SIM`)
+- [x] Configure MyPy (strict mode where feasible)
+- [x] Configure `pytest` and `[tool.coverage]` sections (`fail_under = 85`)
+- [x] Set up pre-commit hooks (ruff, mypy, pytest quick-check)
+- [x] Create `src/network_defender/` package layout (see Project Structure section)
+- [x] Create `src/network_defender/__init__.py` exporting public API and `__version__`
+- [x] Create `src/network_defender/constants.py` for immutable project constants
+- [x] Create `src/network_defender/shared/version.py` starting at version `1.00`
+- [x] Create `.env-example` with placeholder values for all secrets/config
+- [x] Verify `.env`, `*.key`, `*.pem`, `credentials.json` are in `.gitignore`
+- [x] Set up Git branching convention (`main`, `develop`, `feature/*`) and commit message convention
+- [x] Write initial `README.md` skeleton (Installation, Usage, badges placeholder)
+- [x] Configure GitHub repo settings: branch protection on `main`, required PR reviews
 
 ---
 

@@ -38,6 +38,11 @@ venv.bak/
 .env.test.local
 .env.production.local
 
+# Secrets and Keys
+*.key
+*.pem
+credentials.json
+
 # Docker
 .docker/
 docker-compose.override.yml
