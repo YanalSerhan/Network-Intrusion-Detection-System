@@ -19,6 +19,7 @@ PROJECT_VERSION = "1.00"
 CONFIG_FILE_SETUP = "setup.json"
 CONFIG_FILE_RATE_LIMITS = "rate_limits.json"
 CONFIG_FILE_LOGGING = "logging_config.json"
+CONFIG_FILE_DETECTORS = "detectors.json"
 
 # ---------------------------------------------------------------------------
 # Severity levels (used by Alert model and detectors)

@@ -65,7 +65,7 @@ class NetworkDefenderSDK(LoggableMixin):
         # Build service instances with injected configs (no hardcoded values).
         self._capture_service = CaptureService(config=app_config.capture)
         self._parser_service = PacketParser()
-        self._detection_service = DetectionService()
+        self._detection_service = DetectionService(config_dir=app_config.rules_dir)
         self._alert_service = AlertService()
 
         # Build per-service gatekeepers from config.

@@ -1,0 +1,68 @@
+{
+  "TcpPortScanDetector": {
+    "enabled": true,
+    "time_window_seconds": 10,
+    "unique_ports_threshold": 15
+  },
+  "SynScanDetector": {
+    "enabled": true,
+    "time_window_seconds": 10,
+    "unique_ports_threshold": 10
+  },
+  "SynFloodDetector": {
+    "enabled": true,
+    "time_window_seconds": 1,
+    "syn_count_threshold": 100
+  },
+  "UdpFloodDetector": {
+    "enabled": true,
+    "time_window_seconds": 1,
+    "udp_count_threshold": 200
+  },
+  "IcmpFloodDetector": {
+    "enabled": true,
+    "time_window_seconds": 1,
+    "icmp_count_threshold": 50
+  },
+  "SshBruteForceDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "connection_count_threshold": 10
+  },
+  "HttpBruteForceDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "connection_count_threshold": 20
+  },
+  "ArpSpoofingDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "gratuitous_arp_threshold": 5
+  },
+  "DnsTunnelingDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "query_count_threshold": 50,
+    "entropy_threshold": 4.5
+  },
+  "BeaconingDetector": {
+    "enabled": true,
+    "time_window_seconds": 3600,
+    "connection_count_threshold": 10,
+    "interval_variance_tolerance": 0.1
+  },
+  "SuspiciousPortDetector": {
+    "enabled": true,
+    "suspicious_ports": [6667, 31337, 4444, 4445]
+  },
+  "DataExfiltrationDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "bytes_out_threshold": 50000000
+  },
+  "LateralMovementDetector": {
+    "enabled": true,
+    "time_window_seconds": 60,
+    "internal_connection_threshold": 20
+  }
+}

@@ -153,26 +153,26 @@
 
 ## Milestone 6 — Detection Engine (`app/detectors/`)
 
-- [ ] Design a `BaseDetector` abstract class defining the detector lifecycle (`ingest`, `evaluate`, `emit_alert`)
-- [ ] Ensure new detectors can be added by subclassing, with zero changes to existing code (Open/Closed Principle)
-- [ ] Implement TCP Port Scan detector
-- [ ] Implement SYN Scan detector
-- [ ] Implement SYN Flood detector
-- [ ] Implement UDP Flood detector
-- [ ] Implement ICMP Flood detector
-- [ ] Implement ARP Spoofing detector (gratuitous ARP / MAC-IP mismatch tracking)
-- [ ] Implement DNS Tunneling heuristic detector (entropy, query length, request frequency)
-- [ ] Implement SSH Brute Force detector (failed connection counting per rule window)
-- [ ] Implement HTTP Brute Force detector (auth failure pattern on web endpoints)
-- [ ] Implement Beaconing Detection (periodicity/interval-variance analysis on outbound connections)
-- [ ] Implement Suspicious Port Usage detector (non-standard port / service mismatch)
-- [ ] Implement Large Data Exfiltration detector (outbound byte-volume thresholds)
-- [ ] Implement Suspicious Internal Lateral Movement detector (internal-to-internal anomalous connections)
-- [ ] Implement a detector registry/plugin loader (auto-discovers detector modules)
-- [ ] Implement per-detector configuration (thresholds, enable/disable, sensitivity)
-- [ ] Write unit tests for each detector using synthetic/crafted traffic scenarios
-- [ ] Write integration tests combining rule engine + detectors against sample PCAPs
-- [ ] Benchmark detector performance under sustained high packet rate
+- [x] Design a `BaseDetector` abstract class defining the detector lifecycle (`ingest`, `evaluate`, `emit_alert`)
+- [x] Ensure new detectors can be added by subclassing, with zero changes to existing code (Open/Closed Principle)
+- [x] Implement TCP Port Scan detector
+- [x] Implement SYN Scan detector
+- [x] Implement SYN Flood detector
+- [x] Implement UDP Flood detector
+- [x] Implement ICMP Flood detector
+- [x] Implement ARP Spoofing detector (gratuitous ARP / MAC-IP mismatch tracking)
+- [x] Implement DNS Tunneling heuristic detector (entropy, query length, request frequency)
+- [x] Implement SSH Brute Force detector (failed connection counting per rule window)
+- [x] Implement HTTP Brute Force detector (auth failure pattern on web endpoints)
+- [x] Implement Beaconing Detection (periodicity/interval-variance analysis on outbound connections)
+- [x] Implement Suspicious Port Usage detector (non-standard port / service mismatch)
+- [x] Implement Large Data Exfiltration detector (outbound byte-volume thresholds)
+- [x] Implement Suspicious Internal Lateral Movement detector (internal-to-internal anomalous connections)
+- [x] Implement a detector registry/plugin loader (auto-discovers detector modules)
+- [x] Implement per-detector configuration (thresholds, enable/disable, sensitivity)
+- [x] Write unit tests for each detector using synthetic/crafted traffic scenarios
+- [x] Write integration tests combining rule engine + detectors against sample PCAPs
+- [x] Benchmark detector performance under sustained high packet rate
 
 ---
 
