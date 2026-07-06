@@ -118,22 +118,22 @@
 
 ## Milestone 4 — Packet Parser (`app/parser/`)
 
-- [ ] Design `PacketParser` interface returning a normalized `ParsedPacket` model (Pydantic)
-- [ ] Extract timestamp
-- [ ] Extract source IP / destination IP
-- [ ] Extract source port / destination port
-- [ ] Extract protocol identifier
-- [ ] Extract packet length
-- [ ] Extract TCP flags (SYN, ACK, FIN, RST, PSH, URG)
-- [ ] Extract DNS query name and record type
-- [ ] Extract HTTP method and path
-- [ ] Extract HTTP Host header
-- [ ] Extract HTTP User-Agent header
-- [ ] Extract TLS SNI when available
-- [ ] Handle malformed/truncated packets gracefully (no crashes)
-- [ ] Define Pydantic models for each protocol's parsed fields
-- [ ] Write parser unit tests covering valid, malformed, and edge-case packets
-- [ ] Benchmark parser throughput (packets/sec) as a baseline for performance tests
+- [x] Design `PacketParser` interface returning a normalized `ParsedPacket` model (Pydantic)
+- [x] Extract timestamp
+- [x] Extract source IP / destination IP
+- [x] Extract source port / destination port
+- [x] Extract protocol identifier
+- [x] Extract packet length
+- [x] Extract TCP flags (SYN, ACK, FIN, RST, PSH, URG)
+- [x] Extract DNS query name and record type
+- [x] Extract HTTP method and path
+- [x] Extract HTTP Host header
+- [x] Extract HTTP User-Agent header
+- [x] Extract TLS SNI when available
+- [x] Handle malformed/truncated packets gracefully (no crashes)
+- [x] Define Pydantic models for each protocol's parsed fields
+- [x] Write parser unit tests covering valid, malformed, and edge-case packets
+- [x] Benchmark parser throughput (packets/sec) as a baseline for performance tests
 
 ---
 

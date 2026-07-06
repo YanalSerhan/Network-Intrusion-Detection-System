@@ -14,11 +14,15 @@ Data Output: Structured results (health dicts, alert lists, status objects).
 from pathlib import Path
 from typing import Any
 
+from scapy.packet import Packet  # type: ignore[import-untyped]
+
 from ..capture.interface_discovery import list_interfaces
 from ..capture.models import CaptureStatus
+from ..parser.models import ParsedPacket
 from ..services.alerting import AlertService
 from ..services.capture import CaptureService
 from ..services.detection import DetectionService
+from ..services.parser import PacketParser
 from ..shared.base import LoggableMixin
 from ..shared.config import load_app_config, load_rate_limit_config
 from ..shared.config_models import AppConfig
@@ -60,6 +64,7 @@ class NetworkDefenderSDK(LoggableMixin):
 
         # Build service instances with injected configs (no hardcoded values).
         self._capture_service = CaptureService(config=app_config.capture)
+        self._parser_service = PacketParser()
         self._detection_service = DetectionService()
         self._alert_service = AlertService()
 
@@ -93,6 +98,7 @@ class NetworkDefenderSDK(LoggableMixin):
         """Start all domain services in dependency order."""
         self.logger.info("NetworkDefenderSDK starting all services.")
         self._capture_service.start()
+        self._parser_service.start()
         self._detection_service.start()
         self._alert_service.start()
         self.logger.info("NetworkDefenderSDK ready.")
@@ -102,6 +108,7 @@ class NetworkDefenderSDK(LoggableMixin):
         self.logger.info("NetworkDefenderSDK stopping all services.")
         self._alert_service.stop()
         self._detection_service.stop()
+        self._parser_service.stop()
         self._capture_service.stop()
         self.logger.info("NetworkDefenderSDK shut down.")
 
@@ -118,6 +125,7 @@ class NetworkDefenderSDK(LoggableMixin):
         """
         components = {
             "capture": self._capture_service.health_check(),
+            "parser": self._parser_service.health_check(),
             "detection": self._detection_service.health_check(),
             "alerting": self._alert_service.health_check(),
         }
@@ -202,3 +210,37 @@ class NetworkDefenderSDK(LoggableMixin):
             List of interface name strings (e.g. ['eth0', 'lo', 'wlan0']).
         """
         return list_interfaces()
+
+    # ------------------------------------------------------------------
+    # Parser operations
+    # ------------------------------------------------------------------
+
+    def parse_packet(self, pkt: Packet) -> ParsedPacket:
+        """
+        Parse a raw Scapy packet into a normalised ParsedPacket model.
+
+        Args:
+            pkt: A Scapy Packet object captured by CaptureService.
+
+        Returns:
+            ParsedPacket with all available protocol fields populated.
+
+        Raises:
+            ValueError: If pkt is None or not a valid Packet instance.
+        """
+        return self._parser_service.parse(pkt)
+
+    def parse_packet_safe(self, pkt: Packet) -> ParsedPacket | None:
+        """
+        Parse a packet without raising — returns None on any failure.
+
+        Intended for use in high-throughput capture callbacks where a single
+        malformed packet must not interrupt the processing pipeline.
+
+        Args:
+            pkt: A Scapy Packet object.
+
+        Returns:
+            ParsedPacket on success; None if parsing fails for any reason.
+        """
+        return self._parser_service.parse_safe(pkt)
