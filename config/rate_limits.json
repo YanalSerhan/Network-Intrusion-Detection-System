@@ -1,0 +1,26 @@
+{
+    "version": "1.00",
+    "services": {
+        "abuseipdb": {
+            "requests_per_minute": 10,
+            "requests_per_day": 1000,
+            "max_queue_depth": 50,
+            "retry_attempts": 3,
+            "retry_backoff_base_seconds": 2.0
+        },
+        "ip_api": {
+            "requests_per_minute": 45,
+            "requests_per_day": 10000,
+            "max_queue_depth": 100,
+            "retry_attempts": 2,
+            "retry_backoff_base_seconds": 1.0
+        },
+        "whois": {
+            "requests_per_minute": 5,
+            "requests_per_day": 500,
+            "max_queue_depth": 20,
+            "retry_attempts": 3,
+            "retry_backoff_base_seconds": 3.0
+        }
+    }
+}

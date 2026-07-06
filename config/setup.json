@@ -1,0 +1,28 @@
+{
+    "version": "1.00",
+    "capture": {
+        "interface": "eth0",
+        "bpf_filter": "",
+        "snaplen": 65535,
+        "promiscuous_mode": true,
+        "buffer_size": 4096
+    },
+    "api": {
+        "host": "0.0.0.0",
+        "port": 8000,
+        "reload": false,
+        "workers": 1
+    },
+    "database": {
+        "url_env_var": "DATABASE_URL",
+        "default_url": "sqlite:///./network_defender.db",
+        "echo": false
+    },
+    "dashboard": {
+        "host": "0.0.0.0",
+        "port": 3000,
+        "default_theme": "dark"
+    },
+    "rules_dir": "rules/",
+    "retention_days": 30
+}

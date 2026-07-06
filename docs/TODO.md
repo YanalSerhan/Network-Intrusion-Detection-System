@@ -68,28 +68,28 @@
 
 ## Milestone 2 — Core Architecture & SDK Layer
 
-- [ ] Design layered architecture: `External Consumers → SDK → Domain Services → Infrastructure`
-- [ ] Create `src/network_defender/sdk/sdk.py` as the **single entry point** for all business logic
-- [ ] Ensure CLI, dashboard, and REST API only call through the SDK layer (no business logic in presentation layers)
-- [ ] Create `src/network_defender/services/` for domain services (capture, parsing, detection, alerting)
-- [ ] Create `src/network_defender/shared/config.py` — centralized configuration manager
-- [ ] Create `src/network_defender/shared/gatekeeper.py` — centralized API Gatekeeper for all outbound calls (threat intel APIs)
-  - [ ] Implement `ApiGatekeeper.__init__(config: RateLimitConfig)`
-  - [ ] Implement `execute(api_call, *args, **kwargs)` with pre-call rate-limit check
-  - [ ] Implement FIFO request queue with configurable max depth
-  - [ ] Implement backpressure signaling when queue is full
-  - [ ] Implement retry-with-backoff on transient failures
-  - [ ] Implement `get_queue_status() -> QueueStatus`
-  - [ ] Log every outbound API call (service, timestamp, result, latency)
-  - [ ] Ensure no code path calls external APIs directly, bypassing the gatekeeper
-- [ ] Design object-oriented structure avoiding code duplication:
-  - [ ] Extract shared logic into base classes or mixins where 2+ classes repeat behavior
-  - [ ] Ensure every mixin has a single responsibility and can be tested independently
-  - [ ] Use the Template Method pattern for repeated structured workflows (e.g., detector lifecycle)
-- [ ] Define "building block" design contract for each core component (Data Input / Data Output / Data Setup docstring convention)
-- [ ] Enforce single-responsibility, dependency-injectable, independently testable components across the codebase
-- [ ] Create `config/setup.json`, `config/rate_limits.json`, `config/logging_config.json` (versioned, `"version": "1.00"`)
-- [ ] Ensure zero hardcoded values (URLs, ports, thresholds, timeouts, API keys) in source code — all via config or `constants.py`/`Enum`
+- [x] Design layered architecture: `External Consumers → SDK → Domain Services → Infrastructure`
+- [x] Create `src/network_defender/sdk/sdk.py` as the **single entry point** for all business logic
+- [x] Ensure CLI, dashboard, and REST API only call through the SDK layer (no business logic in presentation layers)
+- [x] Create `src/network_defender/services/` for domain services (capture, parsing, detection, alerting)
+- [x] Create `src/network_defender/shared/config.py` — centralized configuration manager
+- [x] Create `src/network_defender/shared/gatekeeper.py` — centralized API Gatekeeper for all outbound calls (threat intel APIs)
+  - [x] Implement `ApiGatekeeper.__init__(config: RateLimitConfig)`
+  - [x] Implement `execute(api_call, *args, **kwargs)` with pre-call rate-limit check
+  - [x] Implement FIFO request queue with configurable max depth
+  - [x] Implement backpressure signaling when queue is full
+  - [x] Implement retry-with-backoff on transient failures
+  - [x] Implement `get_queue_status() -> QueueStatus`
+  - [x] Log every outbound API call (service, timestamp, result, latency)
+  - [x] Ensure no code path calls external APIs directly, bypassing the gatekeeper
+- [x] Design object-oriented structure avoiding code duplication:
+  - [x] Extract shared logic into base classes or mixins where 2+ classes repeat behavior
+  - [x] Ensure every mixin has a single responsibility and can be tested independently
+  - [x] Use the Template Method pattern for repeated structured workflows (e.g., detector lifecycle)
+- [x] Define "building block" design contract for each core component (Data Input / Data Output / Data Setup docstring convention)
+- [x] Enforce single-responsibility, dependency-injectable, independently testable components across the codebase
+- [x] Create `config/setup.json`, `config/rate_limits.json`, `config/logging_config.json` (versioned, `"version": "1.00"`)
+- [x] Ensure zero hardcoded values (URLs, ports, thresholds, timeouts, API keys) in source code — all via config or `constants.py`/`Enum`
 
 ---
 
