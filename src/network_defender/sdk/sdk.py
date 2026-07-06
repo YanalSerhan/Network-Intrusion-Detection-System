@@ -11,8 +11,11 @@ Data Input:  High-level commands from consumers (start, stop, query alerts…).
 Data Output: Structured results (health dicts, alert lists, status objects).
 """
 
+from pathlib import Path
 from typing import Any
 
+from ..capture.interface_discovery import list_interfaces
+from ..capture.models import CaptureStatus
 from ..services.alerting import AlertService
 from ..services.capture import CaptureService
 from ..services.detection import DetectionService
@@ -147,3 +150,55 @@ class NetworkDefenderSDK(LoggableMixin):
                 f"Available: {list(self._gatekeepers.keys())}"
             )
         return self._gatekeepers[service_name]
+
+    # ------------------------------------------------------------------
+    # Capture operations
+    # ------------------------------------------------------------------
+
+    def start_capture(self) -> None:
+        """
+        Start live packet capture on the configured network interface.
+
+        Delegates to CaptureService.start() via the BaseService template.
+        """
+        self._capture_service.start()
+
+    def stop_capture(self) -> None:
+        """Stop the active live capture session."""
+        self._capture_service.stop()
+
+    def start_capture_from_pcap(self, path: str | Path) -> None:
+        """
+        Replay packets from a PCAP file through the full filter/detection pipeline.
+
+        Args:
+            path: Absolute or relative path to the .pcap file.
+        """
+        self._capture_service.start_pcap_replay(path)
+
+    def save_capture_to_pcap(self, path: str | Path) -> None:
+        """
+        Save all packets captured in the current session to a PCAP file.
+
+        Args:
+            path: Destination file path.
+        """
+        self._capture_service.save_to_pcap(path)
+
+    def get_capture_status(self) -> CaptureStatus:
+        """
+        Return a snapshot of the capture service's current state.
+
+        Returns:
+            CaptureStatus Pydantic model with counters and config summary.
+        """
+        return self._capture_service.get_status()
+
+    def list_interfaces(self) -> list[str]:
+        """
+        Return the sorted list of all network interfaces visible to Scapy.
+
+        Returns:
+            List of interface name strings (e.g. ['eth0', 'lo', 'wlan0']).
+        """
+        return list_interfaces()

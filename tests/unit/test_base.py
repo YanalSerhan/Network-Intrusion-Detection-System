@@ -2,10 +2,7 @@
 
 from typing import Any
 
-import pytest
-
 from network_defender.shared.base import BaseService, LoggableMixin, ValidatableMixin
-
 
 # ---------------------------------------------------------------------------
 # Concrete stubs for testing abstract base classes

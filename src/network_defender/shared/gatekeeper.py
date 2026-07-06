@@ -12,7 +12,8 @@ Data Output: The return value of the callable, or raises GatekeeperError.
 import logging
 import time
 from collections import deque
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .gatekeeper_models import QueueStatus
 from .rate_limit_models import ServiceRateLimitConfig

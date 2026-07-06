@@ -95,24 +95,24 @@
 
 ## Milestone 3 — Packet Capture Module (`app/capture/`)
 
-- [ ] Design `CaptureService` interface (start/stop/status)
-- [ ] Implement live capture from a selected network interface via Scapy
-- [ ] Implement interface auto-discovery / listing
-- [ ] Implement PCAP file reading (offline analysis mode)
-- [ ] Implement saving captured traffic to PCAP files
-- [ ] Implement BPF filter support (user-supplied filter strings)
-- [ ] Implement protocol-level filtering (allow/deny list)
-- [ ] Implement human-readable packet summaries
-- [ ] Add support for capturing: Ethernet, ARP, IPv4, IPv6, TCP, UDP, ICMP
-- [ ] Add support for parsing DNS at capture layer (query extraction)
-- [ ] Add support for HTTP capture (clear-text)
-- [ ] Add support for HTTPS/TLS metadata-only capture (no decryption)
-- [ ] Add TLS handshake metadata extraction (ClientHello, SNI, cipher suites)
-- [ ] Implement graceful shutdown / signal handling for long-running capture
-- [ ] Implement capture rate limiting / backpressure to avoid overload
-- [ ] Add configuration for capture buffer size, snaplen, promiscuous mode
-- [ ] Write capture module docstrings (class, module, and function level)
-- [ ] Keep every file under the 150-line limit; split by protocol/concern if needed
+- [x] Design `CaptureService` interface (start/stop/status)
+- [x] Implement live capture from a selected network interface via Scapy
+- [x] Implement interface auto-discovery / listing
+- [x] Implement PCAP file reading (offline analysis mode)
+- [x] Implement saving captured traffic to PCAP files
+- [x] Implement BPF filter support (user-supplied filter strings)
+- [x] Implement protocol-level filtering (allow/deny list)
+- [x] Implement human-readable packet summaries
+- [x] Add support for capturing: Ethernet, ARP, IPv4, IPv6, TCP, UDP, ICMP
+- [x] Add support for parsing DNS at capture layer (query extraction)
+- [x] Add support for HTTP capture (clear-text)
+- [x] Add support for HTTPS/TLS metadata-only capture (no decryption)
+- [x] Add TLS handshake metadata extraction (ClientHello, SNI, cipher suites)
+- [x] Implement graceful shutdown / signal handling for long-running capture
+- [x] Implement capture rate limiting / backpressure to avoid overload
+- [x] Add configuration for capture buffer size, snaplen, promiscuous mode
+- [x] Write capture module docstrings (class, module, and function level)
+- [x] Keep every file under the 150-line limit; split by protocol/concern if needed
 
 ---
 

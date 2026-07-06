@@ -18,6 +18,22 @@ class CaptureConfig(BaseModel):
     snaplen: int = Field(default=65535, description="Maximum bytes to capture per packet.")
     promiscuous_mode: bool = Field(default=True, description="Enable promiscuous mode.")
     buffer_size: int = Field(default=4096, description="Capture ring buffer size in KB.")
+    max_packets_per_second: int = Field(
+        default=10_000,
+        description="Token-bucket rate limit; 0 = unlimited.",
+    )
+    protocol_allow_list: list[str] = Field(
+        default_factory=list,
+        description="If non-empty, only these protocols are passed downstream.",
+    )
+    protocol_deny_list: list[str] = Field(
+        default_factory=list,
+        description="Protocols explicitly dropped before downstream processing.",
+    )
+    pcap_output_dir: str = Field(
+        default="captures/",
+        description="Directory where saved PCAP files are written.",
+    )
 
 
 class ApiConfig(BaseModel):

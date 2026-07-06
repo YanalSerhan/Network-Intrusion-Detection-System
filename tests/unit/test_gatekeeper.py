@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -83,3 +83,19 @@ def test_get_queue_status(gatekeeper: ApiGatekeeper) -> None:
     assert status.service_name == "test_service"
     assert status.queue_depth == 0
     assert status.is_backpressure_active is False
+
+
+def test_minute_window_resets_after_60_seconds(gatekeeper: ApiGatekeeper) -> None:
+    """_refresh_minute_window resets the counter when 60+ seconds have elapsed."""
+    # Simulate that 61 seconds have elapsed by back-dating the window start.
+    gatekeeper._requests_this_minute = 10  # type: ignore[attr-defined]
+    gatekeeper._minute_window_start = gatekeeper._minute_window_start - 61  # type: ignore[attr-defined]
+    gatekeeper._refresh_minute_window()  # type: ignore[attr-defined]
+    assert gatekeeper._requests_this_minute == 0  # type: ignore[attr-defined]
+
+
+def test_minute_window_does_not_reset_within_60_seconds(gatekeeper: ApiGatekeeper) -> None:
+    """_refresh_minute_window keeps the counter intact within the window."""
+    gatekeeper._requests_this_minute = 5  # type: ignore[attr-defined]
+    gatekeeper._refresh_minute_window()  # type: ignore[attr-defined]
+    assert gatekeeper._requests_this_minute == 5  # type: ignore[attr-defined]

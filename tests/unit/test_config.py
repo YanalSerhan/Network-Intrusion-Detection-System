@@ -38,3 +38,25 @@ def test_rate_limit_service_values_are_positive() -> None:
     for name, svc in config.services.items():
         assert svc.requests_per_minute > 0, f"{name}: requests_per_minute must be > 0"
         assert svc.max_queue_depth > 0, f"{name}: max_queue_depth must be > 0"
+
+
+def test_database_url_env_var_overrides_default() -> None:
+    """DATABASE_URL env var should override the default_url in AppConfig."""
+    import os
+    from unittest.mock import patch
+
+    with patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pw@host/db"}):
+        config = load_app_config()
+    assert config.database.default_url == "postgresql://user:pw@host/db"
+
+
+def test_load_json_returns_empty_dict_for_missing_file() -> None:
+    """_load_json should return {} rather than raising when the file is absent."""
+    from pathlib import Path
+    from unittest.mock import patch
+
+    from network_defender.shared.config import _load_json
+
+    with patch("network_defender.shared.config._CONFIG_DIR", Path("/nonexistent/dir")):
+        result = _load_json("missing.json")
+    assert result == {}

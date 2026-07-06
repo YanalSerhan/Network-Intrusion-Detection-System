@@ -5,7 +5,11 @@
         "bpf_filter": "",
         "snaplen": 65535,
         "promiscuous_mode": true,
-        "buffer_size": 4096
+        "buffer_size": 4096,
+        "max_packets_per_second": 10000,
+        "protocol_allow_list": [],
+        "protocol_deny_list": [],
+        "pcap_output_dir": "captures/"
     },
     "api": {
         "host": "0.0.0.0",
