@@ -8,8 +8,10 @@ from unittest.mock import patch
 
 # pyrefly: ignore [missing-import]
 from scapy.layers.dns import DNS, DNSQR
+
 # pyrefly: ignore [missing-import]
 from scapy.layers.inet import IP, TCP, UDP
+
 # pyrefly: ignore [missing-import]
 from scapy.layers.l2 import ARP, Ether
 

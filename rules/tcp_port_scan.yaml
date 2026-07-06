@@ -1,0 +1,14 @@
+name: TCP Port Scan
+severity: medium
+enabled: true
+window: 60
+conditions:
+  - field: protocol
+    operator: equals
+    value: tcp
+  - field: tcp_flags.syn
+    operator: equals
+    value: true
+  - field: tcp_flags.ack
+    operator: equals
+    value: false

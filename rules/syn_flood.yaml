@@ -1,0 +1,14 @@
+name: SYN Flood
+severity: high
+enabled: true
+window: 10
+conditions:
+  - field: protocol
+    operator: equals
+    value: tcp
+  - field: tcp_flags.syn
+    operator: equals
+    value: true
+  - field: tcp_flags.ack
+    operator: equals
+    value: false

@@ -139,15 +139,15 @@
 
 ## Milestone 5 — Rule Engine (`app/rules/`)
 
-- [ ] Define YAML rule schema (name, severity, enabled, conditions, window)
-- [ ] Implement rule loader that auto-discovers and loads every `.yaml` file from `rules/`
-- [ ] Implement rule validation (schema validation via Pydantic) with clear error messages
-- [ ] Implement hot-reload of rules without restarting the application
-- [ ] Implement condition evaluators (equality, threshold, regex, time-window aggregation)
-- [ ] Support enabling/disabling individual rules via config
-- [ ] Write example rule files for each detector category (see Milestone 6)
-- [ ] Write rule engine unit tests (valid rules, invalid schema, disabled rules, edge cases)
-- [ ] Document the rule YAML schema in `docs/`
+- [x] Define YAML rule schema (name, severity, enabled, conditions, window)
+- [x] Implement rule loader that auto-discovers and loads every `.yaml` file from `rules/`
+- [x] Implement rule validation (schema validation via Pydantic) with clear error messages
+- [x] Implement hot-reload of rules without restarting the application
+- [x] Implement condition evaluators (equality, threshold, regex, time-window aggregation)
+- [x] Support enabling/disabling individual rules via config
+- [x] Write example rule files for each detector category (see Milestone 6)
+- [x] Write rule engine unit tests (valid rules, invalid schema, disabled rules, edge cases)
+- [x] Document the rule YAML schema in `docs/`
 
 ---
 
