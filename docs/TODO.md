@@ -273,12 +273,14 @@
 
 ## Milestone 12 — Logging & Observability (`app/utils/logging/`)
 
-- [ ] Implement structured (JSON) logging configuration
-- [ ] Implement separate log streams: application logs, security logs, audit logs
-- [ ] Implement log rotation and retention policy
-- [ ] Implement correlation IDs across capture → detection → alert pipeline for traceability
-- [ ] Ensure no secrets are ever written to logs
-- [ ] Write tests verifying log format and required fields
+- [x] Implement structured (JSON) logging configuration
+- [x] Implement separate log streams: application logs, security logs, audit logs
+- [x] Implement log rotation and retention policy (opt-in rotating files; stdout by default)
+- [x] Implement correlation IDs across capture → detection → alert pipeline for traceability
+- [x] Ensure no secrets are ever written to logs (handler-level redaction, incl. tracebacks)
+- [x] Write tests verifying log format and required fields
+- [x] Add HTTP request correlation middleware honouring inbound `X-Correlation-ID`
+- [x] Document logging design in `docs/OBSERVABILITY.md`
 
 ---
 

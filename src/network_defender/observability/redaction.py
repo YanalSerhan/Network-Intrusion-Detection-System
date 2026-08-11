@@ -34,7 +34,13 @@ SENSITIVE_KEYS = (
 )
 
 #: Values that leak secrets regardless of the field they arrive in.
+#:
+#: Order matters. The Bearer pattern runs first because the generic key/value
+#: pattern would otherwise match "Authorization: Bearer" and redact the word
+#: "Bearer" while leaving the token itself in plain sight.
 SENSITIVE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    # Bearer tokens in headers or messages.
+    re.compile(r"(?P<prefix>\bBearer\s+)(?P<value>[A-Za-z0-9._~+/=-]+)", re.IGNORECASE),
     # Database URLs embed credentials: postgresql://user:password@host/db
     re.compile(r"(?P<prefix>[a-z+]+://[^:/\s]+:)[^@\s]+(?P<suffix>@)", re.IGNORECASE),
     # "api_key=abc123", "token: abc123", "password=hunter2"
@@ -43,8 +49,6 @@ SENSITIVE_PATTERNS: tuple[re.Pattern[str], ...] = (
         r"(?P<value>[^\s,;&'\"}\]]+)",
         re.IGNORECASE,
     ),
-    # Bearer tokens in headers or messages.
-    re.compile(r"(?P<prefix>\bBearer\s+)(?P<value>[A-Za-z0-9._~+/=-]+)", re.IGNORECASE),
 )
 
 #: Cap on recursion into nested structures. Deeply nested payloads are far more

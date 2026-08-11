@@ -23,7 +23,10 @@ import network_defender.database.models  # noqa: F401  isort:skip
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # disable_existing_loggers defaults to True, which would silence every
+    # logger already configured by setup_logging(). Migrations run at startup,
+    # so that would leave the process running with logging switched off.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 
