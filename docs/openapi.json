@@ -1,0 +1,2096 @@
+{
+  "components": {
+    "schemas": {
+      "AlertDetail": {
+        "description": "Full alert representation, including evidence and enrichment.",
+        "properties": {
+          "alert_id": {
+            "description": "Unique identifier.",
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "confidence": {
+            "description": "Confidence this is a true positive, 0.0-1.0.",
+            "title": "Confidence",
+            "type": "number"
+          },
+          "description": {
+            "description": "Why the alert fired.",
+            "title": "Description",
+            "type": "string"
+          },
+          "dst_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Destination address.",
+            "title": "Dst Ip"
+          },
+          "dst_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Destination port.",
+            "title": "Dst Port"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "description": "Detector counters supporting the finding.",
+            "title": "Evidence",
+            "type": "object"
+          },
+          "last_seen": {
+            "description": "When the most recent matching event occurred.",
+            "format": "date-time",
+            "title": "Last Seen",
+            "type": "string"
+          },
+          "occurrences": {
+            "description": "Identical events folded into this alert.",
+            "title": "Occurrences",
+            "type": "integer"
+          },
+          "packet_summary": {
+            "default": "",
+            "description": "One-line description of the traffic.",
+            "title": "Packet Summary",
+            "type": "string"
+          },
+          "protocol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protocol involved.",
+            "title": "Protocol"
+          },
+          "rule_triggered": {
+            "description": "Detector class or YAML rule name.",
+            "title": "Rule Triggered",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "description": "Severity level."
+          },
+          "source": {
+            "$ref": "#/components/schemas/AlertSource",
+            "description": "Detector or rule engine."
+          },
+          "src_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source address.",
+            "title": "Src Ip"
+          },
+          "src_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source port.",
+            "title": "Src Port"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus",
+            "description": "Triage status."
+          },
+          "tactic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MitreTactic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "MITRE ATT&CK tactic."
+          },
+          "technique": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "MITRE ATT&CK technique ID.",
+            "title": "Technique"
+          },
+          "threat_intel": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ThreatIntelResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "External enrichment, if it has run."
+          },
+          "timestamp": {
+            "description": "When the alert was first raised (UTC).",
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "timestamp",
+          "last_seen",
+          "severity",
+          "source",
+          "rule_triggered",
+          "confidence",
+          "status",
+          "occurrences",
+          "description"
+        ],
+        "title": "AlertDetail",
+        "type": "object"
+      },
+      "AlertPage": {
+        "description": "A page of alert summaries.",
+        "properties": {
+          "items": {
+            "description": "Alerts in this page, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/AlertSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta",
+            "description": "Pagination metadata."
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "AlertPage",
+        "type": "object"
+      },
+      "AlertSource": {
+        "description": "Subsystem that raised an alert.",
+        "enum": [
+          "detector",
+          "rule_engine"
+        ],
+        "title": "AlertSource",
+        "type": "string"
+      },
+      "AlertStatus": {
+        "description": "Triage status of an alert as it moves through the SOC workflow.",
+        "enum": [
+          "new",
+          "acknowledged",
+          "resolved",
+          "false_positive"
+        ],
+        "title": "AlertStatus",
+        "type": "string"
+      },
+      "AlertStatusUpdate": {
+        "description": "Request body for changing an alert's triage status.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus",
+            "description": "The new triage status."
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "AlertStatusUpdate",
+        "type": "object"
+      },
+      "AlertSummary": {
+        "description": "Compact alert representation for list views.",
+        "properties": {
+          "alert_id": {
+            "description": "Unique identifier.",
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "confidence": {
+            "description": "Confidence this is a true positive, 0.0-1.0.",
+            "title": "Confidence",
+            "type": "number"
+          },
+          "dst_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Destination address.",
+            "title": "Dst Ip"
+          },
+          "last_seen": {
+            "description": "When the most recent matching event occurred.",
+            "format": "date-time",
+            "title": "Last Seen",
+            "type": "string"
+          },
+          "occurrences": {
+            "description": "Identical events folded into this alert.",
+            "title": "Occurrences",
+            "type": "integer"
+          },
+          "protocol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protocol involved.",
+            "title": "Protocol"
+          },
+          "rule_triggered": {
+            "description": "Detector class or YAML rule name.",
+            "title": "Rule Triggered",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "description": "Severity level."
+          },
+          "source": {
+            "$ref": "#/components/schemas/AlertSource",
+            "description": "Detector or rule engine."
+          },
+          "src_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source address.",
+            "title": "Src Ip"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus",
+            "description": "Triage status."
+          },
+          "tactic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MitreTactic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "MITRE ATT&CK tactic."
+          },
+          "timestamp": {
+            "description": "When the alert was first raised (UTC).",
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "timestamp",
+          "last_seen",
+          "severity",
+          "source",
+          "rule_triggered",
+          "confidence",
+          "status",
+          "occurrences"
+        ],
+        "title": "AlertSummary",
+        "type": "object"
+      },
+      "AsnInfo": {
+        "description": "Autonomous System attribution for an IP address.",
+        "properties": {
+          "asn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "AS number (e.g. 'AS15169').",
+            "title": "Asn"
+          },
+          "isp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Internet service provider name.",
+            "title": "Isp"
+          },
+          "organisation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "AS organisation name.",
+            "title": "Organisation"
+          }
+        },
+        "title": "AsnInfo",
+        "type": "object"
+      },
+      "ComponentHealth": {
+        "description": "Health of one subsystem.",
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "description": "Subsystem-specific fields.",
+            "title": "Detail",
+            "type": "object"
+          },
+          "status": {
+            "description": "'ok', 'degraded' or 'error'.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ComponentHealth",
+        "type": "object"
+      },
+      "ConfigResponse": {
+        "description": "Non-secret runtime configuration.",
+        "properties": {
+          "api": {
+            "additionalProperties": true,
+            "description": "API server settings.",
+            "title": "Api",
+            "type": "object"
+          },
+          "capture": {
+            "additionalProperties": true,
+            "description": "Capture settings.",
+            "title": "Capture",
+            "type": "object"
+          },
+          "dashboard": {
+            "additionalProperties": true,
+            "description": "Dashboard settings.",
+            "title": "Dashboard",
+            "type": "object"
+          },
+          "database": {
+            "additionalProperties": true,
+            "description": "Database settings, URL redacted.",
+            "title": "Database",
+            "type": "object"
+          },
+          "detection": {
+            "additionalProperties": true,
+            "description": "Detection settings.",
+            "title": "Detection",
+            "type": "object"
+          },
+          "retention_days": {
+            "description": "Configured retention window.",
+            "title": "Retention Days",
+            "type": "integer"
+          },
+          "secrets_configured": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Which credentials are set. Names and booleans only, never values.",
+            "title": "Secrets Configured",
+            "type": "object"
+          },
+          "version": {
+            "description": "Config schema version.",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "api",
+          "capture",
+          "detection",
+          "dashboard",
+          "database",
+          "retention_days",
+          "secrets_configured"
+        ],
+        "title": "ConfigResponse",
+        "type": "object"
+      },
+      "GeoLocation": {
+        "description": "Geographic attribution for an IP address.",
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "City name.",
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country name.",
+            "title": "Country"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 3166-1 alpha-2 code.",
+            "title": "Country Code"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latitude.",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Longitude.",
+            "title": "Longitude"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Region or state name.",
+            "title": "Region"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "IANA timezone name.",
+            "title": "Timezone"
+          }
+        },
+        "title": "GeoLocation",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "description": "Aggregate health payload.",
+        "properties": {
+          "components": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentHealth"
+            },
+            "description": "Per-component health.",
+            "title": "Components",
+            "type": "object"
+          },
+          "status": {
+            "description": "'ok' when every required component is healthy.",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "description": "Running application version.",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "components"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "LivenessResponse": {
+        "description": "Minimal liveness payload: the process is up and serving.",
+        "properties": {
+          "status": {
+            "default": "alive",
+            "description": "Always 'alive' when served.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "LivenessResponse",
+        "type": "object"
+      },
+      "MitreTactic": {
+        "description": "MITRE ATT&CK tactic IDs relevant to network-based detections.",
+        "enum": [
+          "TA0043",
+          "TA0001",
+          "TA0008",
+          "TA0011",
+          "TA0010",
+          "TA0006",
+          "TA0040"
+        ],
+        "title": "MitreTactic",
+        "type": "string"
+      },
+      "PacketPage": {
+        "description": "A page of retained packets.",
+        "properties": {
+          "items": {
+            "description": "Packets in this page.",
+            "items": {
+              "$ref": "#/components/schemas/PacketView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta",
+            "description": "Pagination metadata."
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PacketPage",
+        "type": "object"
+      },
+      "PacketView": {
+        "description": "A packet retained as alert evidence.",
+        "properties": {
+          "dst_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Destination address.",
+            "title": "Dst Ip"
+          },
+          "dst_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Destination port.",
+            "title": "Dst Port"
+          },
+          "fields": {
+            "additionalProperties": true,
+            "description": "Protocol sections (TCP flags, DNS, HTTP, TLS).",
+            "title": "Fields",
+            "type": "object"
+          },
+          "length": {
+            "description": "Total packet length in bytes.",
+            "title": "Length",
+            "type": "integer"
+          },
+          "protocol": {
+            "description": "Highest-layer protocol detected.",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "raw_summary": {
+            "description": "One-line human-readable description.",
+            "title": "Raw Summary",
+            "type": "string"
+          },
+          "src_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source address.",
+            "title": "Src Ip"
+          },
+          "src_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source port.",
+            "title": "Src Port"
+          },
+          "timestamp": {
+            "description": "Capture time (UTC).",
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "protocol",
+          "length",
+          "raw_summary"
+        ],
+        "title": "PacketView",
+        "type": "object"
+      },
+      "PageMeta": {
+        "description": "Pagination metadata attached to every list response.",
+        "properties": {
+          "count": {
+            "description": "Number of items in this page.",
+            "title": "Count",
+            "type": "integer"
+          },
+          "has_more": {
+            "description": "True if another page is likely available.",
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Page size that was applied.",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Number of items skipped.",
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total items matching the filter, when cheaply countable.",
+            "title": "Total"
+          }
+        },
+        "required": [
+          "limit",
+          "offset",
+          "count",
+          "has_more"
+        ],
+        "title": "PageMeta",
+        "type": "object"
+      },
+      "RulePage": {
+        "description": "A page of loaded rules.",
+        "properties": {
+          "items": {
+            "description": "Rules in this page, ordered by name.",
+            "items": {
+              "$ref": "#/components/schemas/RuleView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta",
+            "description": "Pagination metadata."
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "RulePage",
+        "type": "object"
+      },
+      "RuleReloadResult": {
+        "description": "Outcome of a rule reload.",
+        "properties": {
+          "loaded_rules_count": {
+            "description": "Rules loaded after the reload.",
+            "title": "Loaded Rules Count",
+            "type": "integer"
+          },
+          "status": {
+            "description": "'success' when the reload completed.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "loaded_rules_count"
+        ],
+        "title": "RuleReloadResult",
+        "type": "object"
+      },
+      "RuleToggle": {
+        "description": "Request body for enabling or disabling a rule.",
+        "properties": {
+          "enabled": {
+            "description": "Desired state.",
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "RuleToggle",
+        "type": "object"
+      },
+      "RuleView": {
+        "description": "A loaded detection rule and its current state.",
+        "properties": {
+          "conditions": {
+            "description": "Conditions, all of which must match.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "enabled": {
+            "description": "Whether the rule is currently evaluated.",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "group_by": {
+            "description": "Packet field the window aggregates on.",
+            "title": "Group By",
+            "type": "string"
+          },
+          "name": {
+            "description": "Unique rule name.",
+            "title": "Name",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "description": "Severity raised when the rule fires."
+          },
+          "source_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Originating YAML file.",
+            "title": "Source Path"
+          },
+          "threshold": {
+            "description": "Matches required within the window before firing.",
+            "title": "Threshold",
+            "type": "integer"
+          },
+          "window": {
+            "description": "Aggregation window in seconds; 0 means single-packet.",
+            "title": "Window",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "severity",
+          "enabled",
+          "window",
+          "threshold",
+          "group_by",
+          "conditions"
+        ],
+        "title": "RuleView",
+        "type": "object"
+      },
+      "Severity": {
+        "description": "Alert severity levels ordered from lowest to highest.",
+        "enum": [
+          "info",
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "StatisticsPoint": {
+        "description": "One counter snapshot in a time series.",
+        "properties": {
+          "alerts_by_severity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Severity breakdown.",
+            "title": "Alerts By Severity",
+            "type": "object"
+          },
+          "captured_at": {
+            "description": "Snapshot time (UTC).",
+            "format": "date-time",
+            "title": "Captured At",
+            "type": "string"
+          },
+          "packets_per_second": {
+            "description": "Throughput at that moment.",
+            "title": "Packets Per Second",
+            "type": "number"
+          },
+          "total_alerts": {
+            "description": "Alerts raised at that moment.",
+            "title": "Total Alerts",
+            "type": "integer"
+          },
+          "total_packets": {
+            "description": "Packets processed at that moment.",
+            "title": "Total Packets",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "captured_at",
+          "total_packets",
+          "total_alerts",
+          "packets_per_second",
+          "alerts_by_severity"
+        ],
+        "title": "StatisticsPoint",
+        "type": "object"
+      },
+      "StatisticsSummary": {
+        "description": "Aggregate counters for the dashboard overview.",
+        "properties": {
+          "alerts_by_severity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Alert counts keyed by severity.",
+            "title": "Alerts By Severity",
+            "type": "object"
+          },
+          "protocol_distribution": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Alert counts keyed by protocol.",
+            "title": "Protocol Distribution",
+            "type": "object"
+          },
+          "top_talkers": {
+            "description": "Busiest source addresses.",
+            "items": {
+              "$ref": "#/components/schemas/TopTalker"
+            },
+            "title": "Top Talkers",
+            "type": "array"
+          },
+          "total_alerts": {
+            "description": "Alerts currently stored.",
+            "title": "Total Alerts",
+            "type": "integer"
+          },
+          "total_packets_retained": {
+            "description": "Packets retained as evidence.",
+            "title": "Total Packets Retained",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_alerts",
+          "alerts_by_severity",
+          "total_packets_retained",
+          "top_talkers",
+          "protocol_distribution"
+        ],
+        "title": "StatisticsSummary",
+        "type": "object"
+      },
+      "ThreatIntelResult": {
+        "description": "Aggregated enrichment for a single IP address, attached to an Alert.",
+        "properties": {
+          "asn": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AsnInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Merged ASN attribution."
+          },
+          "enriched_at": {
+            "description": "Enrichment time (UTC).",
+            "format": "date-time",
+            "title": "Enriched At",
+            "type": "string"
+          },
+          "geo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeoLocation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Merged geolocation."
+          },
+          "ip": {
+            "description": "The IP address that was enriched.",
+            "title": "Ip",
+            "type": "string"
+          },
+          "providers_failed": {
+            "description": "Providers that errored or were skipped.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Providers Failed",
+            "type": "array"
+          },
+          "providers_queried": {
+            "description": "Providers consulted for this lookup.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Providers Queried",
+            "type": "array"
+          },
+          "reputation_score": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Aggregated maliciousness score in [0, 100].",
+            "title": "Reputation Score"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ThreatVerdict",
+            "default": "unknown",
+            "description": "Aggregated reputation verdict."
+          },
+          "whois": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WhoisInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Merged registration data."
+          }
+        },
+        "required": [
+          "ip"
+        ],
+        "title": "ThreatIntelResult",
+        "type": "object"
+      },
+      "ThreatVerdict": {
+        "description": "Aggregated reputation verdict for an IP address.",
+        "enum": [
+          "unknown",
+          "clean",
+          "suspicious",
+          "malicious"
+        ],
+        "title": "ThreatVerdict",
+        "type": "string"
+      },
+      "TopTalker": {
+        "description": "A busy source address and its alert count.",
+        "properties": {
+          "alert_count": {
+            "description": "Alerts attributed to this address.",
+            "title": "Alert Count",
+            "type": "integer"
+          },
+          "ip": {
+            "description": "Source address.",
+            "title": "Ip",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ip",
+          "alert_count"
+        ],
+        "title": "TopTalker",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WhoisInfo": {
+        "description": "Registration data for the network block containing an IP address.",
+        "properties": {
+          "abuse_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Abuse contact address.",
+            "title": "Abuse Email"
+          },
+          "cidr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Allocated CIDR block.",
+            "title": "Cidr"
+          },
+          "network_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Registered network name.",
+            "title": "Network Name"
+          },
+          "registered_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Registration date (ISO 8601).",
+            "title": "Registered On"
+          },
+          "registrant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Registrant organisation.",
+            "title": "Registrant"
+          },
+          "registry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Regional registry (ARIN, RIPE, \u2026).",
+            "title": "Registry"
+          }
+        },
+        "title": "WhoisInfo",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "\nREST API for **Network Defender**, a modular Python network intrusion\ndetection system.\n\nEvery endpoint delegates to the internal SDK: no business logic lives in a\nroute handler, so the API, CLI and dashboard cannot drift apart.\n\n**Authentication** \u2014 when an `API_KEY` is configured, requests must carry an\n`X-API-Key` header. With no key configured, authentication is disabled so\nlocal development works out of the box.\n",
+    "title": "Network Defender API",
+    "version": "1.00"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/alerts": {
+      "get": {
+        "description": "Return alerts, newest first.\n\nFiltering happens in the database, not in the API process, so a large\nresult set never has to be loaded to be discarded.",
+        "operationId": "list_alerts_api_v1_alerts_get",
+        "parameters": [
+          {
+            "description": "Filter by severity.",
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Severity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by severity.",
+              "title": "Severity"
+            }
+          },
+          {
+            "description": "Filter by triage status.",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AlertStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by triage status.",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Only alerts raised in the last N hours.",
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 8760,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only alerts raised in the last N hours.",
+              "title": "Hours"
+            }
+          },
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Maximum number of items to return.",
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Number of items to skip.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Number of items to skip.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List alerts",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}": {
+      "get": {
+        "description": "Return one alert with its evidence and threat intel enrichment.\n\nRaises:\n    NotFoundError: If no alert has this identifier.",
+        "operationId": "get_alert_api_v1_alerts__alert_id__get",
+        "parameters": [
+          {
+            "description": "Alert identifier.",
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "description": "Alert identifier.",
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get an alert",
+        "tags": [
+          "alerts"
+        ]
+      },
+      "patch": {
+        "description": "Move an alert through the triage workflow.\n\nRaises:\n    NotFoundError: If no alert has this identifier.",
+        "operationId": "update_alert_status_api_v1_alerts__alert_id__patch",
+        "parameters": [
+          {
+            "description": "Alert identifier.",
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "description": "Alert identifier.",
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertStatusUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update triage status",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}/enrich": {
+      "post": {
+        "description": "Run threat intel enrichment synchronously for one alert.\n\nBackground enrichment is dropped under load, so an analyst opening an\nun-enriched alert needs a way to request it on demand.\n\nRaises:\n    NotFoundError: If no alert has this identifier.",
+        "operationId": "enrich_alert_api_v1_alerts__alert_id__enrich_post",
+        "parameters": [
+          {
+            "description": "Alert identifier.",
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "description": "Alert identifier.",
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enrich an alert now",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}/packets": {
+      "get": {
+        "description": "Return the packets retained as evidence for an alert, in capture order.\n\nRaises:\n    NotFoundError: If no alert has this identifier.",
+        "operationId": "get_alert_packets_api_v1_alerts__alert_id__packets_get",
+        "parameters": [
+          {
+            "description": "Alert identifier.",
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "description": "Alert identifier.",
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PacketView"
+                  },
+                  "title": "Response Get Alert Packets Api V1 Alerts  Alert Id  Packets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get an alert's packet evidence",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/config": {
+      "get": {
+        "description": "Return the active configuration with every secret redacted.",
+        "operationId": "get_config_api_v1_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get runtime configuration",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Report whether this instance can serve requests.\n\nReturns 503 when a required component is unhealthy, so an orchestrator\nremoves the instance from rotation rather than sending it traffic.",
+        "operationId": "readiness_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readiness check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "description": "Report that the process is up.\n\nTouches nothing: a database outage must not cause healthy API instances to\nbe restarted in a loop.",
+        "operationId": "liveness_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/packets": {
+      "get": {
+        "description": "Return retained packets, oldest first within an alert.",
+        "operationId": "list_packets_api_v1_packets_get",
+        "parameters": [
+          {
+            "description": "Only packets retained for this alert.",
+            "in": "query",
+            "name": "alert_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only packets retained for this alert.",
+              "title": "Alert Id"
+            }
+          },
+          {
+            "description": "Filter by protocol.",
+            "in": "query",
+            "name": "protocol",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by protocol.",
+              "title": "Protocol"
+            }
+          },
+          {
+            "description": "Filter by source address.",
+            "in": "query",
+            "name": "src_ip",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by source address.",
+              "title": "Src Ip"
+            }
+          },
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Maximum number of items to return.",
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Number of items to skip.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Number of items to skip.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PacketPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List retained packets",
+        "tags": [
+          "packets"
+        ]
+      }
+    },
+    "/api/v1/packets/{packet_id}": {
+      "get": {
+        "description": "Return a single retained packet.\n\nRaises:\n    NotFoundError: If no packet has this identifier.",
+        "operationId": "get_packet_api_v1_packets__packet_id__get",
+        "parameters": [
+          {
+            "description": "Packet row identifier.",
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "description": "Packet row identifier.",
+              "minimum": 1,
+              "title": "Packet Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PacketView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a packet",
+        "tags": [
+          "packets"
+        ]
+      }
+    },
+    "/api/v1/rules": {
+      "get": {
+        "description": "Return the currently loaded rule set, ordered by name.",
+        "operationId": "list_rules_api_v1_rules_get",
+        "parameters": [
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Maximum number of items to return.",
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Number of items to skip.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Number of items to skip.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RulePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List detection rules",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/reload": {
+      "post": {
+        "description": "Re-read every rule file and refresh the snapshot.\n\nAlso clears any runtime enable/disable overrides, since the files on disk\nare the source of truth.",
+        "operationId": "reload_rules_api_v1_rules_reload_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleReloadResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reload rules from disk",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{name}": {
+      "get": {
+        "description": "Return a single rule by name.\n\nRaises:\n    NotFoundError: If no rule has this name.",
+        "operationId": "get_rule_api_v1_rules__name__get",
+        "parameters": [
+          {
+            "description": "Rule name.",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "description": "Rule name.",
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a rule",
+        "tags": [
+          "rules"
+        ]
+      },
+      "patch": {
+        "description": "Enable or disable a rule at runtime, without touching its YAML file.\n\nRaises:\n    NotFoundError: If no rule has this name.",
+        "operationId": "toggle_rule_api_v1_rules__name__patch",
+        "parameters": [
+          {
+            "description": "Rule name.",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "description": "Rule name.",
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleToggle"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enable or disable a rule",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/statistics": {
+      "get": {
+        "description": "Return aggregate counters for the dashboard overview.",
+        "operationId": "get_summary_api_v1_statistics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Traffic and alert summary",
+        "tags": [
+          "statistics"
+        ]
+      }
+    },
+    "/api/v1/statistics/timeseries": {
+      "get": {
+        "description": "Return counter snapshots, oldest first.\n\nLive counters reset when the sensor restarts, so trend charts read from\npersisted snapshots rather than from in-memory state.",
+        "operationId": "get_timeseries_api_v1_statistics_timeseries_get",
+        "parameters": [
+          {
+            "description": "Window length in hours.",
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "description": "Window length in hours.",
+              "maximum": 8760,
+              "minimum": 1,
+              "title": "Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StatisticsPoint"
+                  },
+                  "title": "Response Get Timeseries Api V1 Statistics Timeseries Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Counter time series",
+        "tags": [
+          "statistics"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Query and triage security alerts.",
+      "name": "alerts"
+    },
+    {
+      "description": "Packets retained as alert evidence.",
+      "name": "packets"
+    },
+    {
+      "description": "Traffic and alert aggregates.",
+      "name": "statistics"
+    },
+    {
+      "description": "Inspect, toggle and reload detection rules.",
+      "name": "rules"
+    },
+    {
+      "description": "Liveness and readiness probes.",
+      "name": "health"
+    },
+    {
+      "description": "Non-secret runtime configuration.",
+      "name": "config"
+    }
+  ]
+}

@@ -228,20 +228,22 @@
 
 ## Milestone 10 — REST API (`app/api/`, FastAPI)
 
-- [ ] Design API contract (OpenAPI) for all endpoints before implementation
-- [ ] Implement `/alerts` endpoints (list, filter, get by ID)
-- [ ] Implement `/packets` endpoints (list, filter, get by ID)
-- [ ] Implement `/statistics` endpoints (traffic summary, top talkers, protocol distribution)
-- [ ] Implement `/rules` endpoints (list, get, enable/disable, reload)
-- [ ] Implement `/health` endpoint (liveness/readiness)
-- [ ] Implement `/config` endpoints (read current, non-secret configuration)
-- [ ] Ensure every endpoint delegates to the SDK layer only — no business logic in route handlers
-- [ ] Implement request validation via Pydantic models
-- [ ] Implement pagination for list endpoints
-- [ ] Implement authentication/authorization stub (API key or JWT) for future hardening
-- [ ] Implement structured error responses (consistent error schema)
-- [ ] Auto-generate and publish OpenAPI/Swagger docs
-- [ ] Write API tests for every endpoint (happy path + error path)
+- [x] Design API contract (OpenAPI) for all endpoints before implementation
+- [x] Implement `/alerts` endpoints (list, filter, get by ID)
+- [x] Implement `/packets` endpoints (list, filter, get by ID)
+- [x] Implement `/statistics` endpoints (traffic summary, top talkers, protocol distribution)
+- [x] Implement `/rules` endpoints (list, get, enable/disable, reload)
+- [x] Implement `/health` endpoint (liveness/readiness)
+- [x] Implement `/config` endpoints (read current, non-secret configuration)
+- [x] Ensure every endpoint delegates to the SDK layer only — no business logic in route handlers
+- [x] Implement request validation via Pydantic models
+- [x] Implement pagination for list endpoints
+- [x] Implement authentication/authorization stub (API key or JWT) for future hardening
+- [x] Implement structured error responses (consistent error schema)
+- [x] Auto-generate and publish OpenAPI/Swagger docs (`docs/openapi.json`, `/docs`, `/redoc`)
+- [x] Write API tests for every endpoint (happy path + error path)
+- [x] Add alert triage (`PATCH /alerts/{id}`) and on-demand enrichment endpoints
+- [x] Run the API read-only against the shared database (PLAN.md §4 topology)
 
 ---
 
