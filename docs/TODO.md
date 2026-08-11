@@ -249,23 +249,25 @@
 
 ## Milestone 11 — Dashboard (`app/dashboard/`)
 
-- [ ] Choose frontend stack (e.g., React/Vue or server-rendered templates) and document the decision as an ADR
-- [ ] Implement live traffic view (WebSocket or polling)
-- [ ] Implement packets-per-second live chart
-- [ ] Implement top source IPs widget
-- [ ] Implement top destination IPs widget
-- [ ] Implement protocol distribution chart
-- [ ] Implement alerts timeline visualization
-- [ ] Implement active alerts panel with severity color-coding
-- [ ] Implement attack statistics summary panel
-- [ ] Implement search page (query alerts/packets by filters)
-- [ ] Implement alert detail view (full alert + related packet data + MITRE mapping)
-- [ ] Implement raw packet viewer (hex/summary view)
-- [ ] Implement dark mode toggle
-- [ ] Ensure responsive layout (desktop/tablet/mobile breakpoints)
-- [ ] Document UI screen flows and interactions (`docs/` UI documentation)
-- [ ] Apply Nielsen's 10 usability heuristics as a design review checklist
-- [ ] Perform basic accessibility review (contrast, keyboard navigation, ARIA labels)
+- [x] Choose frontend stack (e.g., React/Vue or server-rendered templates) and document the decision as an ADR (ADR 7)
+- [x] Implement live traffic view (WebSocket or polling) — WebSocket, polled server-side (ADR 8)
+- [x] Implement packets-per-second live chart
+- [x] Implement top source IPs widget
+- [x] Implement top destination IPs widget
+- [x] Implement protocol distribution chart
+- [x] Implement alerts timeline visualization (recent-alerts feed, newest first)
+- [x] Implement active alerts panel with severity color-coding
+- [x] Implement attack statistics summary panel
+- [x] Implement search page (query alerts/packets by filters)
+- [x] Implement alert detail view (full alert + related packet data + MITRE mapping)
+- [x] Implement raw packet viewer (hex/summary view)
+- [x] Implement dark mode toggle
+- [x] Ensure responsive layout (desktop/tablet/mobile breakpoints)
+- [x] Document UI screen flows and interactions (`docs/UI.md`)
+- [x] Apply Nielsen's 10 usability heuristics as a design review checklist
+- [x] Perform basic accessibility review (contrast, keyboard navigation, ARIA labels)
+- [x] Add a rules management page (list, runtime toggle, reload)
+- [x] Write frontend component and hook tests (Vitest + Testing Library)
 
 ---
 
