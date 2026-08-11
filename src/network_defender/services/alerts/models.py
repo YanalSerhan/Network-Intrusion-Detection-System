@@ -21,6 +21,7 @@ from network_defender.constants import (
     MitreTactic,
     Severity,
 )
+from network_defender.services.threat_intel.models import ThreatIntelResult
 
 
 def _utc_now() -> datetime:
@@ -84,6 +85,10 @@ class Alert(BaseModel):
     )
     evidence: dict[str, Any] = Field(
         default_factory=dict, description="Counters and raw data supporting the detection."
+    )
+    threat_intel: ThreatIntelResult | None = Field(
+        default=None,
+        description="External enrichment (reputation, geo, ASN, WHOIS); None until enriched.",
     )
 
     def dedup_key(self) -> tuple[str, str, str, str]:

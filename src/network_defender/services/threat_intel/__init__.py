@@ -13,8 +13,12 @@ TTL-cached, failing providers are cut out by a circuit breaker, and the whole
 subsystem fails open: enrichment never prevents an alert from being raised.
 """
 
+from .aggregation import aggregate, classify
 from .base import ThreatIntelProvider
+from .cache import ThreatIntelCache
+from .circuit_breaker import CircuitBreaker
 from .eligibility import eligible_ips, is_public_ip
+from .factory import build_providers, build_service
 from .models import (
     AsnInfo,
     GeoLocation,
@@ -22,14 +26,22 @@ from .models import (
     ThreatIntelResult,
     WhoisInfo,
 )
+from .service import ThreatIntelService
 
 __all__ = [
     "AsnInfo",
+    "CircuitBreaker",
     "GeoLocation",
     "ProviderResult",
     "ThreatIntelProvider",
+    "ThreatIntelCache",
     "ThreatIntelResult",
+    "ThreatIntelService",
     "WhoisInfo",
+    "aggregate",
+    "build_providers",
+    "build_service",
+    "classify",
     "eligible_ips",
     "is_public_ip",
 ]
