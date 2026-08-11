@@ -5,16 +5,15 @@ Data Setup:  No state; pure functions.
 Data Input:  Domain models (Alert, ParsedPacket, Rule) or ORM records.
 Data Output: The other representation.
 
-Why a mapper layer
-------------------
 Repositories return domain models, never live ORM instances. That keeps the
-services free of SQLAlchemy — no detached-instance errors leaking into the
-alert pipeline, no lazy loads firing after a session closes, and the in-memory
+services free of SQLAlchemy — no detached-instance errors leaking into the alert
+pipeline, no lazy loads firing after a session closes — and leaves the in-memory
 and SQL repositories genuinely interchangeable behind the same port.
 """
 
 from typing import Any
 
+from ..constants import AlertSource, AlertStatus, MitreTactic, Severity
 from ..parser.models import ParsedPacket
 from ..rules.models import Rule
 from ..services.alerts.models import Alert
@@ -64,10 +63,11 @@ def record_to_alert(record: AlertRecord) -> Alert:
     values: dict[str, Any] = {name: getattr(record, name) for name in _ALERT_FIELDS}
     return Alert(
         **values,
-        severity=record.severity,
-        source=record.source,
-        status=record.status,
-        tactic=record.tactic,
+        # Stored as plain strings; the enums are str-valued so these coerce back.
+        severity=Severity(record.severity),
+        source=AlertSource(record.source),
+        status=AlertStatus(record.status),
+        tactic=MitreTactic(record.tactic) if record.tactic else None,
         technique=record.technique,
         threat_intel=(
             ThreatIntelResult.model_validate(record.threat_intel) if record.threat_intel else None

@@ -103,7 +103,122 @@ graph TD
 - **Decision:** Enforce a hard limit of 150 lines per file.
 - **Rationale:** Forces single-responsibility modules, encourages composability, and massively improves readability for students and code reviewers.
 
-## 6. API Contract Sketch
+### ADR 5: Store Only Alert-Linked Packets
+- **Context:** The schema calls for a `packets` table, but the system targets 10,000 packets/second — roughly 860 million rows per day.
+- **Decision:** Persist only the packets that triggered an alert, linked to it by foreign key. Full traffic remains in PCAP files.
+- **Rationale:** Analysts need the packet that caused a finding, not every packet on the wire. This keeps the evidence an investigation actually uses while making the write volume a rounding error, and avoids a table SQLite could not survive.
+
+### ADR 6: Repository Pattern Over Direct ORM Access
+- **Context:** Services could query SQLAlchemy directly, which is less code up front.
+- **Decision:** Services depend on repository ports and receive domain models; only the repository layer imports SQLAlchemy.
+- **Rationale:** Returning live ORM instances leaks session lifetime into the alert pipeline — detached-instance errors and lazy loads firing after a session closes. Returning detached domain models also keeps the in-memory and SQL repositories genuinely interchangeable, which is what makes the tests fast and the storage backend swappable.
+
+## 6. Database Schema
+
+SQLite in development, PostgreSQL-ready without code changes: no module above the repository layer names a backend, and the engine is the only place a URL or dialect appears.
+
+### ERD
+
+```mermaid
+erDiagram
+    ALERTS ||--o{ PACKETS : "evidence for"
+    ALERTS {
+        uuid     alert_id PK
+        datetime timestamp "indexed"
+        datetime last_seen
+        string   severity "indexed w/ timestamp"
+        string   source "detector | rule_engine"
+        string   rule_triggered "indexed"
+        string   src_ip "indexed w/ timestamp"
+        string   dst_ip "indexed"
+        int      src_port
+        int      dst_port
+        string   protocol
+        text     packet_summary
+        text     description
+        float    confidence "0.0 - 1.0"
+        string   tactic "MITRE ATT&CK"
+        string   technique "MITRE ATT&CK"
+        string   status "indexed w/ timestamp"
+        int      occurrences "dedup counter"
+        json     evidence
+        json     threat_intel "enrichment"
+    }
+    PACKETS {
+        int      id PK
+        uuid     alert_id FK "ON DELETE CASCADE"
+        datetime timestamp "indexed"
+        string   src_ip "indexed"
+        string   dst_ip
+        int      src_port
+        int      dst_port
+        string   protocol
+        int      length
+        text     raw_summary
+        json     fields "tcp_flags, dns, http, tls"
+    }
+    RULES {
+        string   name PK
+        string   severity
+        bool     enabled "indexed"
+        int      window "seconds"
+        int      threshold
+        string   group_by
+        json     conditions
+        text     source_path
+        datetime loaded_at
+    }
+    THREAT_INTEL_CACHE {
+        int      id PK
+        string   provider "unique w/ ip"
+        string   ip "unique w/ provider"
+        json     payload "ProviderResult"
+        datetime fetched_at
+        datetime expires_at "indexed"
+    }
+    STATISTICS {
+        int      id PK
+        datetime captured_at "indexed"
+        int      total_packets
+        int      total_alerts
+        float    packets_per_second
+        json     alerts_by_severity
+        json     top_talkers
+    }
+```
+
+### Tables
+
+| Table | Purpose | Retention |
+|---|---|---|
+| `alerts` | Every finding. The audit trail. | 30 days |
+| `packets` | Packets kept as evidence for an alert. Cascades on alert delete. | 7 days |
+| `rules` | Snapshot of the currently loaded YAML rules, so the API can list them without touching the filesystem. YAML remains the source of truth. | Replaced on each sync |
+| `threat_intel_cache` | Durable tier behind the in-memory enrichment cache, so a 24h reputation TTL survives a restart. | Own TTL |
+| `statistics` | Periodic counter snapshots backing dashboard trend charts. | 90 days |
+
+### Indexing
+
+Composite indices are ordered **equality column first, range column second**, matching how both SQLite and PostgreSQL use an index for a filter-then-sort without a separate sort step:
+
+- `(severity, timestamp)` — the dashboard default, "critical alerts, newest first".
+- `(status, timestamp)` — the triage queue, "everything still new".
+- `(src_ip, timestamp)` — the investigation pivot, "everything this host did, in order".
+
+### Portability notes
+
+| Concern | Handling |
+|---|---|
+| UUIDs | `GUID` type: native `UUID` on PostgreSQL, canonical 32-char hex on SQLite. Raw strings would drift in case and hyphenation, so equality lookups would silently miss. |
+| Timestamps | `UtcDateTime` normalises on write and re-tags on read. SQLite drops the offset, and naive values raise when compared against aware ones. |
+| JSON | SQLAlchemy's generic `JSON`: `JSONB` on PostgreSQL, encoded TEXT on SQLite. |
+| Cascades | `PRAGMA foreign_keys=ON` is set per connection; SQLite ignores foreign keys otherwise. |
+| Threads | `check_same_thread=False`; capture, evaluation and enrichment threads all touch the database. |
+| Migrations | Batch mode on SQLite, which cannot `ALTER` most columns in place. |
+
+Migrations live in `migrations/` and are applied programmatically on startup, so a fresh checkout, a container and a test run all reach the same schema without an operator remembering a CLI step. See `migrations/README.md`.
+
+## 7. API Contract Sketch
 
 ### Endpoints
 - `GET /api/v1/alerts`

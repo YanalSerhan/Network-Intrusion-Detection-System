@@ -20,6 +20,8 @@ plain in-memory cache, never break enrichment, which in turn must never break
 alerting. Failures are logged and swallowed.
 """
 
+from typing import Protocol
+
 from network_defender.constants import TI_CACHE_TTL_SECONDS
 from network_defender.shared.base import LoggableMixin
 
@@ -27,16 +29,22 @@ from .cache import ThreatIntelCache
 from .models import ProviderResult
 
 
-class DurableCacheBackend:
-    """Structural interface for the persistent tier (see ThreatIntelCacheRepository)."""
+class DurableCacheBackend(Protocol):
+    """
+    Structural interface for the persistent tier.
+
+    A Protocol rather than a base class so the database layer does not have to
+    import from the threat intel package: `ThreatIntelCacheRepository` satisfies
+    this by shape alone, keeping the dependency pointing one way.
+    """
 
     def get(self, provider: str, ip: str) -> ProviderResult | None:
         """Return a cached result, or None."""
-        raise NotImplementedError
+        ...
 
     def set(self, provider: str, ip: str, result: ProviderResult, ttl_seconds: float) -> None:
         """Store a result with a TTL."""
-        raise NotImplementedError
+        ...
 
 
 class TieredThreatIntelCache(LoggableMixin):

@@ -13,6 +13,7 @@ for a filter-then-sort without a separate sort step.
 """
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey, Index, String, Text
@@ -45,8 +46,8 @@ class AlertRecord(Base):
     technique: Mapped[str | None] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
     occurrences: Mapped[int] = mapped_column(default=1)
-    evidence: Mapped[dict] = mapped_column(JsonDict, default=dict)
-    threat_intel: Mapped[dict | None] = mapped_column(JsonDict)
+    evidence: Mapped[dict[str, Any]] = mapped_column(JsonDict, default=dict)
+    threat_intel: Mapped[dict[str, Any] | None] = mapped_column(JsonDict)
 
     packets: Mapped[list["PacketRecord"]] = relationship(
         back_populates="alert", cascade="all, delete-orphan"
@@ -84,7 +85,7 @@ class PacketRecord(Base):
     protocol: Mapped[str] = mapped_column(String(16), nullable=False)
     length: Mapped[int] = mapped_column(nullable=False)
     raw_summary: Mapped[str] = mapped_column(Text, default="")
-    fields: Mapped[dict] = mapped_column(JsonDict, default=dict)
+    fields: Mapped[dict[str, Any]] = mapped_column(JsonDict, default=dict)
 
     alert: Mapped["AlertRecord | None"] = relationship(back_populates="packets")
 
@@ -100,7 +101,7 @@ class RuleRecord(Base):
     window: Mapped[int] = mapped_column(default=0)
     threshold: Mapped[int] = mapped_column(default=1)
     group_by: Mapped[str] = mapped_column(String(32), default="src_ip")
-    conditions: Mapped[list] = mapped_column(JsonDict, default=list)
+    conditions: Mapped[list[dict[str, Any]]] = mapped_column(JsonDict, default=list)
     source_path: Mapped[str | None] = mapped_column(Text)
     loaded_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
 
@@ -119,7 +120,7 @@ class ThreatIntelCacheRecord(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     provider: Mapped[str] = mapped_column(String(64), nullable=False)
     ip: Mapped[str] = mapped_column(String(45), nullable=False)
-    payload: Mapped[dict] = mapped_column(JsonDict, nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JsonDict, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)
 
@@ -138,5 +139,5 @@ class StatisticsRecord(Base):
     total_packets: Mapped[int] = mapped_column(default=0)
     total_alerts: Mapped[int] = mapped_column(default=0)
     packets_per_second: Mapped[float] = mapped_column(default=0.0)
-    alerts_by_severity: Mapped[dict] = mapped_column(JsonDict, default=dict)
-    top_talkers: Mapped[dict] = mapped_column(JsonDict, default=dict)
+    alerts_by_severity: Mapped[dict[str, int]] = mapped_column(JsonDict, default=dict)
+    top_talkers: Mapped[dict[str, int]] = mapped_column(JsonDict, default=dict)

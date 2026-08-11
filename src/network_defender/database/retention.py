@@ -28,7 +28,7 @@ as long as packet retention or evidence would outlive nothing.
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete
+from sqlalchemy import Delete, delete
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..shared.base import LoggableMixin
@@ -129,7 +129,9 @@ class RetentionService(LoggableMixin):
             delete(ThreatIntelCacheRecord).where(ThreatIntelCacheRecord.expires_at <= now)
         )
 
-    def _delete_where(self, statement: object) -> int:
+    def _delete_where(self, statement: Delete) -> int:
         """Execute a bulk DELETE and return the affected row count."""
         with session_scope(self._session_factory) as session:
-            return int(session.execute(statement).rowcount or 0)  # type: ignore[arg-type]
+            result = session.execute(statement)
+            # CursorResult exposes rowcount; the ORM's Result base type does not.
+            return int(getattr(result, "rowcount", 0) or 0)

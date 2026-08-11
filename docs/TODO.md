@@ -211,16 +211,18 @@
 
 ## Milestone 9 — Database Layer (`app/database/`, `app/models/`)
 
-- [ ] Design SQLAlchemy models: `Packet`, `Alert`, `Rule`, `ThreatIntelCache`, `Statistics`
-- [ ] Configure SQLite for development (file-based, versioned migration scripts)
-- [ ] Configure SQLAlchemy engine abstraction to support PostgreSQL later without code changes
-- [ ] Implement Alembic (or equivalent) migrations
-- [ ] Implement repository pattern for data access (decouple services from ORM details)
-- [ ] Implement database indices for common query patterns (source IP, timestamp, severity)
-- [ ] Implement data retention/cleanup policy (archiving or pruning old packet records)
-- [ ] Write unit tests for repository CRUD operations
-- [ ] Write integration tests against a real (test) SQLite database
-- [ ] Document schema in `docs/PLAN.md` (ERD or table description)
+- [x] Design SQLAlchemy models: `Packet`, `Alert`, `Rule`, `ThreatIntelCache`, `Statistics`
+- [x] Configure SQLite for development (file-based, versioned migration scripts)
+- [x] Configure SQLAlchemy engine abstraction to support PostgreSQL later without code changes
+- [x] Implement Alembic (or equivalent) migrations
+- [x] Implement repository pattern for data access (decouple services from ORM details)
+- [x] Implement database indices for common query patterns (source IP, timestamp, severity)
+- [x] Implement data retention/cleanup policy (archiving or pruning old packet records)
+- [x] Write unit tests for repository CRUD operations
+- [x] Write integration tests against a real (test) SQLite database
+- [x] Document schema in `docs/PLAN.md` (ERD or table description)
+- [x] Back the threat intel cache with the database so reputation survives restarts
+- [x] Persist alert-linked packets only (see ADR 5) — full traffic stays in PCAP
 
 ---
 
