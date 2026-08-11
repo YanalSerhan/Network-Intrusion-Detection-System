@@ -12,6 +12,7 @@ Data Output: Persisted Alert records, dispatched notifications, and query
 Pipeline: build -> deduplicate -> persist -> notify.
 """
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -44,19 +45,24 @@ class AlertService(BaseService):
         repository: AlertRepository | None = None,
         deduplicator: AlertDeduplicator | None = None,
         dispatcher: NotificationDispatcher | None = None,
+        enrichment_sink: Callable[[Alert], bool] | None = None,
     ) -> None:
         """
         Initialise the alert service.
 
         Args:
-            repository:   Persistence adapter; defaults to the in-memory store.
-            deduplicator: Correlation engine; defaults to the standard window.
-            dispatcher:   Notification fan-out; defaults to no hooks registered.
+            repository:      Persistence adapter; defaults to the in-memory store.
+            deduplicator:    Correlation engine; defaults to the standard window.
+            dispatcher:      Notification fan-out; defaults to no hooks registered.
+            enrichment_sink: Optional callable receiving each new alert for
+                             background threat-intel enrichment. Called after
+                             persistence so enrichment never delays alerting.
         """
         super().__init__(service_name="AlertService")
         self.repository = repository or InMemoryAlertRepository()
         self.deduplicator = deduplicator or AlertDeduplicator()
         self.dispatcher = dispatcher or NotificationDispatcher()
+        self.enrichment_sink = enrichment_sink
         self._raised = 0
         self._suppressed = 0
 
@@ -123,6 +129,8 @@ class AlertService(BaseService):
         self.repository.save(deduped)
         self._raised += 1
         self.dispatcher.dispatch(deduped)
+        if self.enrichment_sink is not None:
+            self.enrichment_sink(deduped)
         return deduped
 
     # ------------------------------------------------------------------

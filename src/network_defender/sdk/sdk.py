@@ -23,6 +23,8 @@ from ..services.alerts import AlertService
 from ..services.capture import CaptureService
 from ..services.detection import DetectionService
 from ..services.parser import PacketParser
+from ..services.threat_intel.factory import build_service
+from ..services.threat_intel.worker import EnrichmentWorker
 from ..shared.base import LoggableMixin
 from ..shared.config import load_app_config, load_rate_limit_config
 from ..shared.config_models import AppConfig
@@ -30,9 +32,12 @@ from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.rate_limit_models import RateLimitConfig
 from .alert_operations import AlertOperationsMixin
 from .pipeline import PipelineMixin
+from .threat_intel_operations import ThreatIntelOperationsMixin
 
 
-class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
+class NetworkDefenderSDK(
+    AlertOperationsMixin, ThreatIntelOperationsMixin, PipelineMixin, LoggableMixin
+):
     """
     Facade over all Network Defender domain services.
 
@@ -69,7 +74,7 @@ class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
         self._parser_service = PacketParser()
         # The alert service is built first so detector alerts can be routed
         # straight into the alert pipeline via the detection callback.
-        self._alert_service = AlertService()
+        self._alert_service = AlertService(enrichment_sink=self._submit_for_enrichment)
         self._detection_service = DetectionService(
             config_dir=app_config.config_dir,
             rules_dir=app_config.rules_dir,
@@ -83,6 +88,13 @@ class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
             name: ApiGatekeeper(service_name=name, config=svc_cfg)
             for name, svc_cfg in rate_limit_config.services.items()
         }
+
+        # Threat intel enrichment runs off the alert path on its own worker.
+        self._threat_intel_service = build_service(self._gatekeepers)
+        self._enrichment_worker = EnrichmentWorker(
+            service=self._threat_intel_service,
+            on_enriched=self._alert_service.repository.save,
+        )
 
         # Connect capture -> parser -> detection -> alerting.
         self._wire_pipeline()
@@ -117,6 +129,8 @@ class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
         """
         self.logger.info("NetworkDefenderSDK starting all services.")
         self._alert_service.start()
+        self._threat_intel_service.start()
+        self._enrichment_worker.start()
         self._parser_service.start()
         self._detection_service.start()
         self._capture_service.start()
@@ -128,6 +142,8 @@ class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
         self._capture_service.stop()
         self._detection_service.stop()
         self._parser_service.stop()
+        self._enrichment_worker.stop()
+        self._threat_intel_service.stop()
         self._alert_service.stop()
         self.logger.info("NetworkDefenderSDK shut down.")
 
@@ -147,6 +163,7 @@ class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
             "parser": self._parser_service.health_check(),
             "detection": self._detection_service.health_check(),
             "alerting": self._alert_service.health_check(),
+            "threat_intel": self._threat_intel_service.health_check(),
         }
         all_ok = all(c.get("running", False) for c in components.values())
         return {
