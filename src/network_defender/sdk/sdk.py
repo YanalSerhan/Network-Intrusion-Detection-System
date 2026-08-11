@@ -24,7 +24,9 @@ from ..services.alerts import AlertService
 from ..services.capture import CaptureService
 from ..services.database import DatabaseService
 from ..services.detection import DetectionService
+from ..services.maintenance import MaintenanceService
 from ..services.parser import PacketParser
+from ..services.statistics_sampler import StatisticsSampler
 from ..services.threat_intel.factory import build_service
 from ..services.threat_intel.tiered_cache import TieredThreatIntelCache
 from ..services.threat_intel.worker import EnrichmentWorker
@@ -35,6 +37,7 @@ from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.rate_limit_models import RateLimitConfig
 from .alert_operations import AlertOperationsMixin
 from .database_operations import DatabaseOperationsMixin
+from .maintenance_operations import MaintenanceOperationsMixin
 from .pipeline import PipelineMixin
 from .rule_operations import RuleOperationsMixin
 from .threat_intel_operations import ThreatIntelOperationsMixin
@@ -44,6 +47,7 @@ class NetworkDefenderSDK(
     AlertOperationsMixin,
     ThreatIntelOperationsMixin,
     DatabaseOperationsMixin,
+    MaintenanceOperationsMixin,
     RuleOperationsMixin,
     PipelineMixin,
     LoggableMixin,
@@ -117,6 +121,17 @@ class NetworkDefenderSDK(
             on_enriched=self._save_enriched_alert,
         )
 
+        # Derives packets/sec from consecutive cumulative counter readings.
+        self._statistics_sampler = StatisticsSampler()
+
+        # Nothing called these before: the throughput chart stayed empty and
+        # retention never ran, so the database grew without bound.
+        self._maintenance_service = MaintenanceService(
+            record_snapshot=self.record_statistics_snapshot,
+            prune=self.prune_old_data,
+            config=app_config.maintenance,
+        )
+
         # Connect capture -> parser -> detection -> alerting.
         self._wire_pipeline()
 
@@ -158,6 +173,9 @@ class NetworkDefenderSDK(
         self._detection_service.start()
         self._sync_rule_snapshot()
         self._capture_service.start()
+        # Started after capture so the first throughput sample has a baseline.
+        self._statistics_sampler.reset()
+        self._maintenance_service.start()
         self.logger.info("NetworkDefenderSDK ready.")
 
     def _sync_rule_snapshot(self) -> None:
@@ -200,6 +218,7 @@ class NetworkDefenderSDK(
     def stop(self) -> None:
         """Stop all domain services in reverse order."""
         self.logger.info("NetworkDefenderSDK stopping all services.")
+        self._maintenance_service.stop()
         self._capture_service.stop()
         self._detection_service.stop()
         self._parser_service.stop()
@@ -227,6 +246,7 @@ class NetworkDefenderSDK(
             "alerting": self._alert_service.health_check(),
             "threat_intel": self._threat_intel_service.health_check(),
             "database": self._database_service.health_check(),
+            "maintenance": self._maintenance_service.health_check(),
         }
         all_ok = all(c.get("running", False) for c in components.values())
         return {

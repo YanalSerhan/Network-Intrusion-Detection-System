@@ -223,6 +223,7 @@
 - [x] Document schema in `docs/PLAN.md` (ERD or table description)
 - [x] Back the threat intel cache with the database so reputation survives restarts
 - [x] Persist alert-linked packets only (see ADR 5) — full traffic stays in PCAP
+- [x] Run retention and statistics snapshots on a scheduler (`MaintenanceService`) — without it retention never fired and the throughput chart had no data
 
 ---
 

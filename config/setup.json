@@ -31,6 +31,12 @@
         "evaluation_interval_seconds": 5.0,
         "evaluate_rules": true
     },
+    "maintenance": {
+        "statistics_enabled": true,
+        "statistics_interval_seconds": 60.0,
+        "retention_enabled": true,
+        "retention_interval_seconds": 3600.0
+    },
     "rules_dir": "rules/",
     "config_dir": "config/",
     "retention_days": 30

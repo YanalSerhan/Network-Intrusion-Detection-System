@@ -76,6 +76,29 @@ class DetectionConfig(BaseModel):
     )
 
 
+class MaintenanceConfig(BaseModel):
+    """Configuration for periodic background maintenance."""
+
+    statistics_enabled: bool = Field(
+        default=True, description="Record periodic counter snapshots for dashboard trends."
+    )
+    statistics_interval_seconds: float = Field(
+        default=60.0,
+        gt=0,
+        description="Seconds between statistics snapshots. Also the resolution of the "
+        "packets-per-second chart.",
+    )
+    retention_enabled: bool = Field(
+        default=True, description="Prune rows past their retention window on a timer."
+    )
+    retention_interval_seconds: float = Field(
+        default=3600.0,
+        gt=0,
+        description="Seconds between retention sweeps. Hourly is ample for day-scale windows "
+        "and keeps the delete cost off the hot path.",
+    )
+
+
 class AppConfig(BaseModel):
     """Top-level application configuration assembled from setup.json."""
 
@@ -85,6 +108,7 @@ class AppConfig(BaseModel):
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     dashboard: DashboardConfig = Field(default_factory=DashboardConfig)
     detection: DetectionConfig = Field(default_factory=DetectionConfig)
+    maintenance: MaintenanceConfig = Field(default_factory=MaintenanceConfig)
     rules_dir: str = Field(default="rules/", description="Path to YAML rules directory.")
     config_dir: str = Field(
         default="config/", description="Path to the directory holding detectors.json."

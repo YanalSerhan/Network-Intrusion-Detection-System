@@ -231,6 +231,19 @@ Composite indices are ordered **equality column first, range column second**, ma
 
 Migrations live in `migrations/` and are applied programmatically on startup, so a fresh checkout, a container and a test run all reach the same schema without an operator remembering a CLI step. See `migrations/README.md`.
 
+### Background maintenance
+
+Two jobs run on timers, owned by `MaintenanceService` and configured under `maintenance` in `config/setup.json`:
+
+| Job | Default interval | Why that interval |
+|---|---|---|
+| Statistics snapshot | 60s | Defines the resolution of the throughput chart. Cheap: two aggregate queries and one insert. |
+| Retention sweep | 1h | Issues DELETEs across four tables and only needs to keep pace with day-scale windows. Often enough to bound growth, rare enough to stay off the hot path. |
+
+Throughput is **derived**, not stored: `packets_captured` is cumulative, so the sampler records the delta between consecutive snapshots. A capture restart sets that counter back to zero, which is detected and treated as a new baseline rather than reported as a large negative rate.
+
+Each job is isolated — a failure is logged, counted in `/health`, and does not stop the other or kill the loop. Maintenance must never be the reason a sensor stops detecting.
+
 ## 7. API Contract Sketch
 
 ### Endpoints
