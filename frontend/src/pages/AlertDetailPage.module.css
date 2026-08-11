@@ -1,0 +1,70 @@
+.breadcrumb { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+.breadcrumb a { color: var(--text-muted); }
+.breadcrumb a:hover { color: var(--accent); }
+
+.header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.heading { font-size: 1.35rem; }
+
+.description { color: var(--text-muted); margin: 0.4rem 0 1rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stack { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.spaced { margin-top: 1rem; }
+
+.definitions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+}
+
+.definitions dt { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.1rem; }
+.definitions dd { margin: 0; font-size: 0.9rem; }
+
+.mono { font-family: var(--mono); font-size: 0.85rem; }
+
+.mitre { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.mitre li { display: flex; flex-direction: column; gap: 0.1rem; }
+.mitreLabel { font-size: 0.75rem; color: var(--text-muted); }
+
+.actions { display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap; }
+.statusField { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.actions select,
+.actions button {
+  padding: 0.4rem 0.7rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.actions button:hover:not(:disabled) { border-color: var(--accent); }
+.actions button:disabled { opacity: 0.5; cursor: progress; }
+
+.details { margin-bottom: 1rem; }
+.details summary { cursor: pointer; font-size: 0.88rem; color: var(--text-muted); }
+
+.json {
+  margin: 0.6rem 0 0;
+  padding: 0.7rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}

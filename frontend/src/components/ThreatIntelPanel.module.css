@@ -1,0 +1,31 @@
+.panel { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.summary { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+.verdict {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--sev-text);
+}
+
+.malicious { background: var(--sev-critical); }
+.suspicious { background: var(--sev-high); }
+.clean { background: var(--sev-low); }
+.unknown { background: var(--text-muted); }
+
+.ip { font-family: var(--mono); font-size: 0.9rem; }
+.score { color: var(--text-muted); font-size: 0.85rem; }
+
+.definitions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+}
+
+.definitions dt { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.1rem; }
+.definitions dd { margin: 0; font-size: 0.9rem; word-break: break-word; }
+
+.partial { margin: 0; font-size: 0.83rem; color: var(--sev-medium); }

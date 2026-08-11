@@ -1,0 +1,52 @@
+.heading { font-size: 1.35rem; margin-bottom: 1rem; }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+
+.label { font-size: 0.78rem; color: var(--text-muted); }
+
+.field input,
+.field select {
+  padding: 0.4rem 0.55rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.88rem;
+  min-width: 0;
+}
+
+.results { margin-top: 1rem; }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+}
+
+.pager button {
+  padding: 0.35rem 0.9rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.pager button:hover:not(:disabled) { border-color: var(--accent); }
+
+/* Disabled controls keep a visible label; hiding them would make the pager
+   jump around as pages change. */
+.pager button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.pageLabel { font-size: 0.85rem; color: var(--text-muted); }
