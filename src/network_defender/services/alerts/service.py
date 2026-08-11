@@ -124,6 +124,14 @@ class AlertService(BaseService):
         deduped = self.deduplicator.process(alert)
         if deduped is None:
             self._suppressed += 1
+            # The deduplicator mutated the tracked alert in place, bumping
+            # `occurrences` and `last_seen`. An in-memory store shares that
+            # object so the change is implicitly visible; a durable store does
+            # not, so the merged alert must be written back explicitly or the
+            # occurrence count silently stays at 1 forever.
+            merged = self.deduplicator.get_active(alert)
+            if merged is not None:
+                self.repository.save(merged)
             return None
 
         self.repository.save(deduped)

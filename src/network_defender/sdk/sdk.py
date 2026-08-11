@@ -21,9 +21,11 @@ from ..capture.models import CaptureStatus
 from ..parser.models import ParsedPacket
 from ..services.alerts import AlertService
 from ..services.capture import CaptureService
+from ..services.database import DatabaseService
 from ..services.detection import DetectionService
 from ..services.parser import PacketParser
 from ..services.threat_intel.factory import build_service
+from ..services.threat_intel.tiered_cache import TieredThreatIntelCache
 from ..services.threat_intel.worker import EnrichmentWorker
 from ..shared.base import LoggableMixin
 from ..shared.config import load_app_config, load_rate_limit_config
@@ -31,12 +33,17 @@ from ..shared.config_models import AppConfig
 from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.rate_limit_models import RateLimitConfig
 from .alert_operations import AlertOperationsMixin
+from .database_operations import DatabaseOperationsMixin
 from .pipeline import PipelineMixin
 from .threat_intel_operations import ThreatIntelOperationsMixin
 
 
 class NetworkDefenderSDK(
-    AlertOperationsMixin, ThreatIntelOperationsMixin, PipelineMixin, LoggableMixin
+    AlertOperationsMixin,
+    ThreatIntelOperationsMixin,
+    DatabaseOperationsMixin,
+    PipelineMixin,
+    LoggableMixin,
 ):
     """
     Facade over all Network Defender domain services.
@@ -70,11 +77,17 @@ class NetworkDefenderSDK(
         self._rate_limit_config = rate_limit_config
 
         # Build service instances with injected configs (no hardcoded values).
+        # The database is built first: every other service either persists
+        # through it or reads a repository from it.
+        self._database_service = DatabaseService(config=app_config.database)
         self._capture_service = CaptureService(config=app_config.capture)
         self._parser_service = PacketParser()
-        # The alert service is built first so detector alerts can be routed
-        # straight into the alert pipeline via the detection callback.
-        self._alert_service = AlertService(enrichment_sink=self._submit_for_enrichment)
+        # The alert service comes before detection so detector alerts can be
+        # routed straight into the alert pipeline via the detection callback.
+        self._alert_service = AlertService(
+            repository=self._database_service.alerts,
+            enrichment_sink=self._submit_for_enrichment,
+        )
         self._detection_service = DetectionService(
             config_dir=app_config.config_dir,
             rules_dir=app_config.rules_dir,
@@ -90,7 +103,12 @@ class NetworkDefenderSDK(
         }
 
         # Threat intel enrichment runs off the alert path on its own worker.
+        # Its cache is backed by the database so a 24h reputation TTL survives
+        # a restart instead of being re-fetched against a 10 req/min budget.
         self._threat_intel_service = build_service(self._gatekeepers)
+        self._threat_intel_service.cache = TieredThreatIntelCache(  # type: ignore[assignment]
+            durable=self._database_service.threat_intel_cache
+        )
         self._enrichment_worker = EnrichmentWorker(
             service=self._threat_intel_service,
             on_enriched=self._save_enriched_alert,
@@ -128,13 +146,30 @@ class NetworkDefenderSDK(
         detector registry and is silently lost.
         """
         self.logger.info("NetworkDefenderSDK starting all services.")
+        self._database_service.start()
         self._alert_service.start()
         self._threat_intel_service.start()
         self._enrichment_worker.start()
         self._parser_service.start()
         self._detection_service.start()
+        self._sync_rule_snapshot()
         self._capture_service.start()
         self.logger.info("NetworkDefenderSDK ready.")
+
+    def _sync_rule_snapshot(self) -> None:
+        """
+        Mirror the loaded rule set into the database.
+
+        Lets the API and dashboard list the active rules without reading the
+        filesystem. Best-effort: a snapshot failure must not stop the sensor.
+        """
+        engine = self._detection_service.rule_engine
+        if engine is None:
+            return
+        try:
+            self._database_service.rules.sync(engine.loader.registry.get_all_enabled_rules())
+        except Exception as exc:  # noqa: BLE001 - snapshot is not load-bearing
+            self.logger.error("Failed to snapshot rules: %s", exc)
 
     def stop(self) -> None:
         """Stop all domain services in reverse order."""
@@ -145,6 +180,7 @@ class NetworkDefenderSDK(
         self._enrichment_worker.stop()
         self._threat_intel_service.stop()
         self._alert_service.stop()
+        self._database_service.stop()
         self.logger.info("NetworkDefenderSDK shut down.")
 
     # ------------------------------------------------------------------
@@ -164,6 +200,7 @@ class NetworkDefenderSDK(
             "detection": self._detection_service.health_check(),
             "alerting": self._alert_service.health_check(),
             "threat_intel": self._threat_intel_service.health_check(),
+            "database": self._database_service.health_check(),
         }
         all_ok = all(c.get("running", False) for c in components.values())
         return {

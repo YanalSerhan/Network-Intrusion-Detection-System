@@ -80,13 +80,18 @@ def test_alerts_are_enriched_off_the_hot_path(sdk: NetworkDefenderSDK) -> None:
     )
 
     sdk._on_detection(detection)
-    alert = sdk.list_alerts()[0]
-    assert alert.threat_intel is None, "enrichment must not run inline"
+    alert_id = sdk.list_alerts()[0].alert_id
+    assert sdk.get_alert(alert_id).threat_intel is None, "enrichment must not run inline"
 
     sdk._enrichment_worker.drain()
-    assert alert.threat_intel is not None
-    assert alert.threat_intel.geo is not None
-    assert alert.threat_intel.geo.country == "Russia"
+
+    # Re-read: the repository returns a snapshot, so enrichment is observed by
+    # querying again rather than by mutation of an object fetched earlier.
+    enriched = sdk.get_alert(alert_id)
+    assert enriched is not None
+    assert enriched.threat_intel is not None
+    assert enriched.threat_intel.geo is not None
+    assert enriched.threat_intel.geo.country == "Russia"
 
 
 def test_enrich_alert_now_for_an_unknown_id(sdk: NetworkDefenderSDK) -> None:

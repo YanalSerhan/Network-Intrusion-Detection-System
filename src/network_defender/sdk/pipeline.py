@@ -23,18 +23,20 @@ from ..parser.models import ParsedPacket
 from ..rules.models import Rule
 from ..services.alerts import AlertService
 from ..services.capture import CaptureService
+from ..services.database import DatabaseService
 from ..services.detection import DetectionService
 from ..services.parser import PacketParser
 from ..shared.base import LoggableMixin
 
 
 class PipelineMixin(LoggableMixin):
-    """Connects capture output to parsing, detection and alerting."""
+    """Connects capture output to parsing, detection, alerting and storage."""
 
     _capture_service: CaptureService
     _parser_service: PacketParser
     _detection_service: DetectionService
     _alert_service: AlertService
+    _database_service: DatabaseService
 
     def _wire_pipeline(self) -> None:
         """Register the capture callback that drives the whole pipeline."""
@@ -59,8 +61,19 @@ class PipelineMixin(LoggableMixin):
         """
         Route a signature rule match into the alert pipeline.
 
+        The triggering packet is retained as evidence so the alert detail view
+        can show what actually matched. Only alert-linked packets are stored;
+        retaining all traffic would mean ~860M rows/day at the throughput target.
+
         Args:
             rule:   The rule whose conditions all matched.
             packet: The packet that satisfied them.
         """
-        self._alert_service.handle_rule_match(rule, packet)
+        alert = self._alert_service.handle_rule_match(rule, packet)
+        if alert is None:
+            # Deduplicated: the evidence for this finding is already stored.
+            return
+        try:
+            self._database_service.packets.save(packet, alert_id=alert.alert_id)
+        except Exception as exc:  # noqa: BLE001 - evidence is best-effort
+            self.logger.error("Failed to retain packet evidence: %s", exc)

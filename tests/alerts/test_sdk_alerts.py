@@ -24,7 +24,9 @@ def test_detector_alerts_reach_the_sdk(
     alerts = sdk.list_alerts()
     assert len(alerts) == 1
     assert alerts[0].rule_triggered == "TcpPortScanDetector"
-    assert sdk.get_alert(alerts[0].alert_id) is alerts[0]
+    # The SQL repository returns a fresh domain object per read, so compare by
+    # value rather than identity — identity was never part of the port's contract.
+    assert sdk.get_alert(alerts[0].alert_id) == alerts[0]
     assert sdk.get_alert(uuid4()) is None
 
 
