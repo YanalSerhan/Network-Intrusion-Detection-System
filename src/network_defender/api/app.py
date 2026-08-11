@@ -27,7 +27,17 @@ from fastapi import FastAPI
 from ..constants import API_PREFIX, API_TITLE, PROJECT_VERSION
 from ..sdk.sdk import NetworkDefenderSDK
 from .errors import register_error_handlers
-from .routers import alerts, config, dashboard, health, packets, rules, statistics
+from .live.broadcaster import LiveBroadcaster
+from .routers import (
+    alerts,
+    config,
+    dashboard,
+    health,
+    live,
+    packets,
+    rules,
+    statistics,
+)
 
 DESCRIPTION = """
 REST API for **Network Defender**, a modular Python network intrusion
@@ -48,6 +58,7 @@ TAGS_METADATA = [
     {"name": "rules", "description": "Inspect, toggle and reload detection rules."},
     {"name": "health", "description": "Liveness and readiness probes."},
     {"name": "config", "description": "Non-secret runtime configuration."},
+    {"name": "live", "description": "WebSocket stream of alerts and counters."},
 ]
 
 
@@ -62,9 +73,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     sdk = NetworkDefenderSDK.create()
     sdk.start_readonly()
     app.state.sdk = sdk
+
+    broadcaster = LiveBroadcaster(sdk)
+    broadcaster.start()
+    app.state.broadcaster = broadcaster
     try:
         yield
     finally:
+        await broadcaster.stop()
         sdk.stop_readonly()
 
 
@@ -93,14 +109,19 @@ def create_app(sdk: NetworkDefenderSDK | None = None) -> FastAPI:
 
     if sdk is not None:
         app.state.sdk = sdk
+        # Tests and embedders that supply an SDK own the lifecycle, so the
+        # broadcaster is attached but left un-started; poll_once() can be
+        # driven directly instead of waiting on a timer.
+        app.state.broadcaster = LiveBroadcaster(sdk)
 
     register_error_handlers(app)
 
     for router in (alerts, packets, statistics, rules, health, config):
         app.include_router(router.router, prefix=API_PREFIX)
 
-    # The dashboard is mounted at the root, not under /api/v1: it is a user
-    # interface, not part of the versioned data contract.
+    # The live socket and the dashboard sit outside /api/v1: one is a transport,
+    # the other a user interface, and neither is part of the data contract.
+    app.include_router(live.router)
     app.include_router(dashboard.router)
 
     return app

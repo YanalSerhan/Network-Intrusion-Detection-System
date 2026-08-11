@@ -142,6 +142,16 @@ API_PREFIX = "/api/v1"
 ENV_API_KEY = "API_KEY"
 
 # ---------------------------------------------------------------------------
+# Live dashboard feed
+# ---------------------------------------------------------------------------
+#: How often the server polls for new alerts. One poller serves every client,
+#: so this is the total added database load regardless of viewer count.
+LIVE_POLL_SECONDS = 2.0
+#: Cap on alerts carried in one frame, so an alert storm cannot produce a
+#: multi-megabyte message that stalls the browser.
+LIVE_RECENT_ALERT_LIMIT = 50
+
+# ---------------------------------------------------------------------------
 # Network protocol identifiers
 # ---------------------------------------------------------------------------
 

@@ -2091,6 +2091,10 @@
     {
       "description": "Non-secret runtime configuration.",
       "name": "config"
+    },
+    {
+      "description": "WebSocket stream of alerts and counters.",
+      "name": "live"
     }
   ]
 }
