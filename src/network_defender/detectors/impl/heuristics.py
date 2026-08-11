@@ -2,6 +2,7 @@
 Detectors for various heuristic anomalies.
 """
 
+import ipaddress
 import math
 from collections import defaultdict
 from typing import Any
@@ -129,7 +130,10 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
         alerts = []
         for (src_ip, dst_ip), timestamps in self._src_dst_timestamps.items():
             if len(timestamps) >= self.config.connection_count_threshold:
-                intervals = [timestamps[i] - timestamps[i-1] for i in range(1, len(timestamps))]
+                # Sort first: out-of-order arrivals produce negative intervals,
+                # which inflate the standard deviation and mask real beacons.
+                ordered = sorted(timestamps)
+                intervals = [ordered[i] - ordered[i - 1] for i in range(1, len(ordered))]
                 if len(intervals) > 0:
                     mean_interval = sum(intervals) / len(intervals)
                     if mean_interval > 0:
@@ -236,7 +240,18 @@ class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
         return "LateralMovementDetector"
 
     def _is_internal(self, ip: str) -> bool:
-        return ip.startswith("10.") or ip.startswith("192.168.") or (ip.startswith("172.") and 16 <= int(ip.split(".")[1]) <= 31)
+        """
+        Return True if the address belongs to a private range.
+
+        Uses the stdlib parser rather than string prefixes: prefix matching
+        raised on malformed input (e.g. "172." -> IndexError), misread
+        addresses such as "172.5.0.1" as internal-adjacent, and ignored IPv6
+        unique-local space entirely, even though the PRD puts IPv6 in scope.
+        """
+        try:
+            return ipaddress.ip_address(ip).is_private
+        except ValueError:
+            return False
 
     def ingest(self, packet: ParsedPacket) -> None:
         if packet.src_ip and packet.dst_ip and self._is_internal(packet.src_ip) and self._is_internal(packet.dst_ip):

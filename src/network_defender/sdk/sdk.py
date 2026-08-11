@@ -29,9 +29,10 @@ from ..shared.config_models import AppConfig
 from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.rate_limit_models import RateLimitConfig
 from .alert_operations import AlertOperationsMixin
+from .pipeline import PipelineMixin
 
 
-class NetworkDefenderSDK(AlertOperationsMixin, LoggableMixin):
+class NetworkDefenderSDK(AlertOperationsMixin, PipelineMixin, LoggableMixin):
     """
     Facade over all Network Defender domain services.
 
@@ -70,8 +71,11 @@ class NetworkDefenderSDK(AlertOperationsMixin, LoggableMixin):
         # straight into the alert pipeline via the detection callback.
         self._alert_service = AlertService()
         self._detection_service = DetectionService(
-            config_dir=app_config.rules_dir,
+            config_dir=app_config.config_dir,
+            rules_dir=app_config.rules_dir,
             alert_callback=self._on_detection,
+            rule_callback=self._on_rule_match,
+            config=app_config.detection,
         )
 
         # Build per-service gatekeepers from config.
@@ -79,6 +83,9 @@ class NetworkDefenderSDK(AlertOperationsMixin, LoggableMixin):
             name: ApiGatekeeper(service_name=name, config=svc_cfg)
             for name, svc_cfg in rate_limit_config.services.items()
         }
+
+        # Connect capture -> parser -> detection -> alerting.
+        self._wire_pipeline()
 
     # ------------------------------------------------------------------
     # Factory
@@ -101,21 +108,27 @@ class NetworkDefenderSDK(AlertOperationsMixin, LoggableMixin):
     # ------------------------------------------------------------------
 
     def start(self) -> None:
-        """Start all domain services in dependency order."""
+        """
+        Start all domain services in dependency order.
+
+        Capture starts last: the downstream services must be ready before the
+        first packet arrives, otherwise early traffic hits an unloaded
+        detector registry and is silently lost.
+        """
         self.logger.info("NetworkDefenderSDK starting all services.")
-        self._capture_service.start()
+        self._alert_service.start()
         self._parser_service.start()
         self._detection_service.start()
-        self._alert_service.start()
+        self._capture_service.start()
         self.logger.info("NetworkDefenderSDK ready.")
 
     def stop(self) -> None:
         """Stop all domain services in reverse order."""
         self.logger.info("NetworkDefenderSDK stopping all services.")
-        self._alert_service.stop()
+        self._capture_service.stop()
         self._detection_service.stop()
         self._parser_service.stop()
-        self._capture_service.stop()
+        self._alert_service.stop()
         self.logger.info("NetworkDefenderSDK shut down.")
 
     # ------------------------------------------------------------------

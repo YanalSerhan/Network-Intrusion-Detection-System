@@ -34,8 +34,26 @@ class Rule(BaseModel):
     enabled: bool = Field(default=True, description="Whether the rule is actively evaluated.")
     window: int = Field(
         default=0,
+        ge=0,
         description="Time window in seconds for aggregation (0 means single-packet match).",
+    )
+    threshold: int = Field(
+        default=1,
+        ge=1,
+        description=(
+            "Matches required within `window` before the rule fires. "
+            "1 (the default) means every matching packet fires immediately."
+        ),
+    )
+    group_by: str = Field(
+        default="src_ip",
+        description="ParsedPacket field the window aggregates on (e.g. 'src_ip', 'dst_ip').",
     )
     conditions: list[RuleCondition] = Field(
         min_length=1, description="List of conditions that must ALL be true (AND logic)."
     )
+
+    @property
+    def is_aggregated(self) -> bool:
+        """True if this rule only fires after repeated matches inside a window."""
+        return self.window > 0 and self.threshold > 1

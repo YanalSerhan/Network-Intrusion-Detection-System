@@ -1,7 +1,12 @@
 name: SYN Flood
 severity: high
 enabled: true
+# A flood is a volume event: fire only after 100 unacknowledged SYNs from the
+# same source within 10 seconds. Without the threshold this rule matched every
+# single SYN packet, so any ordinary connection raised a high-severity alert.
 window: 10
+threshold: 100
+group_by: dst_ip
 conditions:
   - field: protocol
     operator: equals

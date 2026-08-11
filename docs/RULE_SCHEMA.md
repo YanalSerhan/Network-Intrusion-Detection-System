@@ -25,7 +25,39 @@ conditions:
 | `severity` | string | Yes | - | Alert severity if triggered (`info`, `low`, `medium`, `high`, `critical`). |
 | `enabled` | boolean | No | `true` | Whether the rule is actively evaluated. |
 | `window` | integer | No | `0` | Time window in seconds for aggregation-based rules (0 means single-packet match). |
+| `threshold` | integer | No | `1` | Matches required within `window` before the rule fires. `1` means every matching packet fires immediately. |
+| `group_by` | string | No | `src_ip` | The `ParsedPacket` field the window aggregates on (e.g. `src_ip`, `dst_ip`). |
 | `conditions` | list | Yes | - | A list of conditions. ALL conditions must be met (logical AND) to trigger. |
+
+### Single-packet vs aggregation rules
+
+A rule is an **aggregation rule** when `window > 0` **and** `threshold > 1`.
+Anything else is a single-packet rule that fires on every match.
+
+This distinction matters. A rule describing a volume event — a flood, a scan, a
+brute-force attempt — is only meaningful with a threshold: `window` alone does
+nothing, and the rule will fire on the very first matching packet. Set both.
+
+```yaml
+# WRONG: fires on every single SYN packet, so ordinary traffic raises a flood alert
+name: "SYN Flood"
+severity: "high"
+window: 10
+conditions: [...]
+
+# RIGHT: fires only after 100 SYNs to the same host within 10 seconds
+name: "SYN Flood"
+severity: "high"
+window: 10
+threshold: 100
+group_by: "dst_ip"
+conditions: [...]
+```
+
+Aggregation state is windowed and memory-bounded: counts outside `window` are
+discarded, and the engine tracks a capped number of `(rule, group)` series with
+LRU eviction. Packets whose `group_by` field is absent (e.g. `src_ip` on an ARP
+packet) never fire an aggregation rule.
 
 ### Condition Fields
 
@@ -81,6 +113,8 @@ name: "TCP Port Scan"
 severity: "medium"
 enabled: true
 window: 60
+threshold: 15
+group_by: "src_ip"
 conditions:
   - field: "protocol"
     operator: "equals"

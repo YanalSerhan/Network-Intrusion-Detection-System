@@ -64,6 +64,18 @@ class DashboardConfig(BaseModel):
     default_theme: str = Field(default="dark", description="Default UI theme.")
 
 
+class DetectionConfig(BaseModel):
+    """Configuration for the detection service."""
+
+    evaluation_interval_seconds: float = Field(
+        default=5.0,
+        description="How often stateful detectors are evaluated and their windows flushed.",
+    )
+    evaluate_rules: bool = Field(
+        default=True, description="Evaluate YAML signature rules on every packet."
+    )
+
+
 class AppConfig(BaseModel):
     """Top-level application configuration assembled from setup.json."""
 
@@ -72,5 +84,9 @@ class AppConfig(BaseModel):
     api: ApiConfig = Field(default_factory=ApiConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     dashboard: DashboardConfig = Field(default_factory=DashboardConfig)
+    detection: DetectionConfig = Field(default_factory=DetectionConfig)
     rules_dir: str = Field(default="rules/", description="Path to YAML rules directory.")
+    config_dir: str = Field(
+        default="config/", description="Path to the directory holding detectors.json."
+    )
     retention_days: int = Field(default=30, description="Days to retain packet/alert records.")

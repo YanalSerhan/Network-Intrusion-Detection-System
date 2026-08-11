@@ -11,12 +11,12 @@ Data Output: Validated AppConfig and RateLimitConfig objects.
 
 import json
 import os
-from pathlib import Path
 
 from .config_models import AppConfig
+from .paths import CONFIG_DIR
 from .rate_limit_models import RateLimitConfig
 
-_CONFIG_DIR = Path(__file__).parent.parent.parent.parent / "config"
+_CONFIG_DIR = CONFIG_DIR
 
 
 def _load_json(filename: str) -> dict:  # type: ignore[type-arg]

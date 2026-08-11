@@ -1,7 +1,11 @@
 name: TCP Port Scan
 severity: medium
 enabled: true
+# Scanning is a repetition event: fire only after 15 SYNs from the same source
+# within 60 seconds, matching the TcpPortScanDetector threshold.
 window: 60
+threshold: 15
+group_by: src_ip
 conditions:
   - field: protocol
     operator: equals
