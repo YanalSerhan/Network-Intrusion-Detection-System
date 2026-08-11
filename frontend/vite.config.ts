@@ -21,6 +21,17 @@ export default defineConfig({
     outDir: "../src/network_defender/api/static",
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        // Charting is by far the largest dependency and is only needed on the
+        // overview page. Splitting it keeps the entry bundle small and lets
+        // the chart chunk stay cached across deploys that only touch app code.
+        manualChunks: {
+          charts: ["recharts"],
+          react: ["react", "react-dom", "react-router-dom"],
+        },
+      },
+    },
   },
   server: {
     // In dev, Vite serves the SPA and forwards data calls to the running API,
