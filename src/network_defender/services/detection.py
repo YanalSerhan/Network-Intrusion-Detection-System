@@ -23,6 +23,7 @@ from network_defender.rules.models import Rule
 from ..shared.base import BaseService
 from ..shared.config_models import DetectionConfig
 from ..shared.paths import resolve_project_path
+from .detection_dispatch import dispatch_detector_alert, dispatch_rule_match
 from .evaluation_loop import PeriodicEvaluator
 
 DetectionCallback = Callable[[DetectionAlert], None]
@@ -126,7 +127,7 @@ class DetectionService(BaseService):
         if self.rule_callback is None:
             return
         for rule in matches:
-            self.rule_callback(rule, packet)
+            dispatch_rule_match(rule, packet, self.rule_callback)
 
     def evaluate_detectors(self) -> list[DetectionAlert]:
         """
@@ -145,5 +146,5 @@ class DetectionService(BaseService):
             all_alerts.extend(alerts)
             if self.alert_callback is not None:
                 for alert in alerts:
-                    self.alert_callback(alert)
+                    dispatch_detector_alert(alert, self.alert_callback)
         return all_alerts

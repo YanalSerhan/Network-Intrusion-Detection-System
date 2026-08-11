@@ -14,17 +14,31 @@ from .context import (
     set_correlation_id,
 )
 from .formatter import JsonFormatter
+from .logging_setup import (
+    LOGGER_APP,
+    LOGGER_AUDIT,
+    LOGGER_SECURITY,
+    get_audit_logger,
+    get_security_logger,
+    setup_logging,
+)
 from .redaction import REDACTED, RedactionFilter, redact_text, redact_value
 
 __all__ = [
+    "LOGGER_APP",
+    "LOGGER_AUDIT",
+    "LOGGER_SECURITY",
     "REDACTED",
     "JsonFormatter",
     "RedactionFilter",
     "bind_correlation_id",
     "correlation_scope",
+    "get_audit_logger",
     "get_correlation_id",
+    "get_security_logger",
     "new_correlation_id",
     "redact_text",
     "redact_value",
     "set_correlation_id",
+    "setup_logging",
 ]

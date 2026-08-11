@@ -21,6 +21,7 @@ import threading
 from collections.abc import Callable
 
 from network_defender.constants import TI_QUEUE_MAX_DEPTH, TI_WORKER_POLL_SECONDS
+from network_defender.observability import correlation_scope, get_correlation_id
 from network_defender.services.alerts.models import Alert
 from network_defender.shared.base import LoggableMixin
 
@@ -50,7 +51,9 @@ class EnrichmentWorker(LoggableMixin):
         self._service = service
         self._on_enriched = on_enriched
         self._poll_seconds = poll_seconds
-        self._queue: queue.Queue[Alert] = queue.Queue(maxsize=max_queue_depth)
+        # The correlation ID rides with the alert: ContextVars do not cross a
+        # thread boundary, so enrichment would otherwise log untraceably.
+        self._queue: queue.Queue[tuple[Alert, str | None]] = queue.Queue(maxsize=max_queue_depth)
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
         self._enriched = 0
@@ -90,7 +93,7 @@ class EnrichmentWorker(LoggableMixin):
             True if queued; False if the queue was full and it was dropped.
         """
         try:
-            self._queue.put_nowait(alert)
+            self._queue.put_nowait((alert, get_correlation_id()))
         except queue.Full:
             self._dropped += 1
             return False
@@ -106,10 +109,10 @@ class EnrichmentWorker(LoggableMixin):
         processed = 0
         while True:
             try:
-                alert = self._queue.get_nowait()
+                alert, correlation_id = self._queue.get_nowait()
             except queue.Empty:
                 return processed
-            self._process(alert)
+            self._process(alert, correlation_id)
             processed += 1
 
     def get_stats(self) -> dict[str, int | bool]:
@@ -126,13 +129,18 @@ class EnrichmentWorker(LoggableMixin):
         """Thread body: enrich alerts until stopped."""
         while not self._stop_event.is_set():
             try:
-                alert = self._queue.get(timeout=self._poll_seconds)
+                alert, correlation_id = self._queue.get(timeout=self._poll_seconds)
             except queue.Empty:
                 continue
-            self._process(alert)
+            self._process(alert, correlation_id)
 
-    def _process(self, alert: Alert) -> None:
-        """Enrich one alert, containing any failure."""
+    def _process(self, alert: Alert, correlation_id: str | None = None) -> None:
+        """Enrich one alert under its originating correlation ID."""
+        with correlation_scope(correlation_id):
+            self._enrich(alert)
+
+    def _enrich(self, alert: Alert) -> None:
+        """Run enrichment for one alert, containing any failure."""
         try:
             result = self._service.enrich_alert(alert)
             if result is None:

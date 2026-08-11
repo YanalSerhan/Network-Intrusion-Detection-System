@@ -25,9 +25,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from ..constants import API_PREFIX, API_TITLE, PROJECT_VERSION
+from ..observability import setup_logging
 from ..sdk.sdk import NetworkDefenderSDK
 from .errors import register_error_handlers
 from .live.broadcaster import LiveBroadcaster
+from .middleware import CorrelationMiddleware
 from .routers import (
     alerts,
     config,
@@ -70,6 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Only the database is started: this process reads what the sensor wrote and
     must not open a capture interface of its own.
     """
+    setup_logging(service="network-defender-api")
     sdk = NetworkDefenderSDK.create()
     sdk.start_readonly()
     app.state.sdk = sdk
@@ -114,6 +117,9 @@ def create_app(sdk: NetworkDefenderSDK | None = None) -> FastAPI:
         # driven directly instead of waiting on a timer.
         app.state.broadcaster = LiveBroadcaster(sdk)
 
+    # Added before the routers so every request, including failures handled by
+    # the error handlers, runs inside a correlation scope.
+    app.add_middleware(CorrelationMiddleware)
     register_error_handlers(app)
 
     for router in (alerts, packets, statistics, rules, health, config):
