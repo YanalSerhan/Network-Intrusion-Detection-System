@@ -5,19 +5,17 @@ Data Setup:  Reads config/logging_config.json; falls back to safe defaults.
 Data Input:  A one-time setup call at process start.
 Data Output: Configured handlers on the three logger streams.
 
-Three streams, because they answer different questions and have different
-retention needs:
+Three streams, because they answer different questions:
 
   * **application** (`network_defender`) — what the software did. Debugging.
-  * **security** (`network_defender.security`) — what the network did. This is
-    the detection record, and the one an incident review reads.
+  * **security** (`network_defender.security`) — what the network did. The
+    detection record an incident review reads.
   * **audit** (`network_defender.audit`) — who asked the system for what:
     outbound API calls and inbound HTTP requests.
 
-Console is always configured, because containers expect stdout and the
-orchestrator handles collection and rotation. Files are opt-in, for bare-metal
-deployments where nothing else is capturing stdout — enabled by default would
-mean a stray `logs/` directory appearing during every test run.
+Console is always configured: containers expect stdout and the orchestrator
+handles collection and rotation. Files are opt-in for bare-metal deployments —
+on by default would mean a stray `logs/` directory on every test run.
 """
 
 import json

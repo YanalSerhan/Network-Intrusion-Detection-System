@@ -18,6 +18,7 @@ from scapy.packet import Packet  # type: ignore[import-untyped]
 
 from ..capture.interface_discovery import list_interfaces
 from ..capture.models import CaptureStatus
+from ..observability import setup_logging
 from ..parser.models import ParsedPacket
 from ..services.alerts import AlertService
 from ..services.capture import CaptureService
@@ -147,6 +148,7 @@ class NetworkDefenderSDK(
         first packet arrives, otherwise early traffic hits an unloaded
         detector registry and is silently lost.
         """
+        setup_logging(service="network-defender-sensor")
         self.logger.info("NetworkDefenderSDK starting all services.")
         self._database_service.start()
         self._alert_service.start()
