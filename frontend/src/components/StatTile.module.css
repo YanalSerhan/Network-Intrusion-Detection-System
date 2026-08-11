@@ -1,0 +1,26 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.85rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.1;
+  /* Tabular figures stop the number jittering as live counters tick up. */
+  font-variant-numeric: tabular-nums;
+}
+
+.critical { color: var(--sev-critical); }
+.high { color: var(--sev-high); }

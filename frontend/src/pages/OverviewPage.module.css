@@ -1,0 +1,36 @@
+/* Overview layout. Grids collapse to one column below 900px so nothing is
+   squeezed into an unreadable width on a tablet or phone. */
+
+.heading {
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chartRow {
+  display: grid;
+  /* minmax(0, …) rather than 1fr: without it a wide table forces the column
+     past the container and the whole page scrolls sideways. */
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .chartRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
