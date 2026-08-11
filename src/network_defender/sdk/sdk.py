@@ -19,7 +19,7 @@ from scapy.packet import Packet  # type: ignore[import-untyped]
 from ..capture.interface_discovery import list_interfaces
 from ..capture.models import CaptureStatus
 from ..parser.models import ParsedPacket
-from ..services.alerting import AlertService
+from ..services.alerts import AlertService
 from ..services.capture import CaptureService
 from ..services.detection import DetectionService
 from ..services.parser import PacketParser
@@ -28,9 +28,10 @@ from ..shared.config import load_app_config, load_rate_limit_config
 from ..shared.config_models import AppConfig
 from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.rate_limit_models import RateLimitConfig
+from .alert_operations import AlertOperationsMixin
 
 
-class NetworkDefenderSDK(LoggableMixin):
+class NetworkDefenderSDK(AlertOperationsMixin, LoggableMixin):
     """
     Facade over all Network Defender domain services.
 
@@ -65,8 +66,13 @@ class NetworkDefenderSDK(LoggableMixin):
         # Build service instances with injected configs (no hardcoded values).
         self._capture_service = CaptureService(config=app_config.capture)
         self._parser_service = PacketParser()
-        self._detection_service = DetectionService(config_dir=app_config.rules_dir)
+        # The alert service is built first so detector alerts can be routed
+        # straight into the alert pipeline via the detection callback.
         self._alert_service = AlertService()
+        self._detection_service = DetectionService(
+            config_dir=app_config.rules_dir,
+            alert_callback=self._on_detection,
+        )
 
         # Build per-service gatekeepers from config.
         self._gatekeepers: dict[str, ApiGatekeeper] = {

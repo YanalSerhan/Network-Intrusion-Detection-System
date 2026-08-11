@@ -5,5 +5,6 @@ Contains all domain services:
   - capture:   Raw packet acquisition.
   - parsing:   Protocol-level packet parsing.
   - detection: Rule engine and heuristic detectors.
-  - alerting:  Alert creation, deduplication, and persistence.
+  - alerts:    Alert creation, scoring, deduplication, persistence and
+               notification dispatch.
 """

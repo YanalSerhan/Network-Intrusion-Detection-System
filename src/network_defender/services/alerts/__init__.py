@@ -16,6 +16,39 @@ Data Input:  DetectionAlert objects from the detection service; matched Rules
 Data Output: Persisted Alert records and dispatched notifications.
 """
 
-from .models import Alert, AlertSource, AlertStatus
+from network_defender.constants import AlertSource, AlertStatus
 
-__all__ = ["Alert", "AlertSource", "AlertStatus"]
+from .confidence import score_alert, score_rule_match
+from .dedup import AlertDeduplicator
+from .dispatcher import NotificationDispatcher
+from .factory import build_alert, build_rule_alert
+from .mitre import lookup_mitre
+from .models import Alert
+from .notifications import (
+    EmailNotificationHook,
+    NotificationHook,
+    SlackNotificationHook,
+    WebhookNotificationHook,
+)
+from .repository import AlertRepository, InMemoryAlertRepository
+from .service import AlertService
+
+__all__ = [
+    "Alert",
+    "AlertDeduplicator",
+    "AlertRepository",
+    "AlertService",
+    "AlertSource",
+    "AlertStatus",
+    "EmailNotificationHook",
+    "InMemoryAlertRepository",
+    "NotificationDispatcher",
+    "NotificationHook",
+    "SlackNotificationHook",
+    "WebhookNotificationHook",
+    "build_alert",
+    "build_rule_alert",
+    "lookup_mitre",
+    "score_alert",
+    "score_rule_match",
+]
