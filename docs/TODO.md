@@ -178,14 +178,15 @@
 
 ## Milestone 7 — Alert System (`app/services/alerts/`)
 
-- [ ] Define `Alert` Pydantic model: UUID, timestamp, severity, rule triggered, source IP, destination IP, packet summary, confidence score, MITRE ATT&CK tactic
-- [ ] Implement severity levels enum: Info, Low, Medium, High, Critical
-- [ ] Implement MITRE ATT&CK tactic mapping table for each detector
-- [ ] Implement confidence-score calculation logic per detector type
-- [ ] Implement alert deduplication / correlation (avoid alert storms for the same event)
-- [ ] Implement alert persistence to the database
-- [ ] Implement alert-to-notification hooks (extensible: email, webhook, Slack — stub interfaces)
-- [ ] Write unit tests for alert creation, deduplication, and severity assignment
+- [x] Define `Alert` Pydantic model: UUID, timestamp, severity, rule triggered, source IP, destination IP, packet summary, confidence score, MITRE ATT&CK tactic
+- [x] Implement severity levels enum: Info, Low, Medium, High, Critical
+- [x] Implement MITRE ATT&CK tactic mapping table for each detector
+- [x] Implement confidence-score calculation logic per detector type
+- [x] Implement alert deduplication / correlation (avoid alert storms for the same event)
+- [x] Implement alert persistence to the database
+  - [x] `AlertRepository` persistence port + bounded in-memory adapter (SQLAlchemy adapter lands in Milestone 9 behind the same interface)
+- [x] Implement alert-to-notification hooks (extensible: email, webhook, Slack — stub interfaces)
+- [x] Write unit tests for alert creation, deduplication, and severity assignment
 
 ---
 
