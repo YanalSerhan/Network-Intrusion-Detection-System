@@ -27,7 +27,7 @@ from fastapi import FastAPI
 from ..constants import API_PREFIX, API_TITLE, PROJECT_VERSION
 from ..sdk.sdk import NetworkDefenderSDK
 from .errors import register_error_handlers
-from .routers import alerts, config, health, packets, rules, statistics
+from .routers import alerts, config, dashboard, health, packets, rules, statistics
 
 DESCRIPTION = """
 REST API for **Network Defender**, a modular Python network intrusion
@@ -98,5 +98,9 @@ def create_app(sdk: NetworkDefenderSDK | None = None) -> FastAPI:
 
     for router in (alerts, packets, statistics, rules, health, config):
         app.include_router(router.router, prefix=API_PREFIX)
+
+    # The dashboard is mounted at the root, not under /api/v1: it is a user
+    # interface, not part of the versioned data contract.
+    app.include_router(dashboard.router)
 
     return app

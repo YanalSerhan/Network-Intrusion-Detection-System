@@ -1,0 +1,139 @@
+/* Layout chrome. Breakpoints: >900px desktop, 600-900 tablet, <600 mobile. */
+
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 0 0 var(--radius) 0;
+}
+
+/* Off-screen until focused, so it is available to keyboard users without
+   occupying visual space for everyone else. */
+.skipLink:focus {
+  left: 0;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.navList {
+  display: flex;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.navLink:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+/* The active page is marked by weight and an underline as well as colour, so
+   the current location is not signalled by colour alone. */
+.navLinkActive {
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.themeButton {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.themeButton:hover {
+  border-color: var(--accent);
+}
+
+.main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+/* Focusing <main> via the skip link must not draw a ring around the whole
+   page; the destination is conveyed by the focus move itself. */
+.main:focus {
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .inner {
+    flex-wrap: wrap;
+  }
+
+  .navList {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand {
+    font-size: 0.95rem;
+  }
+
+  .main {
+    padding: 1rem 0.75rem 2.5rem;
+  }
+}

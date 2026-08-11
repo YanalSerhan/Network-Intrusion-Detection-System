@@ -113,6 +113,19 @@ graph TD
 - **Decision:** Services depend on repository ports and receive domain models; only the repository layer imports SQLAlchemy.
 - **Rationale:** Returning live ORM instances leaks session lifetime into the alert pipeline — detached-instance errors and lazy loads firing after a session closes. Returning detached domain models also keeps the in-memory and SQL repositories genuinely interchangeable, which is what makes the tests fast and the storage backend swappable.
 
+### ADR 7: React + TypeScript + Vite for the Dashboard
+- **Context:** The dashboard needs live charts, a filterable alert table that survives alert storms, and a detail view — all fed by REST and a WebSocket. The PRD leaves the stack open (React, Vue, or vanilla JS with Tailwind).
+- **Decision:** A React + TypeScript SPA built with Vite, served as static assets by the existing FastAPI app under `/dashboard`.
+- **Rationale:** The alert table and live feed are stateful, interactive components where a declarative model earns its keep; hand-rolled DOM updates for a virtualised, filtered, live-updating table get unmaintainable quickly. TypeScript lets the frontend share the shape of the API contract, so a renamed field is a compile error rather than a blank cell in production. Vite's build produces plain static files with no runtime server, so the dashboard adds no second process to operate.
+- **Costs accepted:** Node enters the toolchain, so the Docker image needs a build stage and dependencies live in both `uv.lock` and `package-lock.json`. This is a real maintenance cost, taken because the UI is interactive enough to justify it.
+- **Alternatives rejected:** Vanilla JS with Tailwind avoids Node entirely but pushes state management into hand-written DOM code. Server-rendered Jinja2 templates would still need client JS for charts and the WebSocket feed, ending up hybrid without the benefit of either.
+
+### ADR 8: WebSocket Live Feed, Polled Server-Side
+- **Context:** The dashboard must show alerts as they happen, but the API container reads from the shared database and has no direct channel from the sensor.
+- **Decision:** A WebSocket endpoint that polls the database server-side and pushes only new alerts and updated counters to connected clients.
+- **Rationale:** One connection per browser instead of every client polling REST on a timer — the database sees a fixed query rate regardless of how many analysts have the dashboard open. It also avoids introducing a message broker purely to move alerts one hop.
+- **Trade-off:** Delivery latency is bounded by the poll interval rather than being instant. For a SOC dashboard a second or two is imperceptible, and the alternative (Redis or similar) is a whole new component to deploy and monitor.
+
 ## 6. Database Schema
 
 SQLite in development, PostgreSQL-ready without code changes: no module above the repository layer names a backend, and the engine is the only place a URL or dialect appears.

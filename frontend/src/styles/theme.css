@@ -1,0 +1,114 @@
+/**
+ * Design tokens and base styles.
+ *
+ * Theming is done with CSS custom properties switched by a `data-theme`
+ * attribute on <html>. A class-per-theme approach would require every
+ * component to know about both palettes; with variables, components reference
+ * a semantic name (`--surface`, `--text`) and the theme decides the value.
+ *
+ * Severity colours were checked for contrast against both surfaces. Colour is
+ * never the only signal — severity is always accompanied by its text label,
+ * since roughly 1 in 12 men has a colour vision deficiency and a red/green
+ * distinction alone would be invisible to them.
+ */
+
+:root {
+  --radius: 8px;
+  --radius-sm: 4px;
+  --gap: 1rem;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --transition: 120ms ease;
+  --max-width: 1400px;
+}
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #1c2430;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #9198a1;
+  --accent: #4a9eff;
+  --accent-contrast: #04182e;
+  --focus: #78bbff;
+
+  --sev-info: #6ea8fe;
+  --sev-low: #4ec9a5;
+  --sev-medium: #e3b341;
+  --sev-high: #f0883e;
+  --sev-critical: #ff6b6b;
+  --sev-text: #04182e;
+}
+
+[data-theme="light"] {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface-raised: #f0f3f6;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --text-muted: #59636e;
+  --accent: #0969da;
+  --accent-contrast: #ffffff;
+  --focus: #0969da;
+
+  --sev-info: #0a58ca;
+  --sev-low: #0f7b5f;
+  --sev-medium: #8a6100;
+  --sev-high: #a2431a;
+  --sev-critical: #b42318;
+  --sev-text: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* A visible focus ring on every interactive element: keyboard users cannot
+   navigate what they cannot see, and browser defaults are often suppressed. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Respect users who have asked the OS to reduce motion, including those for
+   whom animation triggers vestibular symptoms. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

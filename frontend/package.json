@@ -1,0 +1,34 @@
+{
+  "name": "network-defender-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SOC dashboard for Network Defender.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.1.1",
+    "recharts": "^3.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.1",
+    "oxlint": "^1.75.0",
+    "typescript": "~5.7.2",
+    "vite": "^7.1.0",
+    "vitest": "^3.0.0"
+  }
+}
