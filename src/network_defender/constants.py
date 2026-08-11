@@ -36,6 +36,35 @@ class Severity(StrEnum):
     CRITICAL = "critical"
 
 
+SEVERITY_ORDER: dict[str, int] = {
+    Severity.INFO: 0,
+    Severity.LOW: 1,
+    Severity.MEDIUM: 2,
+    Severity.HIGH: 3,
+    Severity.CRITICAL: 4,
+}
+
+# ---------------------------------------------------------------------------
+# Alert lifecycle (used by the Alert System)
+# ---------------------------------------------------------------------------
+
+
+class AlertStatus(StrEnum):
+    """Triage status of an alert as it moves through the SOC workflow."""
+
+    NEW = "new"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+    FALSE_POSITIVE = "false_positive"
+
+
+class AlertSource(StrEnum):
+    """Subsystem that raised an alert."""
+
+    DETECTOR = "detector"
+    RULE_ENGINE = "rule_engine"
+
+
 # ---------------------------------------------------------------------------
 # MITRE ATT&CK tactic identifiers (used by detector → alert mapping)
 # ---------------------------------------------------------------------------
@@ -92,3 +121,20 @@ DEFAULT_PACKETS_PER_SECOND = 10_000  # token-bucket refill rate
 # Alert deduplication window
 # ---------------------------------------------------------------------------
 DEDUP_WINDOW_SECONDS = 60
+DEDUP_MAX_TRACKED_KEYS = 10_000  # bound dedup state to prevent unbounded growth
+
+# ---------------------------------------------------------------------------
+# Alert confidence scoring
+# ---------------------------------------------------------------------------
+CONFIDENCE_MIN = 0.0
+CONFIDENCE_MAX = 1.0
+CONFIDENCE_BASE = 0.5  # starting score before evidence-based adjustments
+CONFIDENCE_SEVERITY_WEIGHT = 0.05  # added per severity level above INFO
+CONFIDENCE_EVIDENCE_WEIGHT = 0.30  # maximum contribution from evidence ratios
+CONFIDENCE_RULE_ENGINE = 0.95  # signature matches are near-deterministic
+
+# ---------------------------------------------------------------------------
+# Alert repository defaults
+# ---------------------------------------------------------------------------
+ALERT_QUERY_DEFAULT_LIMIT = 100
+ALERT_STORE_MAX_RECORDS = 100_000  # in-memory store ring-buffer bound
