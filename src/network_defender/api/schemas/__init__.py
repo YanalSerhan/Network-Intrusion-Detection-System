@@ -15,21 +15,16 @@ from .common import (
     PaginationParams,
     build_meta,
 )
-from .resources import (
+from .operations import (
     ComponentHealth,
     ConfigResponse,
     HealthResponse,
     LivenessResponse,
-    PacketPage,
-    PacketView,
-    RulePage,
-    RuleReloadResult,
-    RuleToggle,
-    RuleView,
     StatisticsPoint,
     StatisticsSummary,
     TopTalker,
 )
+from .resources import PacketPage, PacketView, RulePage, RuleReloadResult, RuleToggle, RuleView
 
 __all__ = [
     "MAX_PAGE_SIZE",

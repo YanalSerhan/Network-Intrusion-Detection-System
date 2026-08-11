@@ -5,15 +5,12 @@ Data Setup:  Handlers registered on the app by the factory.
 Data Input:  Exceptions raised anywhere in request handling.
 Data Output: A single, consistent error body for every failure.
 
-Why handlers rather than per-route try/except
----------------------------------------------
-FastAPI's defaults emit three different shapes: `{"detail": "..."}` for
-HTTPException, a list of objects for validation errors, and an HTML traceback
-page for anything unhandled. A client would need three parsers, and the
-traceback leaks internals. These handlers normalise all of it to
-`{"error": {"code", "message", "detail"}}`.
+FastAPI's defaults emit three shapes: `{"detail": ...}` for HTTPException, a
+list for validation errors, and an HTML traceback for anything unhandled. A
+client would need three parsers and the traceback leaks internals, so these
+handlers normalise everything to `{"error": {code, message, detail}}`.
 
-Unhandled exceptions are logged in full and reported as a generic 500. The
+Unhandled exceptions are logged in full and reported as a generic 500: the
 stack trace belongs in the operator's logs, not in an HTTP response.
 """
 
