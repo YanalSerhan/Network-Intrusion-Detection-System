@@ -35,6 +35,7 @@ from ..shared.rate_limit_models import RateLimitConfig
 from .alert_operations import AlertOperationsMixin
 from .database_operations import DatabaseOperationsMixin
 from .pipeline import PipelineMixin
+from .rule_operations import RuleOperationsMixin
 from .threat_intel_operations import ThreatIntelOperationsMixin
 
 
@@ -42,6 +43,7 @@ class NetworkDefenderSDK(
     AlertOperationsMixin,
     ThreatIntelOperationsMixin,
     DatabaseOperationsMixin,
+    RuleOperationsMixin,
     PipelineMixin,
     LoggableMixin,
 ):
@@ -170,6 +172,28 @@ class NetworkDefenderSDK(
             self._database_service.rules.sync(engine.loader.registry.get_all_enabled_rules())
         except Exception as exc:  # noqa: BLE001 - snapshot is not load-bearing
             self.logger.error("Failed to snapshot rules: %s", exc)
+
+    def start_readonly(self) -> None:
+        """
+        Start only the services needed to read and enrich stored data.
+
+        Used by the REST API, which per PLAN.md §4 runs in its own container
+        alongside the sensor. Capture and detection are deliberately left
+        stopped: the API must not open a network interface, so it needs no
+        raw-socket privileges and can restart without interrupting capture.
+        """
+        self.logger.info("NetworkDefenderSDK starting in read-only mode.")
+        self._database_service.start()
+        self._alert_service.start()
+        self._threat_intel_service.start()
+        self.logger.info("NetworkDefenderSDK ready (read-only).")
+
+    def stop_readonly(self) -> None:
+        """Stop the services started by start_readonly()."""
+        self.logger.info("NetworkDefenderSDK stopping read-only services.")
+        self._threat_intel_service.stop()
+        self._alert_service.stop()
+        self._database_service.stop()
 
     def stop(self) -> None:
         """Stop all domain services in reverse order."""

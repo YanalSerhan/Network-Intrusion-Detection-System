@@ -75,6 +75,24 @@ class RuleRepository:
         with session_scope(self._session_factory) as session:
             return list(session.scalars(statement))
 
+    def set_enabled(self, name: str, enabled: bool) -> bool:
+        """
+        Toggle a rule in the snapshot without touching its YAML file.
+
+        Args:
+            name:    The rule to toggle.
+            enabled: Desired state.
+
+        Returns:
+            True if a rule was updated; False if the name is unknown.
+        """
+        with session_scope(self._session_factory) as session:
+            record = session.get(RuleRecord, name)
+            if record is None:
+                return False
+            record.enabled = enabled
+            return True
+
     def get(self, name: str) -> RuleRecord | None:
         """Return a single rule snapshot by name, or None."""
         with session_scope(self._session_factory) as session:

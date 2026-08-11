@@ -31,6 +31,11 @@ CODE_UNAUTHORISED = "unauthorised"
 CODE_CONFLICT = "conflict"
 CODE_INTERNAL_ERROR = "internal_error"
 
+#: Starlette renamed its 422 constant between releases, so the literal is used
+#: to avoid an import that breaks on one version or emits a deprecation warning
+#: on the other.
+HTTP_422_UNPROCESSABLE = 422
+
 
 class ApiError(Exception):
     """Base class for errors that map onto a specific HTTP response."""
@@ -119,7 +124,7 @@ def register_error_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         """Return field-level validation failures in the standard envelope."""
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=HTTP_422_UNPROCESSABLE,
             content=error_body(
                 CODE_VALIDATION_ERROR,
                 "Request validation failed.",

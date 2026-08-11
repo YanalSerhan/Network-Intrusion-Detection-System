@@ -68,6 +68,25 @@ class AlertOperationsMixin:
             severity=severity, status=status, since=since, limit=limit, offset=offset
         )
 
+    def set_alert_status(self, alert_id: UUID, status: AlertStatus) -> Alert | None:
+        """
+        Move an alert through the triage workflow.
+
+        Args:
+            alert_id: The alert to update.
+            status:   The new triage status.
+
+        Returns:
+            The updated Alert, or None if no alert has this identifier.
+        """
+        alert = self._alert_service.get_alert(alert_id)
+        if alert is None:
+            return None
+
+        alert.status = status
+        self._alert_service.repository.save(alert)
+        return alert
+
     def get_alert_statistics(self) -> dict[str, Any]:
         """
         Return aggregate alert counts for the dashboard overview.

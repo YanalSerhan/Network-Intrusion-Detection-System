@@ -6,7 +6,7 @@ Data Input:  Configuration dicts and alert data.
 Data Output: Pydantic models.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -22,7 +22,7 @@ class DetectionAlert(BaseModel):
     severity: Severity = Field(description="Severity of the detected activity.")
     tactic: MitreTactic | None = Field(default=None, description="Associated MITRE ATT&CK tactic.")
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Time the alert was generated."
     )
     src_ip: str | None = Field(default=None, description="Source IP associated with the activity.")

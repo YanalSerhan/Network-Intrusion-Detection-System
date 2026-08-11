@@ -10,7 +10,6 @@ Data Output: Active Rule objects accessible via a thread-safe registry.
 import logging
 import threading
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from pydantic import ValidationError
@@ -39,6 +38,11 @@ class RuleRegistry:
         """Remove a rule from the registry."""
         with self._lock:
             self._rules.pop(filepath, None)
+
+    def get_all_rules(self) -> list[Rule]:
+        """Return a snapshot of every registered rule, enabled or not."""
+        with self._lock:
+            return list(self._rules.values())
 
     def get_all_enabled_rules(self) -> list[Rule]:
         """Return a snapshot of all currently enabled rules."""
@@ -101,7 +105,7 @@ class RuleLoader:
     def __init__(self, rules_dir: str) -> None:
         self.rules_dir = Path(rules_dir)
         self.registry = RuleRegistry()
-        self._observer: Optional[BaseObserver] = None
+        self._observer: BaseObserver | None = None
 
     def start(self) -> None:
         """Load initial rules and start watching for changes."""

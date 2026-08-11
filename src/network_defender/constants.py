@@ -131,6 +131,17 @@ TI_HTTP_TIMEOUT_SECONDS = 10.0
 ENV_ABUSEIPDB_API_KEY = "ABUSEIPDB_API_KEY"
 
 # ---------------------------------------------------------------------------
+# REST API
+# ---------------------------------------------------------------------------
+API_TITLE = "Network Defender API"
+API_VERSION = "v1"
+API_PREFIX = "/api/v1"
+
+#: Environment variable holding the API key. Authentication is disabled when
+#: this is unset, so local development needs no configuration.
+ENV_API_KEY = "API_KEY"
+
+# ---------------------------------------------------------------------------
 # Network protocol identifiers
 # ---------------------------------------------------------------------------
 

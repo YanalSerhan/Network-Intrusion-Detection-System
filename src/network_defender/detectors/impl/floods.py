@@ -32,9 +32,9 @@ class SynFloodDetector(BaseDetector[SynFloodConfig]):
 
     def ingest(self, packet: ParsedPacket) -> None:
         if (
-            packet.protocol == Protocol.TCP 
-            and packet.tcp_flags 
-            and packet.tcp_flags.syn 
+            packet.protocol == Protocol.TCP
+            and packet.tcp_flags
+            and packet.tcp_flags.syn
             and packet.dst_ip
         ):
             self._dst_syn_counts[packet.dst_ip] += 1

@@ -109,6 +109,34 @@ class SqlAlchemyAlertRepository(AlertRepository):
         with session_scope(self._session_factory) as session:
             return int(session.scalar(statement) or 0)
 
+    def count_by(self, column: str, limit: int | None = None) -> dict[str, int]:
+        """
+        Return alert counts grouped by one column, largest group first.
+
+        Aggregation runs in SQL rather than by loading rows and counting in
+        Python, so "top talkers" over a million alerts stays a single indexed
+        query instead of a million-row transfer.
+
+        Args:
+            column: Column to group by (e.g. 'src_ip', 'protocol').
+            limit:  Maximum number of groups to return.
+
+        Returns:
+            Mapping of value -> count, excluding NULLs.
+        """
+        target = getattr(AlertRecord, column)
+        statement = (
+            select(target, func.count())
+            .where(target.is_not(None))
+            .group_by(target)
+            .order_by(func.count().desc())
+        )
+        if limit is not None:
+            statement = statement.limit(limit)
+
+        with session_scope(self._session_factory) as session:
+            return {str(value): int(count) for value, count in session.execute(statement)}
+
     def clear(self) -> None:
         """Delete every stored alert (and, by cascade, its packets)."""
         with session_scope(self._session_factory) as session:

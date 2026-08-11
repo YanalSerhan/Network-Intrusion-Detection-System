@@ -71,11 +71,11 @@ class SynScanDetector(BaseDetector[SynScanConfig]):
 
     def ingest(self, packet: ParsedPacket) -> None:
         if (
-            packet.protocol == Protocol.TCP 
-            and packet.tcp_flags 
-            and packet.tcp_flags.syn 
-            and not packet.tcp_flags.ack 
-            and packet.src_ip 
+            packet.protocol == Protocol.TCP
+            and packet.tcp_flags
+            and packet.tcp_flags.syn
+            and not packet.tcp_flags.ack
+            and packet.src_ip
             and packet.dst_port
         ):
             self._state[packet.src_ip].add(packet.dst_port)

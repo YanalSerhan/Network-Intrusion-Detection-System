@@ -86,6 +86,45 @@ class PacketRepository:
         with session_scope(self._session_factory) as session:
             return [record_to_packet(record) for record in session.scalars(statement)]
 
+    def list_packets(
+        self,
+        alert_id: UUID | None = None,
+        protocol: str | None = None,
+        src_ip: str | None = None,
+        limit: int = PACKET_QUERY_DEFAULT_LIMIT,
+        offset: int = 0,
+    ) -> list[ParsedPacket]:
+        """
+        Return retained packets matching the given filters, oldest first.
+
+        Args:
+            alert_id: Restrict to evidence for one alert.
+            protocol: Restrict to one protocol.
+            src_ip:   Restrict to one source address.
+            limit:    Maximum number of packets to return.
+            offset:   Number of matching packets to skip.
+
+        Returns:
+            ParsedPacket models in capture order.
+        """
+        statement = select(PacketRecord)
+        if alert_id is not None:
+            statement = statement.where(PacketRecord.alert_id == alert_id)
+        if protocol is not None:
+            statement = statement.where(PacketRecord.protocol == protocol)
+        if src_ip is not None:
+            statement = statement.where(PacketRecord.src_ip == src_ip)
+
+        statement = statement.order_by(PacketRecord.timestamp).limit(limit).offset(offset)
+        with session_scope(self._session_factory) as session:
+            return [record_to_packet(record) for record in session.scalars(statement)]
+
+    def get(self, packet_id: int) -> ParsedPacket | None:
+        """Return a single retained packet by row id, or None."""
+        with session_scope(self._session_factory) as session:
+            record = session.get(PacketRecord, packet_id)
+            return record_to_packet(record) if record is not None else None
+
     def count(self) -> int:
         """Return the total number of retained packets."""
         with session_scope(self._session_factory) as session:

@@ -139,7 +139,7 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
                     if mean_interval > 0:
                         variance = sum((x - mean_interval)**2 for x in intervals) / len(intervals)
                         std_dev = math.sqrt(variance)
-                        
+
                         if (std_dev / mean_interval) <= self.config.interval_variance_tolerance:
                             alerts.append(
                                 self.emit_alert(
