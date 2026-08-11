@@ -93,7 +93,7 @@ class NetworkDefenderSDK(
         self._threat_intel_service = build_service(self._gatekeepers)
         self._enrichment_worker = EnrichmentWorker(
             service=self._threat_intel_service,
-            on_enriched=self._alert_service.repository.save,
+            on_enriched=self._save_enriched_alert,
         )
 
         # Connect capture -> parser -> detection -> alerting.

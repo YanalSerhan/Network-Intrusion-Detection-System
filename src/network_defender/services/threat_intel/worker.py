@@ -6,17 +6,14 @@ Data Input:  Alerts submitted after they have already been persisted.
 Data Output: Enrichment attached to those alerts, plus an optional callback so
              the repository can re-save the updated record.
 
-Why this is off the hot path
----------------------------
-Enrichment means up to four HTTP calls, each with a 10s timeout and retries.
-Doing that inline would put tens of seconds between a detection and its alert,
-against a PRD target of sub-100ms alert latency at 10k pps — and would make the
-detection pipeline's throughput hostage to a third party's availability.
+Enrichment is up to four HTTP calls, each with a 10s timeout and retries. Inline
+that would put tens of seconds between a detection and its alert (PRD target:
+sub-100ms at 10k pps) and make detection throughput hostage to a third party's
+availability. So alerts are raised, persisted and notified first, then enriched.
 
-So alerts are raised, persisted and notified immediately, then enriched a
-moment later. The queue is bounded: under an alert storm, enrichment is dropped
-(oldest first) rather than allowed to grow without limit. Dropping enrichment
-is survivable; running out of memory is not.
+The queue is bounded: under an alert storm enrichment is dropped rather than
+allowed to grow without limit. Losing enrichment is survivable; running out of
+memory is not.
 """
 
 import queue
@@ -45,11 +42,10 @@ class EnrichmentWorker(LoggableMixin):
 
         Args:
             service:         The threat intel service performing lookups.
-            on_enriched:     Called with each alert after enrichment, so the
-                             caller can persist the updated record.
-            max_queue_depth: Pending alerts held before the oldest are dropped.
-            poll_seconds:    How long the thread waits for work before re-checking
-                             the stop flag.
+            on_enriched:     Called with each enriched alert so the caller can
+                             persist the updated record.
+            max_queue_depth: Pending alerts held before new ones are dropped.
+            poll_seconds:    Wait between checks of the stop flag.
         """
         self._service = service
         self._on_enriched = on_enriched
@@ -68,11 +64,11 @@ class EnrichmentWorker(LoggableMixin):
 
     @property
     def queue_depth(self) -> int:
-        """Number of alerts waiting to be enriched."""
+        """Alerts waiting to be enriched."""
         return self._queue.qsize()
 
     def start(self) -> None:
-        """Start the worker thread. A second call is a no-op."""
+        """Start the worker thread; a second call is a no-op."""
         if self.is_running:
             return
         self._stop_event.clear()
@@ -80,12 +76,7 @@ class EnrichmentWorker(LoggableMixin):
         self._thread.start()
 
     def stop(self, timeout: float | None = None) -> None:
-        """
-        Signal the worker to stop and wait for the thread to exit.
-
-        Args:
-            timeout: Seconds to wait; defaults to twice the poll interval.
-        """
+        """Stop the worker, waiting `timeout` seconds (default: two polls)."""
         self._stop_event.set()
         if self._thread is not None:
             self._thread.join(timeout if timeout is not None else self._poll_seconds * 2)
@@ -93,10 +84,7 @@ class EnrichmentWorker(LoggableMixin):
 
     def submit(self, alert: Alert) -> bool:
         """
-        Queue an alert for enrichment.
-
-        Args:
-            alert: An already-persisted alert.
+        Queue an already-persisted alert for enrichment.
 
         Returns:
             True if queued; False if the queue was full and it was dropped.
@@ -110,13 +98,10 @@ class EnrichmentWorker(LoggableMixin):
 
     def drain(self) -> int:
         """
-        Enrich every queued alert synchronously.
+        Enrich every queued alert synchronously, returning the number processed.
 
-        Intended for tests and for shutdown, where waiting on the poll interval
-        would be pointless.
-
-        Returns:
-            Number of alerts processed.
+        Used by tests and at shutdown, where waiting on the poll interval would
+        be pointless.
         """
         processed = 0
         while True:

@@ -46,7 +46,9 @@ def build_providers(gatekeepers: dict[str, ApiGatekeeper]) -> list[ThreatIntelPr
         Provider instances in priority order. Providers whose bucket is missing
         from config/rate_limits.json are omitted.
     """
-    api_keys = {AbuseIpDbProvider: get_secret(ENV_ABUSEIPDB_API_KEY)}
+    api_keys: dict[type[ThreatIntelProvider], str | None] = {
+        AbuseIpDbProvider: get_secret(ENV_ABUSEIPDB_API_KEY)
+    }
     providers: list[ThreatIntelProvider] = []
 
     for provider_cls, bucket in PROVIDER_BUCKETS:

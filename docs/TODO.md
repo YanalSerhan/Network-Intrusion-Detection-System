@@ -192,18 +192,20 @@
 
 ## Milestone 8 — Threat Intelligence Enrichment (`app/services/threat_intel/`)
 
-- [ ] Design a `ThreatIntelProvider` abstract interface for pluggable providers
-- [ ] Implement malicious IP lookup provider (via public API, routed through API Gatekeeper)
-- [ ] Implement ASN lookup provider
-- [ ] Implement geolocation provider
-- [ ] Implement WHOIS lookup provider
-- [ ] Implement reputation score aggregation across providers
-- [ ] Implement threat intel response caching (TTL-based) to reduce API calls
-- [ ] Implement provider fallback / circuit-breaker on provider failure
-- [ ] Store all API keys in `.env`, never in source code
-- [ ] Write unit tests with mocked HTTP responses for each provider
-- [ ] Write integration test verifying gatekeeper rate limiting is enforced end-to-end
-- [ ] Document how to add a new threat intel provider (extension guide)
+- [x] Design a `ThreatIntelProvider` abstract interface for pluggable providers
+- [x] Implement malicious IP lookup provider (via public API, routed through API Gatekeeper)
+- [x] Implement ASN lookup provider
+- [x] Implement geolocation provider
+- [x] Implement WHOIS lookup provider (RDAP — structured JSON over HTTPS)
+- [x] Implement reputation score aggregation across providers
+- [x] Implement threat intel response caching (TTL-based) to reduce API calls
+- [x] Implement provider fallback / circuit-breaker on provider failure
+- [x] Store all API keys in `.env`, never in source code
+- [x] Write unit tests with mocked HTTP responses for each provider
+- [x] Write integration test verifying gatekeeper rate limiting is enforced end-to-end
+- [x] Document how to add a new threat intel provider (extension guide — `docs/THREAT_INTEL.md`)
+- [x] Enrich alerts on a background worker so enrichment never blocks detection
+- [x] Refuse to send private/internal addresses to third-party providers
 
 ---
 

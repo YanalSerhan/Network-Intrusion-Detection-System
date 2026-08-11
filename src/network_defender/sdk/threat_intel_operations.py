@@ -14,7 +14,7 @@ circuit breaker unavoidable.
 from typing import Any
 from uuid import UUID
 
-from ..services.alerts import AlertService
+from ..services.alerts import Alert, AlertService
 from ..services.threat_intel import ThreatIntelResult, ThreatIntelService
 from ..services.threat_intel.worker import EnrichmentWorker
 
@@ -26,7 +26,7 @@ class ThreatIntelOperationsMixin:
     _threat_intel_service: ThreatIntelService
     _enrichment_worker: EnrichmentWorker
 
-    def _submit_for_enrichment(self, alert: Any) -> bool:
+    def _submit_for_enrichment(self, alert: Alert) -> bool:
         """
         Alert-service sink: queue a persisted alert for background enrichment.
 
@@ -34,6 +34,10 @@ class ThreatIntelOperationsMixin:
             True if queued; False if the enrichment queue was full.
         """
         return self._enrichment_worker.submit(alert)
+
+    def _save_enriched_alert(self, alert: Alert) -> None:
+        """Worker callback: persist an alert once its enrichment has landed."""
+        self._alert_service.repository.save(alert)
 
     def enrich_ip(self, ip: str) -> ThreatIntelResult:
         """
