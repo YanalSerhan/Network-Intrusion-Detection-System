@@ -11,12 +11,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from network_defender.constants import Protocol
-from network_defender.detectors.impl.heuristics import (
-    BeaconingConfig,
-    BeaconingDetector,
-    LateralMovementConfig,
-    LateralMovementDetector,
-)
+from network_defender.detectors.impl.beaconing import BeaconingConfig, BeaconingDetector
+from network_defender.detectors.impl.movement import LateralMovementConfig, LateralMovementDetector
 from network_defender.parser.models import ParsedPacket
 
 

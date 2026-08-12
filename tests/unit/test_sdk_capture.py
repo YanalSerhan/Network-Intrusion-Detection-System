@@ -38,7 +38,7 @@ def sdk() -> NetworkDefenderSDK:
 
 def test_sdk_list_interfaces_returns_list(sdk: NetworkDefenderSDK) -> None:
     with patch(
-        "network_defender.sdk.sdk.list_interfaces", return_value=["eth0", "lo"]
+        "network_defender.sdk.capture_operations.list_interfaces", return_value=["eth0", "lo"]
     ):
         result = sdk.list_interfaces()
     assert isinstance(result, list)
