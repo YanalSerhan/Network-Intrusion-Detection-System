@@ -26,9 +26,13 @@ class DetectionAlert(BaseModel):
         description="Time the alert was generated."
     )
     src_ip: str | None = Field(default=None, description="Source IP associated with the activity.")
-    dst_ip: str | None = Field(default=None, description="Destination IP associated with the activity.")
+    dst_ip: str | None = Field(
+        default=None, description="Destination IP associated with the activity."
+    )
     description: str = Field(description="Human-readable description of the detected activity.")
-    evidence: dict[str, Any] = Field(default_factory=dict, description="Raw data or counters supporting the alert.")
+    evidence: dict[str, Any] = Field(
+        default_factory=dict, description="Raw data or counters supporting the alert."
+    )
 
 
 class DetectorConfig(BaseModel):

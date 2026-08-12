@@ -93,9 +93,9 @@ def test_connection_is_refused_without_a_token(
     """Rejected before accept(), so an unauthorised client sees no data at all."""
     monkeypatch.setenv(ENV_API_KEY, "expected-key")
 
-    with pytest.raises(Exception):  # noqa: B017 - starlette raises on a refused handshake
-        with client.websocket_connect(WS_URL) as ws:
-            ws.receive_json()
+    # noqa: B017 - starlette raises a bare Exception on a refused handshake
+    with pytest.raises(Exception), client.websocket_connect(WS_URL) as ws:  # noqa: B017
+        ws.receive_json()
 
 
 def test_connection_is_accepted_with_the_right_token(

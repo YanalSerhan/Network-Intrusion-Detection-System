@@ -76,14 +76,21 @@ class DnsTunnelingConfig(DetectorConfig):
 class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
     def __init__(self, config: DnsTunnelingConfig) -> None:
         super().__init__(config)
-        self._src_stats: defaultdict[str, dict[str, Any]] = defaultdict(lambda: {"count": 0, "high_entropy": 0})
+        self._src_stats: defaultdict[str, dict[str, Any]] = defaultdict(
+            lambda: {"count": 0, "high_entropy": 0}
+        )
 
     @property
     def name(self) -> str:
         return "DnsTunnelingDetector"
 
     def ingest(self, packet: ParsedPacket) -> None:
-        if packet.protocol == Protocol.DNS and packet.dns and packet.dns.query_name and packet.src_ip:
+        if (
+            packet.protocol == Protocol.DNS
+            and packet.dns
+            and packet.dns.query_name
+            and packet.src_ip
+        ):
             entropy = shannon_entropy(packet.dns.query_name)
             stats = self._src_stats[packet.src_ip]
             stats["count"] += 1
@@ -93,13 +100,17 @@ class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
     def evaluate(self) -> list[DetectionAlert]:
         alerts = []
         for src_ip, stats in self._src_stats.items():
-            if stats["count"] >= self.config.query_count_threshold and stats["high_entropy"] > (stats["count"] * 0.5):
+            mostly_high_entropy = stats["high_entropy"] > (stats["count"] * 0.5)
+            if stats["count"] >= self.config.query_count_threshold and mostly_high_entropy:
                 alerts.append(
                     self.emit_alert(
                         severity=Severity.HIGH,
                         tactic=MitreTactic.COMMAND_AND_CONTROL,
                         src_ip=src_ip,
-                        description="Possible DNS Tunneling: high frequency of high-entropy DNS queries.",
+                        description=(
+                            "Possible DNS Tunneling: high frequency of "
+                            "high-entropy DNS queries."
+                        ),
                         evidence=stats
                     )
                 )
@@ -123,8 +134,10 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
         return "BeaconingDetector"
 
     def ingest(self, packet: ParsedPacket) -> None:
-        if packet.protocol in [Protocol.TCP, Protocol.HTTP, Protocol.TLS] and packet.src_ip and packet.dst_ip:
-            self._src_dst_timestamps[(packet.src_ip, packet.dst_ip)].append(packet.timestamp.timestamp())
+        beaconable = (Protocol.TCP, Protocol.HTTP, Protocol.TLS)
+        if packet.protocol in beaconable and packet.src_ip and packet.dst_ip:
+            key = (packet.src_ip, packet.dst_ip)
+            self._src_dst_timestamps[key].append(packet.timestamp.timestamp())
 
     def evaluate(self) -> list[DetectionAlert]:
         alerts = []
@@ -147,8 +160,14 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
                                     tactic=MitreTactic.COMMAND_AND_CONTROL,
                                     src_ip=src_ip,
                                     dst_ip=dst_ip,
-                                    description="Possible Beaconing detected: regular connections to same destination.",
-                                    evidence={"mean_interval": mean_interval, "connection_count": len(timestamps)}
+                                    description=(
+                                        "Possible Beaconing detected: regular "
+                                        "connections to same destination."
+                                    ),
+                                    evidence={
+                                        "mean_interval": mean_interval,
+                                        "connection_count": len(timestamps),
+                                    },
                                 )
                             )
         self._src_dst_timestamps.clear()
@@ -170,7 +189,12 @@ class SuspiciousPortDetector(BaseDetector[SuspiciousPortConfig]):
         return "SuspiciousPortDetector"
 
     def ingest(self, packet: ParsedPacket) -> None:
-        if packet.dst_port is not None and packet.dst_port in self._suspicious_ports and packet.src_ip and packet.dst_ip:
+        if (
+            packet.dst_port is not None
+            and packet.dst_port in self._suspicious_ports
+            and packet.src_ip
+            and packet.dst_ip
+        ):
             self._seen.add((packet.src_ip, packet.dst_ip, packet.dst_port))
 
     def evaluate(self) -> list[DetectionAlert]:
@@ -254,7 +278,12 @@ class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
             return False
 
     def ingest(self, packet: ParsedPacket) -> None:
-        if packet.src_ip and packet.dst_ip and self._is_internal(packet.src_ip) and self._is_internal(packet.dst_ip):
+        if (
+            packet.src_ip
+            and packet.dst_ip
+            and self._is_internal(packet.src_ip)
+            and self._is_internal(packet.dst_ip)
+        ):
             self._src_dst_counts[packet.src_ip].add(packet.dst_ip)
 
     def evaluate(self) -> list[DetectionAlert]:
@@ -266,7 +295,10 @@ class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
                         severity=Severity.HIGH,
                         tactic=MitreTactic.LATERAL_MOVEMENT,
                         src_ip=src_ip,
-                        description=f"Suspicious Lateral Movement: connected to {len(destinations)} internal hosts.",
+                        description=(
+                            f"Suspicious Lateral Movement: connected to "
+                            f"{len(destinations)} internal hosts."
+                        ),
                         evidence={"unique_internal_destinations": len(destinations)}
                     )
                 )

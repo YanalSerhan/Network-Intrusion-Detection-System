@@ -11,7 +11,6 @@ import httpx
 import pytest
 import respx
 
-from network_defender.constants import ProviderStatus
 from network_defender.services.threat_intel.eligibility import eligible_ips
 from network_defender.services.threat_intel.factory import build_providers, build_service
 from network_defender.shared.config_models import ThreatIntelConfig

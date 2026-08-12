@@ -77,7 +77,8 @@ class RuleFileHandler(FileSystemEventHandler):
 
     def _get_src_path(self, event: FileSystemEvent) -> str:
         """Ensure src_path is a string."""
-        return event.src_path.decode("utf-8") if isinstance(event.src_path, bytes) else event.src_path
+        path = event.src_path
+        return path.decode("utf-8") if isinstance(path, bytes) else path
 
     def on_created(self, event: FileSystemEvent) -> None:
         """Handle new rule file."""

@@ -67,10 +67,13 @@ class DetectorRegistry:
                 logger.error(f"Failed to load detector module {module_name}: {e}")
                 continue
 
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, BaseDetector) and obj is not BaseDetector:
-                    if not inspect.isabstract(obj):
-                        self._register_detector_class(obj)
+            for _name, obj in inspect.getmembers(module, inspect.isclass):
+                if (
+                    issubclass(obj, BaseDetector)
+                    and obj is not BaseDetector
+                    and not inspect.isabstract(obj)
+                ):
+                    self._register_detector_class(obj)
 
         logger.info(f"Loaded {len(self.detectors)} heuristic detectors.")
 
@@ -81,21 +84,25 @@ class DetectorRegistry:
         init_signature = inspect.signature(detector_cls.__init__)
         config_param = init_signature.parameters.get("config")
         if not config_param or config_param.annotation == inspect.Parameter.empty:
-            logger.error(f"Detector {detector_name} is missing a typed 'config' parameter in __init__.")
+            logger.error(
+                f"Detector {detector_name} has no typed 'config' parameter in __init__."
+            )
             return
 
         config_cls = config_param.annotation
 
         # Handle string annotations or Generic Aliases if present
         if isinstance(config_cls, str) or get_origin(config_cls) is not None:
-            # We assume the config class has the same name as the detector class but ending in Config
-            # Or we can look it up in the module
+            # Assume the config class shares the detector's name but ends in
+            # "Config"; otherwise look it up in the defining module.
             module = importlib.import_module(detector_cls.__module__)
             config_cls_name = f"{detector_name.replace('Detector', '')}Config"
             config_cls = getattr(module, config_cls_name, DetectorConfig)
 
         if not (isinstance(config_cls, type) and issubclass(config_cls, DetectorConfig)):
-            logger.error(f"Config class {config_cls} for {detector_name} is not a subclass of DetectorConfig.")
+            logger.error(
+                f"Config {config_cls} for {detector_name} is not a DetectorConfig subclass."
+            )
             return
 
         config_dict = self.config_data.get(detector_name, {})

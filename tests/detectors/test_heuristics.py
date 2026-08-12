@@ -1,16 +1,19 @@
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from network_defender.constants import Protocol
-from network_defender.detectors.impl.heuristics import DnsTunnelingDetector, DnsTunnelingConfig
-from network_defender.parser.models import ParsedPacket, DnsFields
+from network_defender.detectors.impl.heuristics import DnsTunnelingConfig, DnsTunnelingDetector
+from network_defender.parser.models import DnsFields, ParsedPacket
+
 
 def test_dns_tunneling_detector():
-    config = DnsTunnelingConfig(query_count_threshold=2, entropy_threshold=3.5, time_window_seconds=10)
+    config = DnsTunnelingConfig(
+        query_count_threshold=2, entropy_threshold=3.5, time_window_seconds=10
+    )
     detector = DnsTunnelingDetector(config)
-    
+
     # High entropy domain name
     packet = ParsedPacket(
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         src_ip="10.0.0.25",
         dst_ip="8.8.8.8",
         src_port=12345,
@@ -23,7 +26,7 @@ def test_dns_tunneling_detector():
 
     detector.ingest(packet)
     detector.ingest(packet)
-    
+
     alerts = detector.evaluate()
     assert len(alerts) == 1
     assert alerts[0].src_ip == "10.0.0.25"

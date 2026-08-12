@@ -1,5 +1,10 @@
 """
 Base abstract classes for heuristic detectors.
+
+The TypeVar/Generic form is kept rather than PEP 695 `class BaseDetector[T]`
+syntax: the detector registry inspects `__init__` annotations to resolve each
+detector's config class, and the older form keeps that introspection working
+across interpreter versions.
 """
 
 from abc import ABC, abstractmethod
@@ -12,7 +17,7 @@ from .models import DetectionAlert, DetectorConfig
 TConfig = TypeVar("TConfig", bound=DetectorConfig)
 
 
-class BaseDetector(ABC, Generic[TConfig]):
+class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     """
     Abstract base class for all heuristic detectors.
     Ensures that new detectors can be added by subclassing without changing existing code.
@@ -30,7 +35,7 @@ class BaseDetector(ABC, Generic[TConfig]):
     @abstractmethod
     def ingest(self, packet: ParsedPacket) -> None:
         """
-        Ingest a parsed packet. 
+        Ingest a parsed packet.
         Detectors should update their internal state/counters here.
         """
         pass

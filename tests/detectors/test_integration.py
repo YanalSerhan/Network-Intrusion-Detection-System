@@ -1,9 +1,12 @@
-import pytest
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
-from network_defender.services.detection import DetectionService
+
+import pytest
+
 from network_defender.constants import Protocol
 from network_defender.parser.models import ParsedPacket, TcpFlags
+from network_defender.services.detection import DetectionService
+
 
 @pytest.fixture
 def config_dir(tmp_path: Path):
@@ -22,11 +25,11 @@ def config_dir(tmp_path: Path):
 def test_detection_service_integration(config_dir):
     service = DetectionService(config_dir)
     service._do_start()
-    
+
     assert len(service.registry.detectors) > 0
-    
+
     packet = ParsedPacket(
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         src_ip="192.168.1.100",
         dst_ip="10.0.0.5",
         src_port=12345,
@@ -39,9 +42,9 @@ def test_detection_service_integration(config_dir):
 
     for _ in range(3):
         service.process_packet(packet)
-        
+
     alerts = service.evaluate_detectors()
-    
+
     assert len(alerts) >= 1
     syn_alerts = [a for a in alerts if a.detector_name == "SynFloodDetector"]
     assert len(syn_alerts) == 1

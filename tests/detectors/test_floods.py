@@ -1,8 +1,11 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
+
 from network_defender.constants import Protocol
-from network_defender.detectors.impl.floods import SynFloodDetector, SynFloodConfig
+from network_defender.detectors.impl.floods import SynFloodConfig, SynFloodDetector
 from network_defender.parser.models import ParsedPacket, TcpFlags
+
 
 @pytest.fixture
 def syn_flood_detector():
@@ -11,7 +14,7 @@ def syn_flood_detector():
 
 def test_syn_flood_detector_triggers(syn_flood_detector):
     packet = ParsedPacket(
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         src_ip="192.168.1.100",
         dst_ip="10.0.0.5",
         src_port=12345,
@@ -25,7 +28,7 @@ def test_syn_flood_detector_triggers(syn_flood_detector):
     # Ingest below threshold
     for _ in range(4):
         syn_flood_detector.ingest(packet)
-    
+
     alerts = syn_flood_detector.evaluate()
     assert len(alerts) == 0
 
@@ -40,7 +43,7 @@ def test_syn_flood_detector_triggers(syn_flood_detector):
 
 def test_syn_flood_detector_resets(syn_flood_detector):
     packet = ParsedPacket(
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         src_ip="192.168.1.100",
         dst_ip="10.0.0.5",
         src_port=12345,
@@ -54,7 +57,7 @@ def test_syn_flood_detector_resets(syn_flood_detector):
     # Trigger alert
     for _ in range(5):
         syn_flood_detector.ingest(packet)
-    
+
     alerts = syn_flood_detector.evaluate()
     assert len(alerts) == 1
 
