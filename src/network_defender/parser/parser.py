@@ -13,7 +13,7 @@ unexpected exception so a single malformed packet never stops the pipeline.
 from datetime import UTC, datetime
 from typing import Any
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.packet import Packet
 
 from ..capture.filters import detect_protocol
 from ..capture.packet_summary import summarise_packet

@@ -9,10 +9,10 @@ TLS is metadata only — SNI and offered cipher suites from the ClientHello. No
 decryption, per the PRD's explicit non-goal.
 """
 
-from scapy.layers.dns import DNSQR  # type: ignore[import-untyped]
-from scapy.layers.http import HTTPRequest  # type: ignore[import-untyped]
-from scapy.layers.inet import TCP  # type: ignore[import-untyped]
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.layers.dns import DNSQR
+from scapy.layers.http import HTTPRequest
+from scapy.layers.inet import TCP
+from scapy.packet import Packet
 
 from ..constants import TlsHandshakeType
 from .models import DnsFields, HttpFields, TlsFields

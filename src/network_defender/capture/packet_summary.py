@@ -11,12 +11,12 @@ IPv6, IPv4, Ethernet. TLS metadata extraction lives in `tls_metadata`.
 
 from datetime import UTC, datetime
 
-from scapy.layers.dns import DNSQR  # type: ignore[import-untyped]
-from scapy.layers.http import HTTPRequest  # type: ignore[import-untyped]
-from scapy.layers.inet import IP, TCP, UDP  # type: ignore[import-untyped]
-from scapy.layers.inet6 import IPv6  # type: ignore[import-untyped]
-from scapy.layers.l2 import ARP  # type: ignore[import-untyped]
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.layers.dns import DNSQR
+from scapy.layers.http import HTTPRequest
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.l2 import ARP
+from scapy.packet import Packet
 
 from ..constants import Protocol
 from .filters import detect_protocol

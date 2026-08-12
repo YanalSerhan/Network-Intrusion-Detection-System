@@ -7,7 +7,7 @@ import inspect
 import json
 import logging
 from pathlib import Path
-from typing import get_origin
+from typing import Any, get_origin
 
 from network_defender.constants import CONFIG_FILE_DETECTORS
 
@@ -24,8 +24,8 @@ class DetectorRegistry:
 
     def __init__(self, config_dir: str) -> None:
         self.config_dir = Path(config_dir)
-        self.detectors: list[BaseDetector] = []
-        self.config_data: dict[str, dict] = {}
+        self.detectors: list[BaseDetector[Any]] = []
+        self.config_data: dict[str, dict[str, Any]] = {}
         self._load_config()
 
     def _load_config(self) -> None:
@@ -77,7 +77,7 @@ class DetectorRegistry:
 
         logger.info(f"Loaded {len(self.detectors)} heuristic detectors.")
 
-    def _register_detector_class(self, detector_cls: type[BaseDetector]) -> None:
+    def _register_detector_class(self, detector_cls: type[BaseDetector[Any]]) -> None:
         """Instantiate and register a detector class."""
         detector_name = detector_cls.__name__
 

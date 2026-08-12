@@ -15,6 +15,15 @@ from typing import Any
 
 from ..constants import PROJECT_VERSION
 from ..observability import setup_logging
+from ..services.alerts.service import AlertService
+from ..services.capture import CaptureService
+from ..services.database import DatabaseService
+from ..services.detection import DetectionService
+from ..services.maintenance import MaintenanceService
+from ..services.parser import PacketParser
+from ..services.statistics_sampler import StatisticsSampler
+from ..services.threat_intel.service import ThreatIntelService
+from ..services.threat_intel.worker import EnrichmentWorker
 from ..shared.base import LoggableMixin
 
 #: Components the API needs; capture and detection run in the sensor container.
@@ -23,6 +32,17 @@ READONLY_REQUIRED = ("database", "alerting")
 
 class LifecycleMixin(LoggableMixin):
     """Start, stop and health-check surface of the SDK."""
+
+    # Owned by the composing SDK; declared so this mixin type-checks alone.
+    _database_service: DatabaseService
+    _alert_service: AlertService
+    _threat_intel_service: ThreatIntelService
+    _enrichment_worker: EnrichmentWorker
+    _parser_service: PacketParser
+    _detection_service: DetectionService
+    _capture_service: CaptureService
+    _statistics_sampler: StatisticsSampler
+    _maintenance_service: MaintenanceService
 
     def start(self) -> None:
         """

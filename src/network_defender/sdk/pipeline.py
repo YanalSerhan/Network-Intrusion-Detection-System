@@ -17,7 +17,7 @@ mixin installs the missing link:
     NIC -> CaptureService -> PacketParser -> DetectionService -> AlertService
 """
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.packet import Packet
 
 from ..parser.models import ParsedPacket
 from ..rules.models import Rule

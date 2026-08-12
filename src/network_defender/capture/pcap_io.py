@@ -9,8 +9,8 @@ Data Output: Iterator of Scapy packet objects (read); .pcap file on disk (write)
 from collections.abc import Iterator
 from pathlib import Path
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
-from scapy.utils import rdpcap, wrpcap  # type: ignore[import-untyped]
+from scapy.packet import Packet
+from scapy.utils import rdpcap, wrpcap
 
 
 def read_pcap(path: str | Path) -> Iterator[Packet]:

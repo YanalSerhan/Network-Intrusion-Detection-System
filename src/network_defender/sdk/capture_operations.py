@@ -9,7 +9,7 @@ Data Output: Capture status, parsed packets, gatekeeper handles.
 
 from pathlib import Path
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.packet import Packet
 
 from ..capture.interface_discovery import list_interfaces
 from ..capture.models import CaptureStatus

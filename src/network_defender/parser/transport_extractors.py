@@ -9,10 +9,10 @@ Split from application-layer extraction so a change to HTTP parsing cannot
 affect the address path every packet takes.
 """
 
-from scapy.layers.inet import IP, TCP, UDP  # type: ignore[import-untyped]
-from scapy.layers.inet6 import IPv6  # type: ignore[import-untyped]
-from scapy.layers.l2 import ARP  # type: ignore[import-untyped]
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.l2 import ARP
+from scapy.packet import Packet
 
 from .models import TcpFlags
 

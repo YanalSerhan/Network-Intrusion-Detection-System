@@ -8,7 +8,7 @@ Data Output: Sorted list of interface name strings; best-candidate interface nam
 
 import re
 
-from scapy.arch import get_if_list  # type: ignore[import-untyped]
+from scapy.arch import get_if_list
 
 # Patterns for interfaces we consider "virtual" or "loopback" and skip during auto-select.
 _LOOPBACK_PATTERN = re.compile(r"^(lo|lo\d+|loopback)", re.IGNORECASE)

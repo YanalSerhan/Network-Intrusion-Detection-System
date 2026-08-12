@@ -13,8 +13,8 @@ downstream delivery. PCAP replay lives in `pcap_replay`.
 import threading
 from collections.abc import Callable
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
-from scapy.sendrecv import AsyncSniffer  # type: ignore[import-untyped]
+from scapy.packet import Packet
+from scapy.sendrecv import AsyncSniffer
 
 from ..shared.base import BaseService
 from ..shared.config_models import CaptureConfig

@@ -28,6 +28,7 @@ dev = [
     "ruff>=0.4.8",
     "mypy>=1.10.0",
     "respx>=0.21.1",
+    "types-PyYAML>=6.0.12",
 ]
 
 [tool.ruff]
@@ -41,6 +42,15 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+
+# Scapy only began shipping type information in 2.6. Pinning a floor high
+# enough to rely on it would drop the distro-packaged 2.5 that most sensor
+# hosts already have, so the import is treated as untyped either way and the
+# boundary is re-typed by hand in parser/ and capture/.
+[[tool.mypy.overrides]]
+module = ["scapy.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.pytest.ini_options]
 addopts = "--cov=src/network_defender --cov-report=term-missing"

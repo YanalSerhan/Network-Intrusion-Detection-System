@@ -15,8 +15,8 @@ sensor sees constantly. Any parse failure returns (None, None): missing
 metadata degrades an alert, an exception would drop the packet.
 """
 
-from scapy.layers.inet import TCP  # type: ignore[import-untyped]
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.layers.inet import TCP
+from scapy.packet import Packet
 
 from ..constants import TlsHandshakeType
 

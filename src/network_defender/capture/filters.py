@@ -8,12 +8,12 @@ Data Output: Boolean pass/drop decision for each packet.
 
 from collections.abc import Callable
 
-from scapy.layers.dns import DNS  # type: ignore[import-untyped]
-from scapy.layers.http import HTTP  # type: ignore[import-untyped]
-from scapy.layers.inet import ICMP, IP, TCP, UDP  # type: ignore[import-untyped]
-from scapy.layers.inet6 import IPv6  # type: ignore[import-untyped]
-from scapy.layers.l2 import ARP, Ether  # type: ignore[import-untyped]
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.layers.dns import DNS
+from scapy.layers.http import HTTP
+from scapy.layers.inet import ICMP, IP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.l2 import ARP, Ether
+from scapy.packet import Packet
 
 from ..constants import Protocol
 from .models import ProtocolFilterConfig
@@ -22,7 +22,7 @@ from .models import ProtocolFilterConfig
 # On Windows the function reference stays None and validation is skipped.
 _compile_filter: Callable[..., object] | None = None
 try:
-    from scapy.arch import compile_filter as _cf  # type: ignore[import-untyped]
+    from scapy.arch import compile_filter as _cf
 
     _compile_filter = _cf
 except ImportError:

@@ -15,7 +15,7 @@ wire too.
 from pathlib import Path
 from typing import Any
 
-from scapy.packet import Packet  # type: ignore[import-untyped]
+from scapy.packet import Packet
 
 from .pcap_io import read_pcap, write_pcap
 
