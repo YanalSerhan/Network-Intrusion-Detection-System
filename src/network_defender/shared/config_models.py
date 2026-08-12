@@ -78,12 +78,11 @@ class DetectionConfig(BaseModel):
 
 class ThreatIntelConfig(BaseModel):
     """
-    Configuration for threat intelligence enrichment.
+    Threat intelligence enrichment settings.
 
-    API keys are deliberately absent: credentials come from `.env` only, so a
-    config file can be committed and shared without leaking anything. This
-    section controls *behaviour* — which providers run, how long results stay
-    fresh, and when a failing provider is cut out.
+    API keys are deliberately absent: credentials come from `.env` only, so this
+    file stays committable. This section controls behaviour — which providers
+    run, how long results stay fresh, when a failing provider is cut out.
     """
 
     enabled: bool = Field(
@@ -97,21 +96,17 @@ class ThreatIntelConfig(BaseModel):
     cache_ttl_seconds: float = Field(
         default=86_400.0,
         gt=0,
-        description="How long a provider response stays fresh. IP reputation moves "
-        "over days, so a long TTL is what keeps lookups inside a small budget.",
+        description="How long a provider response stays fresh. Reputation moves over "
+        "days, so a long TTL is what keeps lookups inside a small budget.",
     )
     cache_max_entries: int = Field(
         default=10_000, gt=0, description="In-memory cache bound before LRU eviction."
     )
     breaker_failure_threshold: int = Field(
-        default=5,
-        gt=0,
-        description="Consecutive failures before a provider is cut out.",
+        default=5, gt=0, description="Consecutive failures before a provider is cut out."
     )
     breaker_reset_seconds: float = Field(
-        default=300.0,
-        gt=0,
-        description="Cooldown before a cut-out provider gets one trial request.",
+        default=300.0, gt=0, description="Cooldown before a cut-out provider is retried."
     )
     http_timeout_seconds: float = Field(
         default=10.0, gt=0, description="Per-request timeout for provider calls."
@@ -132,8 +127,7 @@ class MaintenanceConfig(BaseModel):
     statistics_interval_seconds: float = Field(
         default=60.0,
         gt=0,
-        description="Seconds between statistics snapshots. Also the resolution of the "
-        "packets-per-second chart.",
+        description="Seconds between snapshots; also the chart's resolution.",
     )
     retention_enabled: bool = Field(
         default=True, description="Prune rows past their retention window on a timer."
@@ -141,7 +135,7 @@ class MaintenanceConfig(BaseModel):
     retention_interval_seconds: float = Field(
         default=3600.0,
         gt=0,
-        description="Seconds between retention sweeps. Hourly is ample for day-scale windows "
+        description="Seconds between retention sweeps. Hourly suits day-scale windows "
         "and keeps the delete cost off the hot path.",
     )
 

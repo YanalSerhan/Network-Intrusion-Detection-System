@@ -7,21 +7,16 @@ Data Output: The same dict with environment overrides applied.
 
 Convention: `ND__SECTION__KEY`, e.g. `ND__CAPTURE__INTERFACE=eth1` sets
 `capture.interface`. A double underscore separates levels because single
-underscores appear inside key names (`max_packets_per_second`) and would make
-the split ambiguous.
+underscores appear inside key names (`max_packets_per_second`).
 
-Why this exists
----------------
 A container image should be built once and configured per environment. Without
-env overrides, dev, staging and production each need a mounted config file that
-differs in two lines — which is how those files drift apart. This keeps one
-committed `setup.json` as the baseline and lets deployments differ by
-environment alone.
+this, dev, staging and production each need a mounted config file differing in
+two lines — which is how those files drift apart.
 
-Values arrive as strings and are coerced against the Pydantic model, so
-`ND__API__PORT=9000` produces an int and `ND__CAPTURE__PROMISCUOUS_MODE=false`
-produces a bool rather than the string "false", which is truthy and would
-silently enable what an operator meant to disable.
+Values arrive as strings and are coerced against the model, so
+`ND__API__PORT=9000` is an int and `ND__CAPTURE__PROMISCUOUS_MODE=false` is
+False — not the string "false", which is truthy and would silently enable what
+an operator meant to disable.
 """
 
 import json
@@ -101,14 +96,14 @@ def _field_annotation(model: type[BaseModel], section: str, key: str) -> Any:
     return None
 
 
-def collect_overrides(model: type[BaseModel], environ: dict[str, str] | None = None) -> dict[
-    str, Any
-]:
+def collect_overrides(
+    model: type[BaseModel], environ: dict[str, str] | None = None
+) -> dict[str, Any]:
     """
     Read `ND__*` variables into a nested override dict.
 
     Args:
-        model:   The config model, used to coerce values to declared types.
+        model:   Config model, used to coerce values to declared types.
         environ: Environment mapping; defaults to `os.environ`.
 
     Returns:
