@@ -287,15 +287,17 @@
 
 ## Milestone 13 — Configuration Management (`configs/`)
 
-- [ ] Create capture configuration file (interface, BPF filter, buffer size)
-- [ ] Create logging configuration file
-- [ ] Create database configuration file (dev/prod connection strings via env vars)
-- [ ] Create rules directory path configuration
-- [ ] Create dashboard configuration (host, port, theme default)
-- [ ] Create threat intelligence configuration (providers, API keys via env, cache TTL)
-- [ ] Create rate limit configuration (`config/rate_limits.json`) per external service
-- [ ] Validate all configuration files against Pydantic schemas at startup
-- [ ] Document every configuration option in `docs/`
+- [x] Create capture configuration (`setup.json` → `capture`: interface, BPF filter, buffer size)
+- [x] Create logging configuration file (`config/logging_config.json`)
+- [x] Create database configuration (`setup.json` → `database`; URL via `DATABASE_URL`)
+- [x] Create rules directory path configuration (`setup.json` → `rules_dir`)
+- [x] Create dashboard configuration (`setup.json` → `dashboard`: host, port, theme default)
+- [x] Create threat intelligence configuration (providers, cache TTL, breaker; API keys via `.env`)
+- [x] Create rate limit configuration (`config/rate_limits.json`) per external service
+- [x] Validate all configuration files against Pydantic schemas at startup (`validate_all()`, fail-fast)
+- [x] Document every configuration option in `docs/CONFIGURATION.md`
+- [x] Support `ND__SECTION__KEY` environment overrides with type coercion
+- [x] Report every configuration problem in one pass, naming file, field and value
 
 ---
 
