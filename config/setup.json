@@ -31,6 +31,21 @@
         "evaluation_interval_seconds": 5.0,
         "evaluate_rules": true
     },
+    "threat_intel": {
+        "enabled": true,
+        "providers": [
+            "abuseipdb",
+            "ip_api_geo",
+            "ip_api_asn",
+            "whois"
+        ],
+        "cache_ttl_seconds": 86400.0,
+        "cache_max_entries": 10000,
+        "breaker_failure_threshold": 5,
+        "breaker_reset_seconds": 300.0,
+        "http_timeout_seconds": 10.0,
+        "enrich_private_ips": false
+    },
     "maintenance": {
         "statistics_enabled": true,
         "statistics_interval_seconds": 60.0,

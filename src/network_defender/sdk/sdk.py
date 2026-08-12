@@ -112,9 +112,13 @@ class NetworkDefenderSDK(
         # Threat intel enrichment runs off the alert path on its own worker.
         # Its cache is backed by the database so a 24h reputation TTL survives
         # a restart instead of being re-fetched against a 10 req/min budget.
-        self._threat_intel_service = build_service(self._gatekeepers)
+        self._threat_intel_service = build_service(
+            self._gatekeepers, app_config.threat_intel
+        )
         self._threat_intel_service.cache = TieredThreatIntelCache(  # type: ignore[assignment]
-            durable=self._database_service.threat_intel_cache
+            memory=self._threat_intel_service.cache,
+            durable=self._database_service.threat_intel_cache,
+            ttl_seconds=app_config.threat_intel.cache_ttl_seconds,
         )
         self._enrichment_worker = EnrichmentWorker(
             service=self._threat_intel_service,

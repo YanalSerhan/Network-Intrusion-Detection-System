@@ -76,6 +76,53 @@ class DetectionConfig(BaseModel):
     )
 
 
+class ThreatIntelConfig(BaseModel):
+    """
+    Configuration for threat intelligence enrichment.
+
+    API keys are deliberately absent: credentials come from `.env` only, so a
+    config file can be committed and shared without leaking anything. This
+    section controls *behaviour* — which providers run, how long results stay
+    fresh, and when a failing provider is cut out.
+    """
+
+    enabled: bool = Field(
+        default=True, description="Master switch for enrichment; disables all providers."
+    )
+    providers: list[str] = Field(
+        default_factory=lambda: ["abuseipdb", "ip_api_geo", "ip_api_asn", "whois"],
+        description="Provider names to enable, in priority order. Unlisted providers "
+        "are not constructed.",
+    )
+    cache_ttl_seconds: float = Field(
+        default=86_400.0,
+        gt=0,
+        description="How long a provider response stays fresh. IP reputation moves "
+        "over days, so a long TTL is what keeps lookups inside a small budget.",
+    )
+    cache_max_entries: int = Field(
+        default=10_000, gt=0, description="In-memory cache bound before LRU eviction."
+    )
+    breaker_failure_threshold: int = Field(
+        default=5,
+        gt=0,
+        description="Consecutive failures before a provider is cut out.",
+    )
+    breaker_reset_seconds: float = Field(
+        default=300.0,
+        gt=0,
+        description="Cooldown before a cut-out provider gets one trial request.",
+    )
+    http_timeout_seconds: float = Field(
+        default=10.0, gt=0, description="Per-request timeout for provider calls."
+    )
+    enrich_private_ips: bool = Field(
+        default=False,
+        description="Send private/internal addresses to third-party providers. Off by "
+        "default: it leaks internal topology and no feed has an opinion on RFC1918.",
+    )
+
+
 class MaintenanceConfig(BaseModel):
     """Configuration for periodic background maintenance."""
 
@@ -108,6 +155,7 @@ class AppConfig(BaseModel):
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     dashboard: DashboardConfig = Field(default_factory=DashboardConfig)
     detection: DetectionConfig = Field(default_factory=DetectionConfig)
+    threat_intel: ThreatIntelConfig = Field(default_factory=ThreatIntelConfig)
     maintenance: MaintenanceConfig = Field(default_factory=MaintenanceConfig)
     rules_dir: str = Field(default="rules/", description="Path to YAML rules directory.")
     config_dir: str = Field(
