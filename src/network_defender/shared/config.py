@@ -1,48 +1,124 @@
 """
 Centralized configuration manager.
 
-Loads and validates application configuration from JSON files,
-then merges with environment variable overrides where applicable.
-
-Data Setup:  Config files in config/ directory, .env for secrets.
-Data Input:  JSON files + environment variables.
+Data Setup:  JSON files in config/, plus `.env` and `ND__*` environment vars.
+Data Input:  Parsed JSON dicts and environment overrides.
 Data Output: Validated AppConfig and RateLimitConfig objects.
+
+Precedence, lowest to highest:
+
+    model defaults  <  config/*.json  <  ND__SECTION__KEY env vars
+
+Secrets never appear in any of those: credentials come from `.env` via
+`shared/secrets.py` and are read at the point of use.
+
+Invalid configuration aborts startup with every problem listed at once — see
+`config_errors` for why.
 """
 
-import json
-import os
+from typing import Any
 
+from pydantic import BaseModel, ValidationError
+
+from .config_env import apply_overrides, collect_overrides
+from .config_errors import ConfigurationError, describe_validation_error, load_json_file
 from .config_models import AppConfig
 from .paths import CONFIG_DIR
 from .rate_limit_models import RateLimitConfig
+from .secrets import get_secret
+
+SETUP_FILE = "setup.json"
+RATE_LIMITS_FILE = "rate_limits.json"
 
 _CONFIG_DIR = CONFIG_DIR
 
 
-def _load_json(filename: str) -> dict:  # type: ignore[type-arg]
-    """Load a JSON config file from the config directory."""
-    path = _CONFIG_DIR / filename
-    if not path.exists():
-        return {}
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)  # type: ignore[no-any-return]
+def _validate(model: type[BaseModel], raw: dict[str, Any], source: str) -> Any:
+    """
+    Validate a raw dict against a model, reporting every problem at once.
+
+    Args:
+        model:  The Pydantic model to validate against.
+        raw:    The merged configuration dict.
+        source: File name used in error messages.
+
+    Returns:
+        The validated model instance.
+
+    Raises:
+        ConfigurationError: If validation fails.
+    """
+    try:
+        return model.model_validate(raw)
+    except ValidationError as exc:
+        raise ConfigurationError(
+            f"Invalid configuration in {source}.", describe_validation_error(source, exc)
+        ) from exc
 
 
 def load_app_config() -> AppConfig:
     """
-    Load and validate the main application configuration.
+    Load, override and validate the main application configuration.
 
-    Reads config/setup.json and returns a validated AppConfig.
-    Environment variables can override specific values (e.g., DATABASE_URL).
+    Returns:
+        A validated AppConfig.
+
+    Raises:
+        ConfigurationError: If the file is malformed or any value is invalid.
     """
-    raw = _load_json("setup.json")
-    # Allow environment variable to override the database URL
-    if db_url := os.getenv("DATABASE_URL"):
-        raw.setdefault("database", {})["default_url"] = db_url
-    return AppConfig.model_validate(raw)
+    raw = load_json_file(_CONFIG_DIR / SETUP_FILE)
+    raw = apply_overrides(raw, collect_overrides(AppConfig))
+
+    config: AppConfig = _validate(AppConfig, raw, SETUP_FILE)
+
+    # DATABASE_URL is honoured separately from the ND__ scheme because a
+    # connection string is a credential: it belongs with the other secrets in
+    # .env, and its name is a long-standing convention deployments already use.
+    if database_url := get_secret(config.database.url_env_var):
+        config.database.default_url = database_url
+
+    return config
 
 
 def load_rate_limit_config() -> RateLimitConfig:
-    """Load and validate the rate-limit configuration from config/rate_limits.json."""
-    raw = _load_json("rate_limits.json")
-    return RateLimitConfig.model_validate(raw)
+    """
+    Load and validate the per-service rate-limit configuration.
+
+    Returns:
+        A validated RateLimitConfig.
+
+    Raises:
+        ConfigurationError: If the file is malformed or any value is invalid.
+    """
+    raw = load_json_file(_CONFIG_DIR / RATE_LIMITS_FILE)
+    return _validate(RateLimitConfig, raw, RATE_LIMITS_FILE)  # type: ignore[no-any-return]
+
+
+def validate_all() -> dict[str, str]:
+    """
+    Validate every configuration file, collecting problems across all of them.
+
+    Loading one file at a time means an operator fixes one error, restarts, and
+    meets the next. This reports every file's problems in a single pass.
+
+    Returns:
+        A summary naming each file and its status.
+
+    Raises:
+        ConfigurationError: If any file is invalid.
+    """
+    problems: list[str] = []
+    summary: dict[str, str] = {}
+
+    for name, loader in ((SETUP_FILE, load_app_config), (RATE_LIMITS_FILE, load_rate_limit_config)):
+        try:
+            loader()
+            summary[name] = "ok"
+        except ConfigurationError as exc:
+            summary[name] = "invalid"
+            problems.extend(exc.problems or [str(exc)])
+
+    if problems:
+        raise ConfigurationError("Configuration is invalid; refusing to start.", problems)
+
+    return summary

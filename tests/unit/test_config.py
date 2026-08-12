@@ -51,12 +51,9 @@ def test_database_url_env_var_overrides_default() -> None:
 
 
 def test_load_json_returns_empty_dict_for_missing_file() -> None:
-    """_load_json should return {} rather than raising when the file is absent."""
+    """A missing file is not an error: every section has defaults."""
     from pathlib import Path
-    from unittest.mock import patch
 
-    from network_defender.shared.config import _load_json
+    from network_defender.shared.config_errors import load_json_file
 
-    with patch("network_defender.shared.config._CONFIG_DIR", Path("/nonexistent/dir")):
-        result = _load_json("missing.json")
-    assert result == {}
+    assert load_json_file(Path("/nonexistent/dir/missing.json")) == {}
