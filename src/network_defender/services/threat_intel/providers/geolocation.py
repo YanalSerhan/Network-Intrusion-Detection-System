@@ -38,7 +38,10 @@ class _IpApiProvider(ThreatIntelProvider):
         """Request the configured fields, returning a payload or a failed result."""
         try:
             payload: dict[str, Any] = self.gatekeeper.execute(
-                get_json, IP_API_URL.format(ip=ip), params={"fields": self.fields}
+                get_json,
+                IP_API_URL.format(ip=ip),
+                params={"fields": self.fields},
+                timeout=self.timeout,
             )
         except Exception as exc:  # noqa: BLE001 - providers must never raise
             return self._error(str(exc))

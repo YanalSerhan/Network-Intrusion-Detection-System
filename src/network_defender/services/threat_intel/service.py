@@ -22,7 +22,7 @@ from .aggregation import aggregate
 from .base import ThreatIntelProvider
 from .cache import ThreatIntelCache
 from .circuit_breaker import CircuitBreaker
-from .eligibility import eligible_ips, is_public_ip
+from .eligibility import eligible_ips, is_eligible
 from .models import ProviderResult, ThreatIntelResult
 from .query import query_provider
 
@@ -37,17 +37,22 @@ class ThreatIntelService(BaseService):
         self,
         providers: list[ThreatIntelProvider] | None = None,
         cache: ThreatIntelCache | None = None,
+        enrich_private_ips: bool = False,
     ) -> None:
         """
         Initialise the service.
 
         Args:
-            providers: Provider adapters to consult, in priority order.
-            cache:     Shared response cache; a default TTL cache is used if omitted.
+            providers:          Provider adapters to consult, in priority order.
+            cache:              Shared response cache; a default is used if omitted.
+            enrich_private_ips: Send private addresses to third parties. Off by
+                default, because it leaks internal topology and no feed has an
+                opinion on RFC1918 space.
         """
         super().__init__(service_name="ThreatIntelService")
         self.providers = providers or []
         self.cache = cache or ThreatIntelCache()
+        self.enrich_private_ips = enrich_private_ips
         self.breakers = {provider.name: CircuitBreaker() for provider in self.providers}
         self._lookups = 0
         self._skipped = 0
@@ -92,10 +97,10 @@ class ThreatIntelService(BaseService):
             ip: The address to look up.
 
         Returns:
-            An aggregated ThreatIntelResult. Private and malformed addresses
-            return an empty result without any outbound request.
+            An aggregated ThreatIntelResult. Ineligible addresses return an
+            empty result without any outbound request.
         """
-        if not is_public_ip(ip):
+        if not is_eligible(ip, self.enrich_private_ips):
             self._skipped += 1
             return ThreatIntelResult(ip=ip)
 
@@ -113,7 +118,9 @@ class ThreatIntelService(BaseService):
             The ThreatIntelResult stored on the alert, or None when neither
             address is publicly routable (internal-to-internal traffic).
         """
-        candidates = eligible_ips(alert.src_ip, alert.dst_ip)
+        candidates = eligible_ips(
+            alert.src_ip, alert.dst_ip, include_private=self.enrich_private_ips
+        )
         if not candidates:
             return None
 

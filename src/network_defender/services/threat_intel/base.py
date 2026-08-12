@@ -18,6 +18,7 @@ Contract for implementors
 
 from abc import ABC, abstractmethod
 
+from network_defender.constants import TI_HTTP_TIMEOUT_SECONDS
 from network_defender.shared.base import LoggableMixin
 from network_defender.shared.gatekeeper import ApiGatekeeper
 
@@ -30,16 +31,23 @@ class ThreatIntelProvider(LoggableMixin, ABC):
     #: Set True by providers that cannot function without a configured key.
     requires_api_key: bool = False
 
-    def __init__(self, gatekeeper: ApiGatekeeper, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        gatekeeper: ApiGatekeeper,
+        api_key: str | None = None,
+        timeout: float = TI_HTTP_TIMEOUT_SECONDS,
+    ) -> None:
         """
         Initialise the provider.
 
         Args:
             gatekeeper: Gatekeeper enforcing rate limits for this provider's service.
             api_key:    Credential loaded from the environment; never a literal.
+            timeout:    Per-request timeout, from configuration.
         """
         self.gatekeeper = gatekeeper
         self.api_key = api_key
+        self.timeout = timeout
 
     @property
     @abstractmethod

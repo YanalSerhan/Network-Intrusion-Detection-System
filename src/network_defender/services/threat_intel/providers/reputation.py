@@ -57,6 +57,7 @@ class AbuseIpDbProvider(ThreatIntelProvider):
                 ABUSEIPDB_URL,
                 params={"ipAddress": ip, "maxAgeInDays": ABUSEIPDB_MAX_AGE_DAYS},
                 headers={"Key": self.api_key or "", "Accept": "application/json"},
+                timeout=self.timeout,
             )
         except Exception as exc:  # noqa: BLE001 - providers must never raise
             return self._error(str(exc))

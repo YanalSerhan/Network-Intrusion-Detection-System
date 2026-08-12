@@ -70,7 +70,13 @@ def build_providers(
         gatekeeper = gatekeepers.get(bucket)
         if gatekeeper is None or name not in settings.providers:
             continue
-        providers.append(provider_cls(gatekeeper=gatekeeper, api_key=api_keys.get(provider_cls)))
+        providers.append(
+            provider_cls(
+                gatekeeper=gatekeeper,
+                api_key=api_keys.get(provider_cls),
+                timeout=settings.http_timeout_seconds,
+            )
+        )
 
     return providers
 
@@ -102,6 +108,7 @@ def build_service(
             ttl_seconds=settings.cache_ttl_seconds,
             max_entries=settings.cache_max_entries,
         ),
+        enrich_private_ips=settings.enrich_private_ips,
     )
     service.breakers = {
         provider.name: CircuitBreaker(

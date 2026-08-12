@@ -44,7 +44,9 @@ class RdapWhoisProvider(ThreatIntelProvider):
             ProviderResult with `whois` populated, or status ERROR on failure.
         """
         try:
-            payload = self.gatekeeper.execute(get_json, RDAP_URL.format(ip=ip))
+            payload = self.gatekeeper.execute(
+                get_json, RDAP_URL.format(ip=ip), timeout=self.timeout
+            )
         except Exception as exc:  # noqa: BLE001 - providers must never raise
             return self._error(str(exc))
 

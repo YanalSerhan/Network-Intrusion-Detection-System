@@ -50,18 +50,51 @@ def is_public_ip(ip: str) -> bool:
     )
 
 
-def eligible_ips(*candidates: str | None) -> list[str]:
+def is_eligible(ip: str, include_private: bool = False) -> bool:
     """
-    Filter candidate addresses down to the public, de-duplicated ones.
+    Return True if an address may be looked up.
+
+    Opting into private addresses relaxes the *privacy* rule only. Malformed
+    input is still refused: sending "not-an-ip" to a provider spends a
+    rate-limit slot on a guaranteed error.
 
     Args:
-        *candidates: Address strings (or None) from an Alert.
+        ip:              The address to test.
+        include_private: Accept private/loopback/reserved ranges too.
 
     Returns:
-        Public addresses in first-seen order, without duplicates.
+        True if the address may be sent to a provider.
+    """
+    if is_public_ip(ip):
+        return True
+    return include_private and _is_parseable(ip)
+
+
+def eligible_ips(*candidates: str | None, include_private: bool = False) -> list[str]:
+    """
+    Filter candidate addresses down to the eligible, de-duplicated ones.
+
+    Args:
+        *candidates:     Address strings (or None) from an Alert.
+        include_private: Also accept private addresses. Only set when an
+            operator has explicitly opted in; malformed input is still refused.
+
+    Returns:
+        Eligible addresses in first-seen order, without duplicates.
     """
     seen: dict[str, None] = {}
     for candidate in candidates:
-        if candidate and is_public_ip(candidate):
+        if not candidate:
+            continue
+        if is_eligible(candidate, include_private):
             seen.setdefault(candidate, None)
     return list(seen)
+
+
+def _is_parseable(ip: str) -> bool:
+    """Return True if the string is a valid IP address of either family."""
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return True
