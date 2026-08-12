@@ -86,16 +86,20 @@ def test_get_queue_status(gatekeeper: ApiGatekeeper) -> None:
 
 
 def test_minute_window_resets_after_60_seconds(gatekeeper: ApiGatekeeper) -> None:
-    """_refresh_minute_window resets the counter when 60+ seconds have elapsed."""
+    """The request counter resets once the window has elapsed."""
+    window = gatekeeper._window  # type: ignore[attr-defined]
+    for _ in range(10):
+        window.record()
     # Simulate that 61 seconds have elapsed by back-dating the window start.
-    gatekeeper._requests_this_minute = 10  # type: ignore[attr-defined]
-    gatekeeper._minute_window_start = gatekeeper._minute_window_start - 61  # type: ignore[attr-defined]
-    gatekeeper._refresh_minute_window()  # type: ignore[attr-defined]
-    assert gatekeeper._requests_this_minute == 0  # type: ignore[attr-defined]
+    window._window_start -= 61
+    window.refresh()
+    assert window.count == 0
 
 
 def test_minute_window_does_not_reset_within_60_seconds(gatekeeper: ApiGatekeeper) -> None:
-    """_refresh_minute_window keeps the counter intact within the window."""
-    gatekeeper._requests_this_minute = 5  # type: ignore[attr-defined]
-    gatekeeper._refresh_minute_window()  # type: ignore[attr-defined]
-    assert gatekeeper._requests_this_minute == 5  # type: ignore[attr-defined]
+    """The counter stays intact while the window is still current."""
+    window = gatekeeper._window  # type: ignore[attr-defined]
+    for _ in range(5):
+        window.record()
+    window.refresh()
+    assert window.count == 5

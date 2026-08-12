@@ -6,14 +6,11 @@ Data Input:  Alerts submitted after they have already been persisted.
 Data Output: Enrichment attached to those alerts, plus an optional callback so
              the repository can re-save the updated record.
 
-Enrichment is up to four HTTP calls, each with a 10s timeout and retries. Inline
-that would put tens of seconds between a detection and its alert (PRD target:
-sub-100ms at 10k pps) and make detection throughput hostage to a third party's
-availability. So alerts are raised, persisted and notified first, then enriched.
-
-The queue is bounded: under an alert storm enrichment is dropped rather than
-allowed to grow without limit. Losing enrichment is survivable; running out of
-memory is not.
+Enrichment is up to four HTTP calls with timeouts and retries; inline, that
+would put tens of seconds between a detection and its alert (PRD target:
+sub-100ms at 10k pps). So alerts are raised, persisted and notified first, and
+the queue is bounded: under a storm, enrichment is dropped rather than growing
+without limit. Losing enrichment is survivable; running out of memory is not.
 """
 
 import queue
@@ -135,24 +132,19 @@ class EnrichmentWorker(LoggableMixin):
             self._process(alert, correlation_id)
 
     def _process(self, alert: Alert, correlation_id: str | None = None) -> None:
-        """Enrich one alert under its originating correlation ID."""
+        """Enrich one alert under its originating correlation ID, containing any failure."""
         with correlation_scope(correlation_id):
-            self._enrich(alert)
-
-    def _enrich(self, alert: Alert) -> None:
-        """Run enrichment for one alert, containing any failure."""
-        try:
-            result = self._service.enrich_alert(alert)
-            if result is None:
-                # Internal-to-internal traffic: nothing to ask an external
-                # provider about, so this is a skip rather than an enrichment.
-                self._skipped += 1
-                return
-            self._enriched += 1
-            if self._on_enriched is not None:
-                self._on_enriched(alert)
-        except Exception as exc:  # noqa: BLE001 - enrichment must never crash the worker
-            self.logger.error(
-                "Alert enrichment failed",
-                extra={"alert_id": str(alert.alert_id), "error": str(exc)},
-            )
+            try:
+                if self._service.enrich_alert(alert) is None:
+                    # Internal-to-internal traffic: nothing to ask an external
+                    # provider, so this is a skip rather than an enrichment.
+                    self._skipped += 1
+                    return
+                self._enriched += 1
+                if self._on_enriched is not None:
+                    self._on_enriched(alert)
+            except Exception as exc:  # noqa: BLE001 - must never crash the worker
+                self.logger.error(
+                    "Alert enrichment failed",
+                    extra={"alert_id": str(alert.alert_id), "error": str(exc)},
+                )

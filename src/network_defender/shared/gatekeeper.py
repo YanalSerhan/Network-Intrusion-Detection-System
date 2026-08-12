@@ -16,6 +16,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .gatekeeper_models import QueueStatus
+from .gatekeeper_window import MinuteWindow
 from .rate_limit_models import ServiceRateLimitConfig
 
 logger = logging.getLogger("network_defender.audit")
@@ -27,8 +28,8 @@ class GatekeeperError(Exception):
 
 class ApiGatekeeper:
     """
-    Mediates all outbound API calls with rate limiting, FIFO queuing,
-    backpressure signaling, retry-with-backoff, and structured logging.
+    Mediates outbound API calls: rate limiting, FIFO queuing, backpressure,
+    retry-with-backoff and structured logging.
 
     Usage:
         gatekeeper = ApiGatekeeper(service_name="abuseipdb", config=cfg)
@@ -46,12 +47,7 @@ class ApiGatekeeper:
         self._service_name = service_name
         self._config = config
         self._queue: deque[Callable[[], Any]] = deque()
-        self._minute_window_start: float = time.monotonic()
-        self._requests_this_minute: int = 0
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+        self._window = MinuteWindow(config.requests_per_minute)
 
     def execute(self, api_call: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """
@@ -80,19 +76,15 @@ class ApiGatekeeper:
 
     def get_queue_status(self) -> QueueStatus:
         """Return a snapshot of the current queue state for monitoring."""
-        self._refresh_minute_window()
+        self._window.refresh()
         return QueueStatus(
             service_name=self._service_name,
             queue_depth=len(self._queue),
             max_queue_depth=self._config.max_queue_depth,
             is_backpressure_active=self._is_backpressure_active(),
-            requests_this_minute=self._requests_this_minute,
+            requests_this_minute=self._window.count,
             requests_per_minute_limit=self._config.requests_per_minute,
         )
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     def _dispatch_next(self) -> Any:
         """Pop the next call from the queue, apply rate limiting, and execute with retries."""
@@ -100,7 +92,7 @@ class ApiGatekeeper:
             raise GatekeeperError(f"[{self._service_name}] Queue is unexpectedly empty.")
 
         bound_call = self._queue.popleft()
-        self._wait_for_rate_limit()
+        self._window.wait_for_slot()
         return self._execute_with_retry(bound_call)
 
     def _execute_with_retry(self, bound_call: Callable[[], Any]) -> Any:
@@ -112,7 +104,7 @@ class ApiGatekeeper:
                 result = bound_call()
                 latency = time.monotonic() - start
                 self._log_call(success=True, latency=latency, attempt=attempt)
-                self._requests_this_minute += 1
+                self._window.record()
                 return result
             except Exception as exc:
                 latency = time.monotonic() - start
@@ -125,19 +117,6 @@ class ApiGatekeeper:
         raise GatekeeperError(
             f"[{self._service_name}] All {self._config.retry_attempts} retries exhausted."
         ) from last_exc
-
-    def _wait_for_rate_limit(self) -> None:
-        """Block until a request slot is available within the current minute window."""
-        self._refresh_minute_window()
-        while self._requests_this_minute >= self._config.requests_per_minute:
-            time.sleep(0.1)
-            self._refresh_minute_window()
-
-    def _refresh_minute_window(self) -> None:
-        """Reset the per-minute counter when a new minute has elapsed."""
-        if time.monotonic() - self._minute_window_start >= 60.0:
-            self._minute_window_start = time.monotonic()
-            self._requests_this_minute = 0
 
     def _is_backpressure_active(self) -> bool:
         """Return True when the queue is at or beyond its maximum depth."""

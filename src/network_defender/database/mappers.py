@@ -5,10 +5,9 @@ Data Setup:  No state; pure functions.
 Data Input:  Domain models (Alert, ParsedPacket, Rule) or ORM records.
 Data Output: The other representation.
 
-Repositories return domain models, never live ORM instances. That keeps the
-services free of SQLAlchemy — no detached-instance errors leaking into the alert
-pipeline, no lazy loads firing after a session closes — and leaves the in-memory
-and SQL repositories genuinely interchangeable behind the same port.
+Repositories return domain models, never live ORM instances: that keeps
+SQLAlchemy out of the services and leaves the in-memory and SQL repositories
+interchangeable behind one port.
 """
 
 from typing import Any

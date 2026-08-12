@@ -5,12 +5,9 @@ Data Setup:  No external configuration required; instantiated once at startup.
 Data Input:  Raw Scapy Packet objects from the CaptureService callback.
 Data Output: ParsedPacket Pydantic models consumed by the Detection Engine.
 
-Architecture:
-  - Extends BaseService (start/stop/health lifecycle) and ValidatableMixin.
-  - All extraction logic is delegated to extractors.py (single-responsibility).
-  - parse_safe() catches any unexpected exception so the caller never crashes.
-  - summarise_packet() from the capture layer provides the raw_summary string,
-    avoiding duplication of the one-line description logic.
+Field extraction is delegated to `extractors`; the one-line description reuses
+`summarise_packet` from the capture layer. `parse_safe()` swallows any
+unexpected exception so a single malformed packet never stops the pipeline.
 """
 
 from datetime import UTC, datetime
@@ -38,10 +35,6 @@ class PacketParser(BaseService, ValidatableMixin):
 
     Consumers call parse() (raises on error) or parse_safe() (returns None).
     The parser must be started before parsing; use start()/stop() from BaseService.
-
-    Data Setup:  No injected config; constructed with no arguments.
-    Data Input:  Scapy Packet objects (live or from PCAP replay).
-    Data Output: ParsedPacket models ready for the Detection Engine.
     """
 
     def __init__(self) -> None:
@@ -49,10 +42,6 @@ class PacketParser(BaseService, ValidatableMixin):
         super().__init__(service_name="PacketParser")
         self._packets_parsed: int = 0
         self._packets_failed: int = 0
-
-    # ------------------------------------------------------------------
-    # ValidatableMixin
-    # ------------------------------------------------------------------
 
     def validate(self, data: Any) -> bool:
         """
@@ -65,10 +54,6 @@ class PacketParser(BaseService, ValidatableMixin):
             True if data is a valid Packet; False otherwise.
         """
         return data is not None and isinstance(data, Packet)
-
-    # ------------------------------------------------------------------
-    # Public parse API
-    # ------------------------------------------------------------------
 
     def parse(self, pkt: Packet) -> ParsedPacket:
         """
@@ -129,10 +114,6 @@ class PacketParser(BaseService, ValidatableMixin):
             self._packets_failed += 1
             self.logger.warning("parse_safe: failed to parse packet — %s", exc)
             return None
-
-    # ------------------------------------------------------------------
-    # BaseService hooks
-    # ------------------------------------------------------------------
 
     def _do_start(self) -> None:
         """Reset counters and mark the parser as ready."""

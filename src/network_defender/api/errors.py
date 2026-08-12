@@ -5,13 +5,10 @@ Data Setup:  Handlers registered on the app by the factory.
 Data Input:  Exceptions raised anywhere in request handling.
 Data Output: A single, consistent error body for every failure.
 
-FastAPI's defaults emit three shapes: `{"detail": ...}` for HTTPException, a
-list for validation errors, and an HTML traceback for anything unhandled. A
-client would need three parsers and the traceback leaks internals, so these
-handlers normalise everything to `{"error": {code, message, detail}}`.
-
-Unhandled exceptions are logged in full and reported as a generic 500: the
-stack trace belongs in the operator's logs, not in an HTTP response.
+FastAPI's defaults emit three different shapes, so a client would need three
+parsers and the HTML traceback leaks internals. Everything is normalised to
+`{"error": {code, message, detail}}`; unhandled exceptions are logged in full
+but reported as a generic 500.
 """
 
 import logging
@@ -119,9 +116,7 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def _validation_error(
-        _request: Request, exc: RequestValidationError
-    ) -> JSONResponse:
+    async def _validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:
         """Return field-level validation failures in the standard envelope."""
         return JSONResponse(
             status_code=HTTP_422_UNPROCESSABLE,

@@ -13,88 +13,20 @@ A container image should be built once and configured per environment. Without
 this, dev, staging and production each need a mounted config file differing in
 two lines — which is how those files drift apart.
 
-Values arrive as strings and are coerced against the model, so
-`ND__API__PORT=9000` is an int and `ND__CAPTURE__PROMISCUOUS_MODE=false` is
-False — not the string "false", which is truthy and would silently enable what
-an operator meant to disable.
+Values arrive as strings and are coerced against the model by `config_coerce`.
 """
 
-import json
 import os
 from typing import Any
 
 from pydantic import BaseModel
 
+from .config_coerce import coerce, field_annotation
+
 #: Prefix marking an override. Namespaced so unrelated variables in a shared
 #: container environment cannot collide with configuration.
 ENV_PREFIX = "ND__"
 ENV_SEPARATOR = "__"
-
-TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
-FALSE_VALUES = frozenset({"0", "false", "no", "off"})
-
-
-def _coerce(raw: str, annotation: Any) -> Any:
-    """
-    Convert an environment string to the type the model expects.
-
-    Args:
-        raw:        The environment value.
-        annotation: The field's declared type, or None if unknown.
-
-    Returns:
-        The coerced value; the original string when no rule applies.
-    """
-    text = raw.strip()
-
-    if annotation is bool:
-        lowered = text.lower()
-        if lowered in TRUE_VALUES:
-            return True
-        if lowered in FALSE_VALUES:
-            return False
-        # Anything else is left as-is so validation reports it, rather than
-        # being silently treated as True the way a bare string would be.
-        return text
-
-    if annotation is int:
-        return int(text) if _looks_numeric(text) else text
-    if annotation is float:
-        return float(text) if _looks_numeric(text) else text
-
-    if annotation in (list, dict) or str(annotation).startswith(("list", "dict")):
-        # Lists and dicts arrive as JSON, e.g. ND__THREAT_INTEL__PROVIDERS='["whois"]'
-        try:
-            return json.loads(text)
-        except ValueError:
-            # Fall back to a comma-separated list, which is friendlier to type
-            # by hand in a shell than JSON quoting.
-            return [item.strip() for item in text.split(",") if item.strip()]
-
-    return text
-
-
-def _looks_numeric(text: str) -> bool:
-    """Return True if the text parses as a number."""
-    try:
-        float(text)
-    except ValueError:
-        return False
-    return True
-
-
-def _field_annotation(model: type[BaseModel], section: str, key: str) -> Any:
-    """Return the declared type of `section.key`, or None if unknown."""
-    section_field = model.model_fields.get(section)
-    if section_field is None:
-        return None
-
-    nested = section_field.annotation
-    if isinstance(nested, type) and issubclass(nested, BaseModel):
-        field = nested.model_fields.get(key)
-        return field.annotation if field else None
-    return None
-
 
 def collect_overrides(
     model: type[BaseModel], environ: dict[str, str] | None = None
@@ -121,8 +53,8 @@ def collect_overrides(
             overrides[path[0]] = raw
         elif len(path) == 2:
             section, key = path
-            overrides.setdefault(section, {})[key] = _coerce(
-                raw, _field_annotation(model, section, key)
+            overrides.setdefault(section, {})[key] = coerce(
+                raw, field_annotation(model, section, key)
             )
         # Deeper paths are ignored: the schema is two levels, and silently
         # accepting `ND__A__B__C` would imply support that does not exist.

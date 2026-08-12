@@ -10,11 +10,8 @@ Pipeline: build -> deduplicate -> persist -> log -> notify -> enrich.
 """
 
 from collections.abc import Callable
-from datetime import datetime
 from typing import Any
-from uuid import UUID
 
-from network_defender.constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
 from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket
 from network_defender.rules.models import Rule
@@ -24,11 +21,12 @@ from .dedup import AlertDeduplicator
 from .dispatcher import NotificationDispatcher
 from .factory import build_alert, build_rule_alert
 from .models import Alert
+from .queries import AlertQueryMixin
 from .repository import AlertRepository, InMemoryAlertRepository
 from .security_log import log_alert_raised, log_alert_suppressed
 
 
-class AlertService(BaseService):
+class AlertService(AlertQueryMixin, BaseService):
     """
     Manages alert creation, deduplication, persistence and notification dispatch.
 
@@ -85,10 +83,6 @@ class AlertService(BaseService):
             "status": "ok",
         }
 
-    # ------------------------------------------------------------------
-    # Ingest
-    # ------------------------------------------------------------------
-
     def handle_detection(
         self, detection: DetectionAlert, packet: ParsedPacket | None = None
     ) -> Alert | None:
@@ -138,24 +132,3 @@ class AlertService(BaseService):
         if self.enrichment_sink is not None:
             self.enrichment_sink(deduped)
         return deduped
-
-    # ------------------------------------------------------------------
-    # Query — thin pass-throughs so callers never hold a repository directly
-    # ------------------------------------------------------------------
-
-    def get_alert(self, alert_id: UUID) -> Alert | None:
-        """Return a single stored alert by ID, or None."""
-        return self.repository.get(alert_id)
-
-    def list_alerts(
-        self,
-        severity: Severity | None = None,
-        status: AlertStatus | None = None,
-        since: datetime | None = None,
-        limit: int = ALERT_QUERY_DEFAULT_LIMIT,
-        offset: int = 0,
-    ) -> list[Alert]:
-        """Return stored alerts, newest first, matching the given criteria."""
-        return self.repository.list_alerts(
-            severity=severity, status=status, since=since, limit=limit, offset=offset
-        )

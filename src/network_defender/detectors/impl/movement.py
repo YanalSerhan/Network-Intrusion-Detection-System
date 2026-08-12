@@ -1,13 +1,12 @@
 """
-Suspicious port, data exfiltration and lateral movement detectors.
+Data exfiltration and lateral movement detectors.
 
-Grouped because all three key off connection endpoints and volume rather than
-payload content.
+Grouped because both accumulate per-source volume over a window and threshold
+it, rather than matching any single packet.
 
 Data Setup:  Thresholds from config/detectors.json.
 Data Input:  Parsed packets.
-Data Output: Alerts for known-bad ports, large outbound volume and
-             internal-to-internal fan-out.
+Data Output: Alerts for large outbound volume and internal-to-internal fan-out.
 """
 
 import ipaddress
@@ -21,46 +20,6 @@ from network_defender.detectors.models import DetectionAlert, DetectorConfig
 from network_defender.parser.models import ParsedPacket
 
 
-class SuspiciousPortConfig(DetectorConfig):
-    suspicious_ports: list[int] = Field(default_factory=lambda: [6667, 31337, 4444, 4445])
-
-class SuspiciousPortDetector(BaseDetector[SuspiciousPortConfig]):
-    def __init__(self, config: SuspiciousPortConfig) -> None:
-        super().__init__(config)
-        self._suspicious_ports = set(config.suspicious_ports)
-        self._seen: set[tuple[str, str, int]] = set()
-
-    @property
-    def name(self) -> str:
-        return "SuspiciousPortDetector"
-
-    def ingest(self, packet: ParsedPacket) -> None:
-        if (
-            packet.dst_port is not None
-            and packet.dst_port in self._suspicious_ports
-            and packet.src_ip
-            and packet.dst_ip
-        ):
-            self._seen.add((packet.src_ip, packet.dst_ip, packet.dst_port))
-
-    def evaluate(self) -> list[DetectionAlert]:
-        alerts = []
-        for src_ip, dst_ip, port in self._seen:
-            alerts.append(
-                self.emit_alert(
-                    severity=Severity.MEDIUM,
-                    tactic=MitreTactic.COMMAND_AND_CONTROL,
-                    src_ip=src_ip,
-                    dst_ip=dst_ip,
-                    description=f"Connection to suspicious port: {port}",
-                    evidence={"dst_port": port}
-                )
-            )
-        self._seen.clear()
-        return alerts
-
-
-# 5. Data Exfiltration
 class DataExfiltrationConfig(DetectorConfig):
     time_window_seconds: int = Field(default=60)
     bytes_out_threshold: int = Field(default=50_000_000)
@@ -95,7 +54,6 @@ class DataExfiltrationDetector(BaseDetector[DataExfiltrationConfig]):
         return alerts
 
 
-# 6. Lateral Movement
 class LateralMovementConfig(DetectorConfig):
     time_window_seconds: int = Field(default=60)
     internal_connection_threshold: int = Field(default=20)
