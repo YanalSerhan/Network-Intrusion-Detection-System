@@ -29,8 +29,11 @@ Activate the virtual environment and start the application:
 
 ## Development
 ```bash
-uv sync --dev
-pytest
-ruff check .
-mypy src
+uv sync --all-groups     # runtime and dev dependencies
+uv run pytest            # full suite with coverage; reports land in reports/
+uv run ruff check src tests scripts
+uv run mypy src
 ```
+
+See [docs/TESTING.md](docs/TESTING.md) for the test layout, the TDD workflow,
+the sample captures and the mutation spot check.

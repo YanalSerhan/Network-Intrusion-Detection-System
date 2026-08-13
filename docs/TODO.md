@@ -303,7 +303,7 @@
 
 ## Milestone 14 — Testing & Quality Assurance
 
-- [ ] Adopt TDD workflow (Red → Green → Refactor) for all new modules going forward
+- [x] Adopt TDD workflow (Red → Green → Refactor) for all new modules going forward
 - [x] Set up `tests/unit/` mirroring `src/` structure
 - [x] Set up `tests/integration/`
 - [x] Set up shared fixtures in `tests/conftest.py`
