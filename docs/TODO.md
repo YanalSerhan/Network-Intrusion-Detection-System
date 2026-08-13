@@ -322,7 +322,7 @@
 - [ ] Configure and enforce ≥85% global test coverage (`fail_under = 85`)
 - [x] Ensure no test file exceeds 150 lines (split into logical suites if needed)
 - [ ] Add mutation-testing spot-check (optional stretch goal) for critical detectors
-- [ ] Store expected test outputs / golden files for regression testing where applicable
+- [x] Store expected test outputs / golden files for regression testing where applicable
 - [ ] Publish coverage and pass/fail reports as CI artifacts
 
 ---

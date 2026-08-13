@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "ICMP Flood detected: 60 packets.",
+      "detector": "IcmpFloodDetector",
+      "dst_ip": "192.168.1.10",
+      "evidence": {
+        "icmp_count": 60
+      },
+      "severity": "medium",
+      "src_ip": null,
+      "tactic": "TA0040"
+    }
+  ],
+  "packets": 60,
+  "scenario": "icmp_flood"
+}

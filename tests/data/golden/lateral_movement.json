@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "Suspicious Lateral Movement: connected to 25 internal hosts.",
+      "detector": "LateralMovementDetector",
+      "dst_ip": null,
+      "evidence": {
+        "unique_internal_destinations": 25
+      },
+      "severity": "high",
+      "src_ip": "192.168.1.50",
+      "tactic": "TA0008"
+    }
+  ],
+  "packets": 25,
+  "scenario": "lateral_movement"
+}

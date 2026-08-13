@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "SYN Flood detected: 150 SYN packets to destination.",
+      "detector": "SynFloodDetector",
+      "dst_ip": "192.168.1.10",
+      "evidence": {
+        "syn_count": 150
+      },
+      "severity": "critical",
+      "src_ip": null,
+      "tactic": "TA0040"
+    }
+  ],
+  "packets": 150,
+  "scenario": "syn_flood"
+}

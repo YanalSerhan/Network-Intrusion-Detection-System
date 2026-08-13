@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "Possible SSH Brute Force: 15 connection attempts.",
+      "detector": "SshBruteForceDetector",
+      "dst_ip": null,
+      "evidence": {
+        "connection_count": 15
+      },
+      "severity": "high",
+      "src_ip": "45.155.205.233",
+      "tactic": "TA0006"
+    }
+  ],
+  "packets": 15,
+  "scenario": "ssh_brute_force"
+}

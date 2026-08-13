@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "Connection to suspicious port: 4444",
+      "detector": "SuspiciousPortDetector",
+      "dst_ip": "203.0.113.77",
+      "evidence": {
+        "dst_port": 4444
+      },
+      "severity": "medium",
+      "src_ip": "192.168.1.50",
+      "tactic": "TA0011"
+    }
+  ],
+  "packets": 3,
+  "scenario": "suspicious_port"
+}

@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "Possible HTTP Brute Force: 25 login endpoint requests.",
+      "detector": "HttpBruteForceDetector",
+      "dst_ip": null,
+      "evidence": {
+        "request_count": 25
+      },
+      "severity": "medium",
+      "src_ip": "45.155.205.233",
+      "tactic": "TA0006"
+    }
+  ],
+  "packets": 25,
+  "scenario": "http_brute_force"
+}

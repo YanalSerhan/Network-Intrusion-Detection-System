@@ -1,0 +1,17 @@
+{
+  "detections": [
+    {
+      "description": "Possible ARP Spoofing detected: 8 ARP packets.",
+      "detector": "ArpSpoofingDetector",
+      "dst_ip": null,
+      "evidence": {
+        "arp_count": 8
+      },
+      "severity": "high",
+      "src_ip": "192.168.1.1",
+      "tactic": "TA0006"
+    }
+  ],
+  "packets": 8,
+  "scenario": "arp_spoofing"
+}

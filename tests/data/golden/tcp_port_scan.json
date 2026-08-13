@@ -1,0 +1,28 @@
+{
+  "detections": [
+    {
+      "description": "SYN Scan detected: 40 unique ports targeted.",
+      "detector": "SynScanDetector",
+      "dst_ip": null,
+      "evidence": {
+        "unique_ports": 40
+      },
+      "severity": "high",
+      "src_ip": "45.155.205.233",
+      "tactic": "TA0043"
+    },
+    {
+      "description": "TCP Port Scan detected: 40 unique ports scanned.",
+      "detector": "TcpPortScanDetector",
+      "dst_ip": null,
+      "evidence": {
+        "unique_ports": 40
+      },
+      "severity": "high",
+      "src_ip": "45.155.205.233",
+      "tactic": "TA0043"
+    }
+  ],
+  "packets": 40,
+  "scenario": "tcp_port_scan"
+}

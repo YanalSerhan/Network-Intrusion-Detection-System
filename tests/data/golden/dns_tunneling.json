@@ -1,0 +1,18 @@
+{
+  "detections": [
+    {
+      "description": "Possible DNS Tunneling: high frequency of high-entropy DNS queries.",
+      "detector": "DnsTunnelingDetector",
+      "dst_ip": null,
+      "evidence": {
+        "count": 60,
+        "high_entropy": 59
+      },
+      "severity": "high",
+      "src_ip": "192.168.1.50",
+      "tactic": "TA0011"
+    }
+  ],
+  "packets": 60,
+  "scenario": "dns_tunneling"
+}
