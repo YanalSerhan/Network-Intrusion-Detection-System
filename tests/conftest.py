@@ -1,7 +1,10 @@
 """
 Shared pytest fixtures for all Network Defender tests.
 
-Fixtures defined here are automatically available in all test modules.
+Everything defined or re-exported here is visible to every test module, so a
+test never has to reach sideways into another package's conftest. The fixtures
+themselves live in ``tests/fixtures/`` grouped by subject area — this file is
+the index, which keeps it readable as the suite grows.
 """
 
 from pathlib import Path
@@ -15,6 +18,20 @@ from network_defender.database.migrations import build_alembic_config
 from network_defender.shared.config import load_app_config, load_rate_limit_config
 from network_defender.shared.config_models import AppConfig, DatabaseConfig
 from network_defender.shared.rate_limit_models import RateLimitConfig
+
+# Re-exported so pytest collects them as fixtures for the whole suite.
+from .fixtures.alerts import detection, packet, rule  # noqa: F401
+from .fixtures.api import client, sdk, seeded_alert, seeded_rules  # noqa: F401
+from .fixtures.database import (  # noqa: F401
+    alert_repo,
+    engine,
+    packet_repo,
+    rule_repo,
+    session_factory,
+    stats_repo,
+    ti_repo,
+)
+from .fixtures.threat_intel import _no_proxy_env, gatekeeper  # noqa: F401
 
 
 @pytest.fixture(autouse=True)
@@ -40,9 +57,9 @@ def isolated_database(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     url = f"sqlite:///{tmp_path / 'test.db'}"
     monkeypatch.setenv("DATABASE_URL", url)
 
-    engine = create_db_engine(DatabaseConfig(default_url=url))
-    Base.metadata.create_all(engine)
-    engine.dispose()
+    db_engine = create_db_engine(DatabaseConfig(default_url=url))
+    Base.metadata.create_all(db_engine)
+    db_engine.dispose()
 
     command.stamp(build_alembic_config(url), "head")
     return url

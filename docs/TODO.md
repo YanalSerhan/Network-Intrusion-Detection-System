@@ -304,9 +304,9 @@
 ## Milestone 14 — Testing & Quality Assurance
 
 - [ ] Adopt TDD workflow (Red → Green → Refactor) for all new modules going forward
-- [ ] Set up `tests/unit/` mirroring `src/` structure
-- [ ] Set up `tests/integration/`
-- [ ] Set up shared fixtures in `tests/conftest.py`
+- [x] Set up `tests/unit/` mirroring `src/` structure
+- [x] Set up `tests/integration/`
+- [x] Set up shared fixtures in `tests/conftest.py`
 - [ ] Write unit tests for packet parser (all protocols + malformed input)
 - [ ] Write unit tests for rule engine (valid/invalid rules, edge cases)
 - [ ] Write unit tests for every detector module
