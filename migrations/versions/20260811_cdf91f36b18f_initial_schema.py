@@ -1,7 +1,7 @@
 """initial schema
 
 Revision ID: cdf91f36b18f
-Revises: 
+Revises:
 Create Date: 2026-08-11 16:15:20.743222+00:00
 """
 
@@ -10,11 +10,9 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-# Custom column types referenced by the definitions below.
+# Custom column types referenced by the column definitions below.
 import network_defender.database.base
 import network_defender.database.types
-
-
 
 revision: str = 'cdf91f36b18f'
 down_revision: str | None = None
@@ -50,8 +48,12 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('alerts', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_alerts_dst_ip'), ['dst_ip'], unique=False)
-        batch_op.create_index(batch_op.f('ix_alerts_rule_triggered'), ['rule_triggered'], unique=False)
-        batch_op.create_index('ix_alerts_severity_timestamp', ['severity', 'timestamp'], unique=False)
+        batch_op.create_index(
+            batch_op.f('ix_alerts_rule_triggered'), ['rule_triggered'], unique=False
+        )
+        batch_op.create_index(
+            'ix_alerts_severity_timestamp', ['severity', 'timestamp'], unique=False
+        )
         batch_op.create_index(batch_op.f('ix_alerts_src_ip'), ['src_ip'], unique=False)
         batch_op.create_index('ix_alerts_src_ip_timestamp', ['src_ip', 'timestamp'], unique=False)
         batch_op.create_index(batch_op.f('ix_alerts_status'), ['status'], unique=False)
@@ -84,7 +86,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_statistics'))
     )
     with op.batch_alter_table('statistics', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_statistics_captured_at'), ['captured_at'], unique=False)
+        batch_op.create_index(
+            batch_op.f('ix_statistics_captured_at'), ['captured_at'], unique=False
+        )
 
     op.create_table('threat_intel_cache',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -96,7 +100,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_threat_intel_cache'))
     )
     with op.batch_alter_table('threat_intel_cache', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_threat_intel_cache_expires_at'), ['expires_at'], unique=False)
+        batch_op.create_index(
+            batch_op.f('ix_threat_intel_cache_expires_at'), ['expires_at'], unique=False
+        )
         batch_op.create_index('uq_threat_intel_cache_provider_ip', ['provider', 'ip'], unique=True)
 
     op.create_table('packets',
@@ -111,7 +117,12 @@ def upgrade() -> None:
     sa.Column('length', sa.Integer(), nullable=False),
     sa.Column('raw_summary', sa.Text(), nullable=False),
     sa.Column('fields', sa.JSON(), nullable=False),
-    sa.ForeignKeyConstraint(['alert_id'], ['alerts.alert_id'], name=op.f('fk_packets_alert_id_alerts'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(
+        ['alert_id'],
+        ['alerts.alert_id'],
+        name=op.f('fk_packets_alert_id_alerts'),
+        ondelete='CASCADE',
+    ),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_packets'))
     )
     with op.batch_alter_table('packets', schema=None) as batch_op:

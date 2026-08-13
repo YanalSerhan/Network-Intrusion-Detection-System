@@ -329,7 +329,7 @@
 
 ## Milestone 15 — Code Quality & Static Analysis
 
-- [ ] Achieve zero `ruff check` violations across the codebase
+- [x] Achieve zero `ruff check` violations across the codebase
 - [ ] Achieve zero MyPy errors (or documented, justified `# type: ignore`)
 - [ ] Verify zero hardcoded config-like values in source code (API URLs, ports, thresholds, secrets)
 - [ ] Verify every module/class/function has a docstring explaining **why**, not just what
