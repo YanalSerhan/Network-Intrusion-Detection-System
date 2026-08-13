@@ -12,6 +12,7 @@ downstream delivery. PCAP replay lives in `pcap_replay`.
 
 import threading
 from collections.abc import Callable
+from typing import Any
 
 from scapy.packet import Packet
 from scapy.sendrecv import AsyncSniffer
@@ -110,7 +111,7 @@ class CaptureService(PcapReplayMixin, BaseService):
             self._sniffer = None
         self.logger.info("CaptureService stopped. Packets captured: %d", self._packets_captured)
 
-    def _do_health_check(self) -> dict:  # type: ignore[type-arg]
+    def _do_health_check(self) -> dict[str, Any]:
         return self.get_status().model_dump()
 
     def get_status(self) -> CaptureStatus:

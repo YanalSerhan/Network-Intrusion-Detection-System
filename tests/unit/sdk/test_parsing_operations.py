@@ -7,6 +7,8 @@ the parser service, but the delegation is the contract: parse() raises,
 parse_safe() never does, and both must be reachable without starting capture.
 """
 
+from pathlib import Path
+
 import pytest
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
@@ -34,14 +36,14 @@ def test_parse_packet_raises_on_something_that_is_not_a_packet(
     sdk._parser_service.start()
 
     with pytest.raises(ValueError):
-        sdk.parse_packet(None)  # type: ignore[arg-type]
+        sdk.parse_packet(None)
 
 
 def test_parse_packet_safe_returns_none_instead_of_raising(sdk: NetworkDefenderSDK) -> None:
     """A capture callback cannot afford an exception per malformed frame."""
     sdk._parser_service.start()
 
-    assert sdk.parse_packet_safe(None) is None  # type: ignore[arg-type]
+    assert sdk.parse_packet_safe(None) is None
     assert sdk._parser_service.health_check()["packets_failed"] == 1
 
 
@@ -53,7 +55,7 @@ def test_interfaces_can_be_listed_without_starting_capture(sdk: NetworkDefenderS
     assert interfaces == sorted(interfaces)
 
 
-def test_captured_packets_can_be_exported(sdk: NetworkDefenderSDK, tmp_path) -> None:  # noqa: ANN001
+def test_captured_packets_can_be_exported(sdk: NetworkDefenderSDK, tmp_path: Path) -> None:
     """Saving an empty session must still produce a readable file."""
     destination = tmp_path / "session.pcap"
 

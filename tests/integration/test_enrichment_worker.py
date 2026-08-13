@@ -22,7 +22,7 @@ class _RecordingService(ThreatIntelService):
         super().__init__(providers=[])
         self.seen: list[Alert] = []
 
-    def enrich_alert(self, alert: Alert) -> None:  # type: ignore[override]
+    def enrich_alert(self, alert: Alert) -> None:
         self.seen.append(alert)
         return None
 
@@ -70,7 +70,7 @@ def test_worker_runs_on_a_background_thread() -> None:
 
 def test_worker_survives_an_enrichment_failure() -> None:
     class Exploding(ThreatIntelService):
-        def enrich_alert(self, alert: Alert) -> None:  # type: ignore[override]
+        def enrich_alert(self, alert: Alert) -> None:
             raise RuntimeError("provider layer exploded")
 
     worker = EnrichmentWorker(Exploding(providers=[]))

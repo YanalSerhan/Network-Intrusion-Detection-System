@@ -5,7 +5,7 @@ from network_defender.detectors.impl.heuristics import DnsTunnelingConfig, DnsTu
 from network_defender.parser.models import DnsFields, ParsedPacket
 
 
-def test_dns_tunneling_detector():
+def test_dns_tunneling_detector() -> None:
     config = DnsTunnelingConfig(
         query_count_threshold=2, entropy_threshold=3.5, time_window_seconds=10
     )

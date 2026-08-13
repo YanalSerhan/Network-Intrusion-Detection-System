@@ -33,7 +33,7 @@ RATE_LIMITS_FILE = "rate_limits.json"
 _CONFIG_DIR = CONFIG_DIR
 
 
-def _validate(model: type[BaseModel], raw: dict[str, Any], source: str) -> Any:
+def _validate[TModel: BaseModel](model: type[TModel], raw: dict[str, Any], source: str) -> TModel:
     """
     Validate a raw dict against a model, reporting every problem at once.
 
@@ -91,7 +91,7 @@ def load_rate_limit_config() -> RateLimitConfig:
         ConfigurationError: If the file is malformed or any value is invalid.
     """
     raw = load_json_file(_CONFIG_DIR / RATE_LIMITS_FILE)
-    return _validate(RateLimitConfig, raw, RATE_LIMITS_FILE)  # type: ignore[no-any-return]
+    return _validate(RateLimitConfig, raw, RATE_LIMITS_FILE)
 
 
 def validate_all() -> dict[str, str]:

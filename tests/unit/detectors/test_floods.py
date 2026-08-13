@@ -8,11 +8,11 @@ from network_defender.parser.models import ParsedPacket, TcpFlags
 
 
 @pytest.fixture
-def syn_flood_detector():
+def syn_flood_detector() -> SynFloodDetector:
     config = SynFloodConfig(syn_count_threshold=5, time_window_seconds=1)
     return SynFloodDetector(config)
 
-def test_syn_flood_detector_triggers(syn_flood_detector):
+def test_syn_flood_detector_triggers(syn_flood_detector: SynFloodDetector) -> None:
     packet = ParsedPacket(
         timestamp=datetime.now(UTC),
         src_ip="192.168.1.100",
@@ -41,7 +41,7 @@ def test_syn_flood_detector_triggers(syn_flood_detector):
     assert alerts[0].dst_ip == "10.0.0.5"
     assert alerts[0].detector_name == "SynFloodDetector"
 
-def test_syn_flood_detector_resets(syn_flood_detector):
+def test_syn_flood_detector_resets(syn_flood_detector: SynFloodDetector) -> None:
     packet = ParsedPacket(
         timestamp=datetime.now(UTC),
         src_ip="192.168.1.100",

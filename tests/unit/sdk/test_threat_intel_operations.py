@@ -45,7 +45,9 @@ def test_alerts_are_enriched_off_the_hot_path(enrichment_sdk: NetworkDefenderSDK
 
     enrichment_sdk._on_detection(detection)
     alert_id = enrichment_sdk.list_alerts()[0].alert_id
-    assert enrichment_sdk.get_alert(alert_id).threat_intel is None, "enrichment must not run inline"
+    stored = enrichment_sdk.get_alert(alert_id)
+    assert stored is not None
+    assert stored.threat_intel is None, "enrichment must not run inline"
 
     enrichment_sdk._enrichment_worker.drain()
 

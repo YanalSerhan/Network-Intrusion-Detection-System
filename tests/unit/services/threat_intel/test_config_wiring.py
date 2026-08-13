@@ -11,6 +11,7 @@ import httpx
 import pytest
 import respx
 
+from network_defender.services.threat_intel.cache import ThreatIntelCache
 from network_defender.services.threat_intel.eligibility import eligible_ips
 from network_defender.services.threat_intel.factory import build_providers, build_service
 from network_defender.shared.config_models import ThreatIntelConfig
@@ -110,8 +111,12 @@ def test_cache_and_breaker_settings_are_applied() -> None:
     )
     service = build_service(_gatekeepers(), config)  # type: ignore[arg-type]
 
-    assert service.cache._ttl == 60.0  # noqa: SLF001 - asserting configuration landed
-    assert service.cache._max_entries == 7  # noqa: SLF001
+    # The default backend is the in-memory cache; narrow to it before
+    # asserting on the fields the configuration is supposed to have set.
+    cache = service.cache
+    assert isinstance(cache, ThreatIntelCache)
+    assert cache._ttl == 60.0  # noqa: SLF001 - asserting configuration landed
+    assert cache._max_entries == 7  # noqa: SLF001
     assert service.breakers["whois"]._threshold == 2  # noqa: SLF001
     assert service.breakers["whois"]._reset_seconds == 30.0  # noqa: SLF001
 

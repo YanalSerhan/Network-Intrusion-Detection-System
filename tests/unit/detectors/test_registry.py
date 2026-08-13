@@ -59,7 +59,7 @@ class NotAConfig:
 class WrongConfigDetector(WorkingDetector):
     """A detector annotated with something that is not a config."""
 
-    def __init__(self, config: NotAConfig) -> None:  # type: ignore[override]
+    def __init__(self, config: NotAConfig) -> None:
         super().__init__(config)  # type: ignore[arg-type]
 
 

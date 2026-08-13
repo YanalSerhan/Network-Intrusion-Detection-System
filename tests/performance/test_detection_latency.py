@@ -10,6 +10,7 @@ import time
 
 from scapy.utils import rdpcap
 
+from network_defender.parser.models import ParsedPacket
 from network_defender.parser.parser import PacketParser
 from network_defender.services.detection import DetectionService
 from network_defender.shared.paths import PROJECT_ROOT
@@ -70,7 +71,7 @@ def test_detection_latency_does_not_grow_with_accumulated_state() -> None:
     parsed = [p for p in (parser.parse_safe(pkt) for pkt in packets) if p is not None]
     sample_size = max(len(parsed) // 10, 1)
 
-    def _mean_latency(batch: list) -> float:
+    def _mean_latency(batch: list[ParsedPacket]) -> float:
         start = time.perf_counter()
         for packet in batch:
             service.process_packet(packet)

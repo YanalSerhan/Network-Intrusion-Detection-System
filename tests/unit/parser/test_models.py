@@ -6,6 +6,7 @@ No real network traffic required — all data constructed in-memory.
 """
 
 from datetime import UTC, datetime
+from typing import Any
 
 from network_defender.constants import Protocol
 from network_defender.parser.models import (
@@ -98,16 +99,16 @@ def test_tls_fields_defaults_none() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_parsed_packet(**kwargs: object) -> ParsedPacket:
+def _make_parsed_packet(**kwargs: Any) -> ParsedPacket:
     """Build a minimal valid ParsedPacket for testing."""
-    defaults: dict = {
+    defaults: dict[str, Any] = {
         "timestamp": datetime(2024, 1, 1, tzinfo=UTC),
         "protocol": Protocol.TCP,
         "length": 60,
         "raw_summary": "tcp 1.2.3.4:80 → 5.6.7.8:443 len=60",
     }
     defaults.update(kwargs)
-    return ParsedPacket(**defaults)  # type: ignore[arg-type]
+    return ParsedPacket(**defaults)
 
 
 def test_parsed_packet_required_fields() -> None:

@@ -11,7 +11,7 @@ from network_defender.parser.models import ParsedPacket, TcpFlags
 from network_defender.services.detection import DetectionService
 
 
-def main():
+def main() -> None:
     config_dir = Path(__file__).resolve().parent.parent / "config"
     service = DetectionService(config_dir)
     service._do_start()

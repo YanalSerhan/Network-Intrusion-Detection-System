@@ -49,7 +49,7 @@ def test_backpressure_rejects_when_queue_full() -> None:
     )
     gk = ApiGatekeeper(service_name="svc", config=cfg)
     # Manually fill the queue to trigger backpressure.
-    gk._queue.append(lambda: None)  # type: ignore[attr-defined]
+    gk._queue.append(lambda: None)
 
     with pytest.raises(GatekeeperError, match="Queue full"):
         gk.execute(lambda: "blocked")
@@ -87,7 +87,7 @@ def test_get_queue_status(gatekeeper: ApiGatekeeper) -> None:
 
 def test_minute_window_resets_after_60_seconds(gatekeeper: ApiGatekeeper) -> None:
     """The request counter resets once the window has elapsed."""
-    window = gatekeeper._window  # type: ignore[attr-defined]
+    window = gatekeeper._window
     for _ in range(10):
         window.record()
     # Simulate that 61 seconds have elapsed by back-dating the window start.
@@ -98,7 +98,7 @@ def test_minute_window_resets_after_60_seconds(gatekeeper: ApiGatekeeper) -> Non
 
 def test_minute_window_does_not_reset_within_60_seconds(gatekeeper: ApiGatekeeper) -> None:
     """The counter stays intact while the window is still current."""
-    window = gatekeeper._window  # type: ignore[attr-defined]
+    window = gatekeeper._window
     for _ in range(5):
         window.record()
     window.refresh()

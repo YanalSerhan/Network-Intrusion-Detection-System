@@ -10,6 +10,7 @@ from network_defender.api.live.payloads import (
     build_error_frame,
 )
 from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.services.alerts.models import Alert
 
 # --------------------------------------------------------------------------
 # Connection manager
@@ -103,7 +104,11 @@ def test_idle_deployments_issue_no_queries(
 ) -> None:
     """With nobody watching, the poller must not touch the database."""
     calls: list[int] = []
-    monkeypatch.setattr(readonly_sdk, "list_alerts", lambda **_: calls.append(1) or [])
+    def _record(**_: object) -> list[Alert]:
+        calls.append(1)
+        return []
+
+    monkeypatch.setattr(readonly_sdk, "list_alerts", _record)
 
     async def scenario() -> None:
         broadcaster = LiveBroadcaster(readonly_sdk, poll_seconds=0.01)

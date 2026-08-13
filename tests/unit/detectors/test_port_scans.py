@@ -5,7 +5,7 @@ from network_defender.detectors.impl.port_scans import TcpPortScanConfig, TcpPor
 from network_defender.parser.models import ParsedPacket
 
 
-def test_tcp_port_scan_detector():
+def test_tcp_port_scan_detector() -> None:
     config = TcpPortScanConfig(unique_ports_threshold=3, time_window_seconds=10)
     detector = TcpPortScanDetector(config)
 

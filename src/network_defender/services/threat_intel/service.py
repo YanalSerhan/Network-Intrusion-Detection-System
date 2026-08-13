@@ -20,7 +20,7 @@ from network_defender.shared.base import BaseService
 
 from .aggregation import aggregate
 from .base import ThreatIntelProvider
-from .cache import ThreatIntelCache
+from .cache import CacheBackend, ThreatIntelCache
 from .circuit_breaker import CircuitBreaker
 from .eligibility import eligible_ips, is_eligible
 from .models import ProviderResult, ThreatIntelResult
@@ -36,7 +36,7 @@ class ThreatIntelService(BaseService):
     def __init__(
         self,
         providers: list[ThreatIntelProvider] | None = None,
-        cache: ThreatIntelCache | None = None,
+        cache: CacheBackend | None = None,
         enrich_private_ips: bool = False,
     ) -> None:
         """
@@ -51,7 +51,7 @@ class ThreatIntelService(BaseService):
         """
         super().__init__(service_name="ThreatIntelService")
         self.providers = providers or []
-        self.cache = cache or ThreatIntelCache()
+        self.cache: CacheBackend = cache or ThreatIntelCache()
         self.enrich_private_ips = enrich_private_ips
         self.breakers = {provider.name: CircuitBreaker() for provider in self.providers}
         self._lookups = 0

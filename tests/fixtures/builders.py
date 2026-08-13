@@ -12,6 +12,7 @@ the test made rather than at incidental setup.
 """
 
 from datetime import UTC, datetime
+from typing import Any
 
 from network_defender.constants import Protocol, Severity
 from network_defender.detectors.models import DetectionAlert
@@ -28,7 +29,7 @@ def make_alert(
     src_ip: str | None = PUBLIC_IP,
     dst_ip: str | None = INTERNAL_PEER_IP,
     timestamp: datetime | None = None,
-    **overrides: object,
+    **overrides: Any,
 ) -> Alert:
     """
     Build a persisted-shape Alert.
@@ -62,7 +63,7 @@ def make_detection(
     detector_name: str = "TcpPortScanDetector",
     severity: Severity = Severity.HIGH,
     src_ip: str | None = PUBLIC_IP,
-    **overrides: object,
+    **overrides: Any,
 ) -> DetectionAlert:
     """
     Build the raw DetectionAlert a detector emits before the alert service
@@ -91,7 +92,7 @@ def make_packet(
     timestamp: datetime | None = None,
     src_ip: str = PUBLIC_IP,
     dst_ip: str = INTERNAL_PEER_IP,
-    **overrides: object,
+    **overrides: Any,
 ) -> ParsedPacket:
     """
     Build a parsed TCP packet with the transport fields populated.
@@ -122,7 +123,7 @@ def make_packet(
 def make_rule(
     name: str = "TCP Port Scan",
     severity: Severity = Severity.MEDIUM,
-    **overrides: object,
+    **overrides: Any,
 ) -> Rule:
     """
     Build a YAML-shaped Rule.

@@ -13,11 +13,18 @@ repos:
     hooks:
       - id: ruff
         args: [ --fix ]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+  # Run through uv rather than pre-commit's isolated environment: the mypy
+  # config declares the paths to check and needs the project's real
+  # dependencies, and checking a subset of files reports import errors that a
+  # whole-project run does not.
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies: [pydantic, sqlalchemy]
+        name: mypy
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        types: [python]
   - repo: local
     hooks:
       - id: pytest-check

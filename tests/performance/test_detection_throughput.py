@@ -61,7 +61,11 @@ def test_detection_sustains_the_ingest_floor() -> None:
     service = _started_detection()
     packets = _traffic(PACKET_COUNT)
 
-    rate = measure(PACKET_COUNT, lambda: [service.process_packet(p) for p in packets])
+    def _ingest_all() -> None:
+        for packet in packets:
+            service.process_packet(packet)
+
+    rate = measure(PACKET_COUNT, _ingest_all)
     report("detection ingest", rate)
 
     assert service.health_check()["packets_processed"] == PACKET_COUNT

@@ -12,6 +12,8 @@ capture does — a PCAP that triggers an alert offline will trigger it on the
 wire too.
 """
 
+import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -23,9 +25,13 @@ from .pcap_io import read_pcap, write_pcap
 class PcapReplayMixin:
     """PCAP replay and export for the capture service."""
 
+    # What this mixin needs the composing class to provide, stated in types so
+    # the composition is checked rather than each use being silenced.
     _is_pcap_mode: bool
     _lock: Any
     _captured_packets: list[Packet]
+    _on_packet: Callable[[Packet], None]
+    logger: logging.Logger
 
     def start_pcap_replay(self, path: str | Path) -> None:
         """
@@ -36,7 +42,7 @@ class PcapReplayMixin:
         """
         self._is_pcap_mode = True
         for packet in read_pcap(path):
-            self._on_packet(packet)  # type: ignore[attr-defined]
+            self._on_packet(packet)
 
     def save_to_pcap(self, path: str | Path) -> None:
         """
@@ -48,6 +54,6 @@ class PcapReplayMixin:
         with self._lock:
             snapshot = list(self._captured_packets)
         write_pcap(snapshot, path)
-        self.logger.info(  # type: ignore[attr-defined]
+        self.logger.info(
             "Saved %d packets to '%s'.", len(snapshot), path
         )

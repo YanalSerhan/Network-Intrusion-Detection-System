@@ -11,15 +11,26 @@ in ADR 4, and because these are periodic *write* operations driven by the
 maintenance scheduler, not the read queries the API serves.
 """
 
+from collections.abc import Callable
 from typing import Any
 
+from ..capture.models import CaptureStatus
+from ..services.database import DatabaseService
 from ..services.statistics_sampler import StatisticsSampler, build_snapshot_payload
 
 
 class MaintenanceOperationsMixin:
     """Statistics sampling and retention surface of the SDK."""
 
+    # What this mixin needs the composing class to provide. Declaring the
+    # contract is what the module docstring's "Data Setup" line describes, and
+    # stating it in types rather than prose means the type checker holds the
+    # composed SDK to it instead of every call site carrying an ignore.
     _statistics_sampler: StatisticsSampler
+    _database_service: DatabaseService
+    get_capture_status: Callable[[], CaptureStatus]
+    get_alert_statistics: Callable[[], dict[str, Any]]
+    get_alert_breakdown: Callable[[], dict[str, Any]]
 
     def get_statistics_series(self, hours: int = 24) -> list[dict[str, Any]]:
         """
@@ -40,7 +51,7 @@ class MaintenanceOperationsMixin:
                 "alerts_by_severity": record.alerts_by_severity,
                 "top_talkers": record.top_talkers,
             }
-            for record in self._database_service.statistics.get_series(hours=hours)  # type: ignore[attr-defined]
+            for record in self._database_service.statistics.get_series(hours=hours)
         ]
 
     def record_statistics_snapshot(self) -> None:
@@ -51,9 +62,9 @@ class MaintenanceOperationsMixin:
         `packets_captured` is cumulative, so storing it directly left
         `packets_per_second` at zero forever and the chart flat.
         """
-        capture = self.get_capture_status()  # type: ignore[attr-defined]
-        stats = self.get_alert_statistics()  # type: ignore[attr-defined]
-        breakdown = self.get_alert_breakdown()  # type: ignore[attr-defined]
+        capture = self.get_capture_status()
+        stats = self.get_alert_statistics()
+        breakdown = self.get_alert_breakdown()
 
         payload = build_snapshot_payload(
             total_packets=capture.packets_captured,
@@ -61,7 +72,7 @@ class MaintenanceOperationsMixin:
             alert_stats=stats,
             top_talkers=breakdown["top_talkers"],
         )
-        self._database_service.statistics.record_snapshot(**payload)  # type: ignore[attr-defined]
+        self._database_service.statistics.record_snapshot(**payload)
 
     def prune_old_data(self) -> dict[str, int]:
         """
@@ -73,4 +84,4 @@ class MaintenanceOperationsMixin:
         Returns:
             Rows deleted, keyed by table name.
         """
-        return self._database_service.prune()  # type: ignore[attr-defined,no-any-return]
+        return self._database_service.prune()

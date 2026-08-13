@@ -50,7 +50,7 @@ def test_cache_degrades_when_the_database_fails() -> None:
         def set(self, *args: object) -> None:
             raise RuntimeError("database unavailable")
 
-    cache = TieredThreatIntelCache(durable=Broken())  # type: ignore[arg-type]
+    cache = TieredThreatIntelCache(durable=Broken())
     cache.set("abuseipdb", PUBLIC_IP, _ok())  # durable write fails, memory succeeds
 
     hit = cache.get("abuseipdb", PUBLIC_IP)

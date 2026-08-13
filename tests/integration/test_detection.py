@@ -9,7 +9,7 @@ from network_defender.services.detection import DetectionService
 
 
 @pytest.fixture
-def config_dir(tmp_path: Path):
+def config_dir(tmp_path: Path) -> Path:
     # Create a dummy config dir with detectors.json
     detectors_config = tmp_path / "detectors.json"
     detectors_config.write_text("""
@@ -22,7 +22,7 @@ def config_dir(tmp_path: Path):
     """)
     return tmp_path
 
-def test_detection_service_integration(config_dir):
+def test_detection_service_integration(config_dir: Path) -> None:
     service = DetectionService(config_dir)
     service._do_start()
 

@@ -47,7 +47,7 @@ def test_configured_thresholds_are_applied_not_defaults() -> None:
     service.registry.load_detectors()
     by_name = {d.name: d for d in service.registry.detectors}
     configured = service.registry.config_data["SynFloodDetector"]["syn_count_threshold"]
-    assert by_name["SynFloodDetector"].config.syn_count_threshold == configured  # type: ignore[attr-defined]
+    assert by_name["SynFloodDetector"].config.syn_count_threshold == configured
 
 
 def test_disabled_detectors_are_not_loaded(tmp_path: Path) -> None:

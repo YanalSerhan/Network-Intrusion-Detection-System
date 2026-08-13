@@ -12,6 +12,7 @@ both the boundary and the direction of the comparison are pinned.
 """
 
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
@@ -63,51 +64,51 @@ def _packet(**overrides: object) -> ParsedPacket:
     return ParsedPacket(**fields)  # type: ignore[arg-type]
 
 
-def _ssh() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _ssh() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = SshBruteForceDetector(SshBruteForceConfig(connection_count_threshold=THRESHOLD))
     packet = _packet(dst_port=22, tcp_flags=TcpFlags(syn=True))
     return detector, [packet] * THRESHOLD
 
 
-def _http() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _http() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = HttpBruteForceDetector(HttpBruteForceConfig(connection_count_threshold=THRESHOLD))
     packet = _packet(protocol=Protocol.HTTP, http=HttpFields(method="POST", path="/admin/login"))
     return detector, [packet] * THRESHOLD
 
 
-def _syn_flood() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _syn_flood() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = SynFloodDetector(SynFloodConfig(syn_count_threshold=THRESHOLD))
     return detector, [_packet(tcp_flags=TcpFlags(syn=True))] * THRESHOLD
 
 
-def _udp_flood() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _udp_flood() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = UdpFloodDetector(UdpFloodConfig(udp_count_threshold=THRESHOLD))
     return detector, [_packet(protocol=Protocol.UDP)] * THRESHOLD
 
 
-def _icmp_flood() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _icmp_flood() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = IcmpFloodDetector(IcmpFloodConfig(icmp_count_threshold=THRESHOLD))
     return detector, [_packet(protocol=Protocol.ICMP, dst_port=None)] * THRESHOLD
 
 
-def _arp() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _arp() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = ArpSpoofingDetector(ArpSpoofingConfig(gratuitous_arp_threshold=THRESHOLD))
     return detector, [_packet(protocol=Protocol.ARP, dst_port=None)] * THRESHOLD
 
 
-def _exfiltration() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _exfiltration() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = DataExfiltrationDetector(DataExfiltrationConfig(bytes_out_threshold=THRESHOLD * 100))
     return detector, [_packet(length=100)] * THRESHOLD
 
 
-def _lateral() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _lateral() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = LateralMovementDetector(
         LateralMovementConfig(internal_connection_threshold=THRESHOLD)
     )
     return detector, [_packet(dst_ip=f"192.168.1.{host}") for host in range(10, 10 + THRESHOLD)]
 
 
-def _port_scan() -> tuple[BaseDetector, list[ParsedPacket]]:
+def _port_scan() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = TcpPortScanDetector(TcpPortScanConfig(unique_ports_threshold=THRESHOLD))
     return detector, [_packet(dst_port=port) for port in range(1000, 1000 + THRESHOLD)]
 

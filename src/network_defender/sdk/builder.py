@@ -104,7 +104,7 @@ def build_services(
     # a 24h reputation TTL survives a restart rather than being re-fetched
     # against a budget measured in tens of requests per minute.
     threat_intel = build_service(gatekeepers, app_config.threat_intel)
-    threat_intel.cache = TieredThreatIntelCache(  # type: ignore[assignment]
+    threat_intel.cache = TieredThreatIntelCache(
         memory=threat_intel.cache,
         durable=database.threat_intel_cache,
         ttl_seconds=app_config.threat_intel.cache_ttl_seconds,

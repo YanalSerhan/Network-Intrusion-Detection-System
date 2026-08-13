@@ -25,7 +25,7 @@ from typing import Protocol
 from network_defender.constants import TI_CACHE_TTL_SECONDS
 from network_defender.shared.base import LoggableMixin
 
-from .cache import ThreatIntelCache
+from .cache import CacheBackend, ThreatIntelCache
 from .models import ProviderResult
 
 
@@ -57,7 +57,7 @@ class TieredThreatIntelCache(LoggableMixin):
 
     def __init__(
         self,
-        memory: ThreatIntelCache | None = None,
+        memory: CacheBackend | None = None,
         durable: DurableCacheBackend | None = None,
         ttl_seconds: float = TI_CACHE_TTL_SECONDS,
     ) -> None:

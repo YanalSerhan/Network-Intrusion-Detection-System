@@ -14,6 +14,7 @@ saying it wants the SDK already up in the mode the API runs in.
 """
 
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 
@@ -36,7 +37,7 @@ _PERMISSIVE_LIMITS = ServiceRateLimitConfig(
 )
 
 
-def build_app_config(**overrides: object) -> AppConfig:
+def build_app_config(**overrides: Any) -> AppConfig:
     """
     Build an AppConfig safe to construct an SDK from in a test.
 

@@ -20,12 +20,41 @@ transient outage into a full TTL of missing enrichment.
 import threading
 import time
 from collections import OrderedDict
+from typing import Protocol
 
 from network_defender.constants import TI_CACHE_MAX_ENTRIES, TI_CACHE_TTL_SECONDS
 
 from .models import ProviderResult
 
 CacheKey = tuple[str, str]
+
+
+class CacheBackend(Protocol):
+    """
+    The cache surface ThreatIntelService depends on.
+
+    A Protocol because there are two implementations with no useful common
+    base: the plain in-memory cache here, and the tiered one that fronts the
+    database. Stating the shape lets the service accept either without either
+    knowing about the other, and turns "deliberately mirrors the surface"
+    from a comment into something the type checker enforces.
+    """
+
+    def get(self, provider: str, ip: str) -> ProviderResult | None:
+        """Return a cached result, or None when absent or expired."""
+        ...
+
+    def set(self, provider: str, ip: str, result: ProviderResult) -> None:
+        """Store a result."""
+        ...
+
+    def clear(self) -> None:
+        """Drop every entry."""
+        ...
+
+    def get_stats(self) -> dict[str, float]:
+        """Return hit/miss counters for the health endpoint."""
+        ...
 
 
 class ThreatIntelCache:

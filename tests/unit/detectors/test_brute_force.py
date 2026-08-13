@@ -5,7 +5,7 @@ from network_defender.detectors.impl.brute_force import HttpBruteForceConfig, Ht
 from network_defender.parser.models import HttpFields, ParsedPacket
 
 
-def test_http_brute_force_detector():
+def test_http_brute_force_detector() -> None:
     config = HttpBruteForceConfig(connection_count_threshold=3, time_window_seconds=10)
     detector = HttpBruteForceDetector(config)
 

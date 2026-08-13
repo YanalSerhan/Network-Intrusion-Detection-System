@@ -72,7 +72,7 @@ def test_file_handlers_rotate_when_enabled(tmp_path: Path, monkeypatch: pytest.M
 
         handlers = logging.getLogger(LOGGER_APP).handlers
         rotating = [h for h in handlers if hasattr(h, "maxBytes")]
-        assert rotating and rotating[0].maxBytes == 1024  # type: ignore[attr-defined]
+        assert rotating and rotating[0].maxBytes == 1024
         assert rotating[0].backupCount == 2  # type: ignore[attr-defined]
     finally:
         setup_logging(service="test", force=True)

@@ -19,7 +19,7 @@ Order of the guards matters:
 from network_defender.constants import ProviderStatus
 
 from .base import ThreatIntelProvider
-from .cache import ThreatIntelCache
+from .cache import CacheBackend
 from .circuit_breaker import CircuitBreaker
 from .models import ProviderResult
 
@@ -27,7 +27,7 @@ from .models import ProviderResult
 def query_provider(
     provider: ThreatIntelProvider,
     ip: str,
-    cache: ThreatIntelCache,
+    cache: CacheBackend,
     breaker: CircuitBreaker,
 ) -> ProviderResult:
     """
