@@ -22,6 +22,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base, JsonDict, UtcDateTime
 from .types import GUID
 
+#: Column widths. Named because the same number appearing in six places is
+#: six chances to widen five of them: 45 is the longest possible textual IPv6
+#: address (RFC 4291 §2.2, with an embedded IPv4 suffix), and the rest are
+#: sized to the enums and identifiers they store.
+IP_ADDRESS_LENGTH = 45
+ENUM_LENGTH = 16
+STATUS_LENGTH = 24
+GROUP_BY_LENGTH = 32
+PROVIDER_LENGTH = 64
+RULE_NAME_LENGTH = 128
+
 
 class AlertRecord(Base):
     """A security alert, mirroring the domain `Alert` model."""
@@ -31,20 +42,22 @@ class AlertRecord(Base):
     alert_id: Mapped[UUID] = mapped_column(GUID(), primary_key=True, default=uuid4)
     timestamp: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)
     last_seen: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
-    severity: Mapped[str] = mapped_column(String(16), nullable=False)
-    source: Mapped[str] = mapped_column(String(16), nullable=False)
-    rule_triggered: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
-    src_ip: Mapped[str | None] = mapped_column(String(45), index=True)
-    dst_ip: Mapped[str | None] = mapped_column(String(45), index=True)
+    severity: Mapped[str] = mapped_column(String(ENUM_LENGTH), nullable=False)
+    source: Mapped[str] = mapped_column(String(ENUM_LENGTH), nullable=False)
+    rule_triggered: Mapped[str] = mapped_column(
+        String(RULE_NAME_LENGTH), nullable=False, index=True
+    )
+    src_ip: Mapped[str | None] = mapped_column(String(IP_ADDRESS_LENGTH), index=True)
+    dst_ip: Mapped[str | None] = mapped_column(String(IP_ADDRESS_LENGTH), index=True)
     src_port: Mapped[int | None] = mapped_column()
     dst_port: Mapped[int | None] = mapped_column()
-    protocol: Mapped[str | None] = mapped_column(String(16))
+    protocol: Mapped[str | None] = mapped_column(String(ENUM_LENGTH))
     packet_summary: Mapped[str] = mapped_column(Text, default="")
     description: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[float] = mapped_column(default=0.0)
-    tactic: Mapped[str | None] = mapped_column(String(16))
-    technique: Mapped[str | None] = mapped_column(String(16))
-    status: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
+    tactic: Mapped[str | None] = mapped_column(String(ENUM_LENGTH))
+    technique: Mapped[str | None] = mapped_column(String(ENUM_LENGTH))
+    status: Mapped[str] = mapped_column(String(STATUS_LENGTH), nullable=False, index=True)
     occurrences: Mapped[int] = mapped_column(default=1)
     evidence: Mapped[dict[str, Any]] = mapped_column(JsonDict, default=dict)
     threat_intel: Mapped[dict[str, Any] | None] = mapped_column(JsonDict)
@@ -78,11 +91,11 @@ class PacketRecord(Base):
         GUID(), ForeignKey("alerts.alert_id", ondelete="CASCADE"), index=True
     )
     timestamp: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)
-    src_ip: Mapped[str | None] = mapped_column(String(45), index=True)
-    dst_ip: Mapped[str | None] = mapped_column(String(45))
+    src_ip: Mapped[str | None] = mapped_column(String(IP_ADDRESS_LENGTH), index=True)
+    dst_ip: Mapped[str | None] = mapped_column(String(IP_ADDRESS_LENGTH))
     src_port: Mapped[int | None] = mapped_column()
     dst_port: Mapped[int | None] = mapped_column()
-    protocol: Mapped[str] = mapped_column(String(16), nullable=False)
+    protocol: Mapped[str] = mapped_column(String(ENUM_LENGTH), nullable=False)
     length: Mapped[int] = mapped_column(nullable=False)
     raw_summary: Mapped[str] = mapped_column(Text, default="")
     fields: Mapped[dict[str, Any]] = mapped_column(JsonDict, default=dict)
@@ -95,12 +108,12 @@ class RuleRecord(Base):
 
     __tablename__ = "rules"
 
-    name: Mapped[str] = mapped_column(String(128), primary_key=True)
-    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    name: Mapped[str] = mapped_column(String(RULE_NAME_LENGTH), primary_key=True)
+    severity: Mapped[str] = mapped_column(String(ENUM_LENGTH), nullable=False)
     enabled: Mapped[bool] = mapped_column(default=True, index=True)
     window: Mapped[int] = mapped_column(default=0)
     threshold: Mapped[int] = mapped_column(default=1)
-    group_by: Mapped[str] = mapped_column(String(32), default="src_ip")
+    group_by: Mapped[str] = mapped_column(String(GROUP_BY_LENGTH), default="src_ip")
     conditions: Mapped[list[dict[str, Any]]] = mapped_column(JsonDict, default=list)
     source_path: Mapped[str | None] = mapped_column(Text)
     loaded_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
@@ -118,8 +131,8 @@ class ThreatIntelCacheRecord(Base):
     __tablename__ = "threat_intel_cache"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    provider: Mapped[str] = mapped_column(String(64), nullable=False)
-    ip: Mapped[str] = mapped_column(String(45), nullable=False)
+    provider: Mapped[str] = mapped_column(String(PROVIDER_LENGTH), nullable=False)
+    ip: Mapped[str] = mapped_column(String(IP_ADDRESS_LENGTH), nullable=False)
     payload: Mapped[dict[str, Any]] = mapped_column(JsonDict, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)

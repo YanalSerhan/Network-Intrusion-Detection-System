@@ -13,8 +13,14 @@ from network_defender.parser.models import ParsedPacket
 
 
 class SshBruteForceConfig(DetectorConfig):
+    """Tunables for the SSH brute force detector."""
+
     time_window_seconds: int = Field(default=60)
     connection_count_threshold: int = Field(default=10)
+    #: Configurable because moving sshd off 22 is common hardening advice, and
+    #: a hardcoded port silently blinds this detector on exactly the hosts
+    #: whose operators took that advice.
+    ssh_port: int = Field(default=22, ge=1, le=65535)
 
 
 class SshBruteForceDetector(BaseDetector[SshBruteForceConfig]):
@@ -33,7 +39,7 @@ class SshBruteForceDetector(BaseDetector[SshBruteForceConfig]):
     def ingest(self, packet: ParsedPacket) -> None:
         if (
             packet.protocol == Protocol.TCP
-            and packet.dst_port == 22
+            and packet.dst_port == self.config.ssh_port
             and packet.tcp_flags
             and packet.tcp_flags.syn
             and not packet.tcp_flags.ack
