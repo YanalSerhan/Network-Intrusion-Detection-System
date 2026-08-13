@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from network_defender.constants import Severity
 from network_defender.parser.models import ParsedPacket
+from network_defender.parser.projection import protocol_sections, scalar_fields
 
 from .common import PageMeta
 
@@ -35,22 +36,7 @@ class PacketView(BaseModel):
     @classmethod
     def from_domain(cls, packet: ParsedPacket) -> "PacketView":
         """Project a ParsedPacket onto the API shape."""
-        sections = {
-            name: getattr(packet, name).model_dump(mode="json")
-            for name in ("tcp_flags", "dns", "http", "tls")
-            if getattr(packet, name) is not None
-        }
-        return cls(
-            timestamp=packet.timestamp,
-            src_ip=packet.src_ip,
-            dst_ip=packet.dst_ip,
-            src_port=packet.src_port,
-            dst_port=packet.dst_port,
-            protocol=packet.protocol,
-            length=packet.length,
-            raw_summary=packet.raw_summary,
-            fields=sections,
-        )
+        return cls(**scalar_fields(packet), fields=protocol_sections(packet))
 
 
 class RuleView(BaseModel):

@@ -334,7 +334,7 @@
 - [x] Verify zero hardcoded config-like values in source code (API URLs, ports, thresholds, secrets)
 - [x] Verify every module/class/function has a docstring explaining **why**, not just what
 - [x] Verify consistent naming conventions (descriptive variables/functions) project-wide
-- [ ] Verify DRY principle — no duplicated logic blocks across 2+ files
+- [x] Verify DRY principle — no duplicated logic blocks across 2+ files
 - [ ] Enforce single-responsibility functions (short, focused, one job each)
 - [ ] Audit all files for the 150-line limit; split oversized files by concern
 - [ ] Run a full code review pass against the Final Checklist (Milestone 20)

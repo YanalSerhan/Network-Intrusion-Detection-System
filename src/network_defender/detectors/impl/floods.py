@@ -5,7 +5,7 @@ Data Setup:  Per-destination counters, reset every evaluation window.
 Data Input:  Parsed packets, one at a time.
 Data Output: One DetectionAlert per destination that crossed its threshold.
 
-The counting, alerting and window-clearing are shared — see `flood_base`. What
+The counting, alerting and window-clearing are shared — see `counting`. What
 differs between the three is only which packets count, how many are too many,
 and how bad it is: a SYN flood consumes a connection-table entry per packet
 and is CRITICAL, a UDP flood consumes bandwidth and is HIGH, and an ICMP flood
@@ -14,11 +14,11 @@ is usually noise and is MEDIUM.
 
 from pydantic import Field
 
-from network_defender.constants import Protocol, Severity
+from network_defender.constants import MitreTactic, Protocol, Severity
 from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
 
-from .flood_base import DestinationFloodDetector
+from .counting_endpoints import DestinationCountingDetector
 
 
 class SynFloodConfig(DetectorConfig):
@@ -28,7 +28,7 @@ class SynFloodConfig(DetectorConfig):
     syn_count_threshold: int = Field(default=100)
 
 
-class SynFloodDetector(DestinationFloodDetector[SynFloodConfig]):
+class SynFloodDetector(DestinationCountingDetector[SynFloodConfig]):
     """
     Detects a high volume of SYN packets aimed at one destination.
 
@@ -39,6 +39,7 @@ class SynFloodDetector(DestinationFloodDetector[SynFloodConfig]):
 
     evidence_key = "syn_count"
     severity = Severity.CRITICAL
+    tactic = MitreTactic.IMPACT
 
     @property
     def name(self) -> str:
@@ -68,7 +69,7 @@ class UdpFloodConfig(DetectorConfig):
     udp_count_threshold: int = Field(default=200)
 
 
-class UdpFloodDetector(DestinationFloodDetector[UdpFloodConfig]):
+class UdpFloodDetector(DestinationCountingDetector[UdpFloodConfig]):
     """
     Detects a high volume of UDP datagrams aimed at one destination.
 
@@ -78,6 +79,7 @@ class UdpFloodDetector(DestinationFloodDetector[UdpFloodConfig]):
 
     evidence_key = "udp_count"
     severity = Severity.HIGH
+    tactic = MitreTactic.IMPACT
 
     @property
     def name(self) -> str:
@@ -105,7 +107,7 @@ class IcmpFloodConfig(DetectorConfig):
     icmp_count_threshold: int = Field(default=50)
 
 
-class IcmpFloodDetector(DestinationFloodDetector[IcmpFloodConfig]):
+class IcmpFloodDetector(DestinationCountingDetector[IcmpFloodConfig]):
     """
     Detects a high volume of ICMP traffic, such as a ping flood.
 
@@ -115,6 +117,7 @@ class IcmpFloodDetector(DestinationFloodDetector[IcmpFloodConfig]):
 
     evidence_key = "icmp_count"
     severity = Severity.MEDIUM
+    tactic = MitreTactic.IMPACT
 
     @property
     def name(self) -> str:

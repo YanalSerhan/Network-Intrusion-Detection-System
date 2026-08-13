@@ -14,6 +14,7 @@ what an operator committed. The override is cleared by a reload.
 
 from typing import Any
 
+from ..database.mappers import rule_record_to_dict
 from ..services.database import DatabaseService
 from ..services.detection import DetectionService
 from ..shared.base import LoggableMixin
@@ -38,7 +39,7 @@ class RuleOperationsMixin(LoggableMixin):
         record = self._database_service.rules.get(name)
         if record is None:
             return None
-        return self._as_dict(record)
+        return rule_record_to_dict(record)
 
     def set_rule_enabled(self, name: str, enabled: bool) -> dict[str, Any] | None:
         """
@@ -59,7 +60,7 @@ class RuleOperationsMixin(LoggableMixin):
         self._apply_to_engine(name, enabled)
 
         updated = self._database_service.rules.get(name)
-        return self._as_dict(updated) if updated is not None else None
+        return rule_record_to_dict(updated) if updated is not None else None
 
     def reload_rules(self) -> int:
         """
@@ -89,16 +90,3 @@ class RuleOperationsMixin(LoggableMixin):
             if rule.name == name:
                 rule.enabled = enabled
 
-    @staticmethod
-    def _as_dict(record: Any) -> dict[str, Any]:
-        """Project a rule snapshot row onto the API's dict shape."""
-        return {
-            "name": record.name,
-            "severity": record.severity,
-            "enabled": record.enabled,
-            "window": record.window,
-            "threshold": record.threshold,
-            "group_by": record.group_by,
-            "conditions": record.conditions,
-            "source_path": record.source_path,
-        }

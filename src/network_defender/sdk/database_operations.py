@@ -16,6 +16,7 @@ the presentation layer.
 from typing import Any
 from uuid import UUID
 
+from ..database.mappers import rule_record_to_dict
 from ..parser.models import ParsedPacket
 from ..services.database import DatabaseService
 from ..shared.config_models import AppConfig
@@ -102,16 +103,7 @@ class DatabaseOperationsMixin:
             One dict per rule, ordered by name.
         """
         return [
-            {
-                "name": record.name,
-                "severity": record.severity,
-                "enabled": record.enabled,
-                "window": record.window,
-                "threshold": record.threshold,
-                "group_by": record.group_by,
-                "conditions": record.conditions,
-                "source_path": record.source_path,
-            }
+            rule_record_to_dict(record)
             for record in self._database_service.rules.list_rules()
         ]
 

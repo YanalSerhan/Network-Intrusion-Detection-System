@@ -4,38 +4,12 @@ import time
 
 import pytest
 
-from network_defender.constants import ProviderStatus
-from network_defender.services.threat_intel.base import ThreatIntelProvider
 from network_defender.services.threat_intel.circuit_breaker import (
     STATE_CLOSED,
     STATE_HALF_OPEN,
     STATE_OPEN,
     CircuitBreaker,
 )
-from network_defender.services.threat_intel.models import (
-    ProviderResult,
-)
-
-
-class StubProvider(ThreatIntelProvider):
-    """Provider double returning a scripted result and counting calls."""
-
-    def __init__(self, name: str = "stub", result: ProviderResult | None = None) -> None:
-        super().__init__(gatekeeper=None)  # type: ignore[arg-type]
-        self._name = name
-        self._result = result
-        self.calls = 0
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    def lookup(self, ip: str) -> ProviderResult:
-        self.calls += 1
-        return self._result or ProviderResult(
-            provider=self._name, status=ProviderStatus.OK, reputation_score=88.0
-        )
-
 
 # --------------------------------------------------------------------------
 # Circuit breaker

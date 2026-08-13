@@ -16,14 +16,13 @@ parsing. What both measure is attempt *rate*, which is what distinguishes
 someone guessing from someone who mistyped their password.
 """
 
-from collections import defaultdict
-
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
-from network_defender.detectors.base import BaseDetector
-from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
+
+from .counting_endpoints import SourceCountingDetector
 
 #: Path fragments that mark a request as an authentication attempt. Matched as
 #: substrings against a lowercased path, so `/api/v2/user/login` counts.
@@ -41,7 +40,7 @@ class SshBruteForceConfig(DetectorConfig):
     ssh_port: int = Field(default=22, ge=1, le=65535)
 
 
-class SshBruteForceDetector(BaseDetector[SshBruteForceConfig]):
+class SshBruteForceDetector(SourceCountingDetector[SshBruteForceConfig]):
     """
     Detects repeated SSH connection attempts from one source.
 
@@ -50,44 +49,33 @@ class SshBruteForceDetector(BaseDetector[SshBruteForceConfig]):
     would report every legitimate long-running session as an attack.
     """
 
-    def __init__(self, config: SshBruteForceConfig) -> None:
-        """Initialise with the validated attempt threshold and SSH port."""
-        super().__init__(config)
-        self._src_counts: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "connection_count"
+    severity = Severity.HIGH
+    tactic = MitreTactic.CREDENTIAL_ACCESS
 
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "SshBruteForceDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Count a new connection to the SSH port against its source."""
-        if (
+    @property
+    def threshold(self) -> int:
+        """Connection attempts per window at or above which to alert."""
+        return self.config.connection_count_threshold
+
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for a new connection to the configured SSH port."""
+        return bool(
             packet.protocol == Protocol.TCP
             and packet.dst_port == self.config.ssh_port
             and packet.tcp_flags
             and packet.tcp_flags.syn
             and not packet.tcp_flags.ack
-            and packet.src_ip
-        ):
-            self._src_counts[packet.src_ip] += 1
+        )
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per guessing source, then clear the window."""
-        alerts = []
-        for src_ip, count in self._src_counts.items():
-            if count >= self.config.connection_count_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.CREDENTIAL_ACCESS,
-                        src_ip=src_ip,
-                        description=f"Possible SSH Brute Force: {count} connection attempts.",
-                        evidence={"connection_count": count},
-                    )
-                )
-        self._src_counts.clear()
-        return alerts
+    def describe(self, count: int) -> str:
+        """Describe the attempt burst for the analyst reading the alert."""
+        return f"Possible SSH Brute Force: {count} connection attempts."
 
 
 class HttpBruteForceConfig(DetectorConfig):
@@ -97,7 +85,7 @@ class HttpBruteForceConfig(DetectorConfig):
     connection_count_threshold: int = Field(default=20)
 
 
-class HttpBruteForceDetector(BaseDetector[HttpBruteForceConfig]):
+class HttpBruteForceDetector(SourceCountingDetector[HttpBruteForceConfig]):
     """
     Detects repeated requests to authentication endpoints from one source.
 
@@ -110,36 +98,27 @@ class HttpBruteForceDetector(BaseDetector[HttpBruteForceConfig]):
     less immediately valuable to an attacker than a shell.
     """
 
-    def __init__(self, config: HttpBruteForceConfig) -> None:
-        """Initialise with the validated request threshold."""
-        super().__init__(config)
-        self._src_counts: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "request_count"
+    severity = Severity.MEDIUM
+    tactic = MitreTactic.CREDENTIAL_ACCESS
 
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "HttpBruteForceDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Count the request against its source if it targets an auth path."""
-        if packet.protocol == Protocol.HTTP and packet.http and packet.http.path and packet.src_ip:
-            path = packet.http.path.lower()
-            if any(marker in path for marker in AUTH_PATH_MARKERS):
-                self._src_counts[packet.src_ip] += 1
+    @property
+    def threshold(self) -> int:
+        """Auth requests per window at or above which to alert."""
+        return self.config.connection_count_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per guessing source, then clear the window."""
-        alerts = []
-        for src_ip, count in self._src_counts.items():
-            if count >= self.config.connection_count_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.MEDIUM,
-                        tactic=MitreTactic.CREDENTIAL_ACCESS,
-                        src_ip=src_ip,
-                        description=f"Possible HTTP Brute Force: {count} login endpoint requests.",
-                        evidence={"request_count": count},
-                    )
-                )
-        self._src_counts.clear()
-        return alerts
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for an HTTP request whose path looks like a login."""
+        if not (packet.protocol == Protocol.HTTP and packet.http and packet.http.path):
+            return False
+        path = packet.http.path.lower()
+        return any(marker in path for marker in AUTH_PATH_MARKERS)
+
+    def describe(self, count: int) -> str:
+        """Describe the request burst for the analyst reading the alert."""
+        return f"Possible HTTP Brute Force: {count} login endpoint requests."

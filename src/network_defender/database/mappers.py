@@ -14,6 +14,7 @@ from typing import Any
 
 from ..constants import AlertSource, AlertStatus, MitreTactic, Severity
 from ..parser.models import ParsedPacket
+from ..parser.projection import protocol_sections, scalar_fields
 from ..rules.models import Rule
 from ..services.alerts.models import Alert
 from ..services.threat_intel.models import ThreatIntelResult
@@ -101,22 +102,8 @@ def packet_to_record(packet: ParsedPacket, alert_id: Any = None) -> PacketRecord
     JSON column rather than sparse per-protocol columns, which would leave most
     of every row NULL and require a migration for each new protocol.
     """
-    fields = {
-        section: getattr(packet, section).model_dump(mode="json")
-        for section in ("tcp_flags", "dns", "http", "tls")
-        if getattr(packet, section) is not None
-    }
     return PacketRecord(
-        alert_id=alert_id,
-        timestamp=packet.timestamp,
-        src_ip=packet.src_ip,
-        dst_ip=packet.dst_ip,
-        src_port=packet.src_port,
-        dst_port=packet.dst_port,
-        protocol=packet.protocol,
-        length=packet.length,
-        raw_summary=packet.raw_summary,
-        fields=fields,
+        alert_id=alert_id, **scalar_fields(packet), fields=protocol_sections(packet)
     )
 
 
@@ -148,3 +135,25 @@ def rule_to_record(rule: Rule, source_path: str | None, loaded_at: Any) -> RuleR
         source_path=source_path,
         loaded_at=loaded_at,
     )
+
+
+def rule_record_to_dict(record: RuleRecord) -> dict[str, Any]:
+    """
+    Project a rule snapshot row onto the flat shape the SDK exposes.
+
+    Args:
+        record: A rule row read from the snapshot table.
+
+    Returns:
+        The rule's fields, ready for the API to serialise.
+    """
+    return {
+        "name": record.name,
+        "severity": record.severity,
+        "enabled": record.enabled,
+        "window": record.window,
+        "threshold": record.threshold,
+        "group_by": record.group_by,
+        "conditions": record.conditions,
+        "source_path": record.source_path,
+    }
