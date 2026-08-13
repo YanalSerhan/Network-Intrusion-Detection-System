@@ -11,10 +11,9 @@ decryption, per the PRD's explicit non-goal.
 
 from scapy.layers.dns import DNSQR
 from scapy.layers.http import HTTPRequest
-from scapy.layers.inet import TCP
 from scapy.packet import Packet
 
-from ..constants import TlsHandshakeType
+from ..capture.tls_metadata import extract_tls_metadata
 from .models import DnsFields, HttpFields, TlsFields
 
 # TLS record content-type for handshake messages (RFC 5246 §6.2.1)
@@ -70,59 +69,24 @@ def extract_http_fields(packet: Packet) -> HttpFields | None:
 
 def extract_tls_fields(packet: Packet) -> TlsFields | None:
     """
-    Extract TLS ClientHello metadata (SNI + cipher suites) from a TCP payload.
+    Extract TLS ClientHello metadata (SNI and offered cipher suites).
 
-    Performs metadata-only extraction — no key material, no decryption.
+    Metadata only — no key material is touched and nothing is decrypted, per
+    the PRD's explicit non-goal.
+
+    The record walking lives in `capture.tls_metadata`, which the capture layer
+    already needs for its one-line packet summaries. Parsing the same bytes a
+    second time here would mean two hand-written offset walks over the same
+    structure, and hand-written offset walks are the easiest thing in this
+    codebase to get subtly wrong.
 
     Args:
         packet: Scapy packet object.
 
     Returns:
-        TlsFields model, or None if no TLS ClientHello is detected.
+        TlsFields model, or None if no TLS ClientHello is present.
     """
-    try:
-        if not packet.haslayer(TCP):
-            return None
-        raw = bytes(packet[TCP].payload)
-        if len(raw) < 6 or raw[0] != _TLS_CONTENT_TYPE_HANDSHAKE:
-            return None
-        if raw[5] != TlsHandshakeType.CLIENT_HELLO:
-            return None
-        offset = 9  # record header(5) + handshake type(1) + length(3)
-        offset += 2  # client version
-        offset += 32  # random
-        if offset >= len(raw):
-            return None
-        session_id_len = raw[offset]
-        offset += 1 + session_id_len
-        if offset + 2 > len(raw):
-            return None
-        cipher_len = int.from_bytes(raw[offset: offset + 2], "big")
-        offset += 2
-        cipher_suites = [
-            int.from_bytes(raw[offset + i: offset + i + 2], "big")
-            for i in range(0, cipher_len, 2)
-        ]
-        offset += cipher_len
-        if offset >= len(raw):
-            return TlsFields(sni=None, cipher_suites=cipher_suites)
-        offset += 1 + raw[offset]  # compression methods
-        if offset + 2 > len(raw):
-            return TlsFields(sni=None, cipher_suites=cipher_suites)
-        ext_total = int.from_bytes(raw[offset: offset + 2], "big")
-        offset += 2
-        end = offset + ext_total
-        sni: str | None = None
-        while offset + 4 <= end:
-            ext_type = int.from_bytes(raw[offset: offset + 2], "big")
-            ext_len = int.from_bytes(raw[offset + 2: offset + 4], "big")
-            offset += 4
-            if ext_type == _TLS_SNI_EXTENSION_TYPE and offset + ext_len <= end:
-                name_offset = offset + 3
-                name_len = int.from_bytes(raw[offset + 3: offset + 5], "big")
-                sni = raw[name_offset + 2: name_offset + 2 + name_len].decode("utf-8", "replace")
-                break
-            offset += ext_len
-        return TlsFields(sni=sni, cipher_suites=cipher_suites)
-    except Exception:
+    sni, cipher_suites = extract_tls_metadata(packet)
+    if sni is None and cipher_suites is None:
         return None
+    return TlsFields(sni=sni, cipher_suites=cipher_suites)

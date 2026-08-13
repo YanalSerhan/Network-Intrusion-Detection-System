@@ -23,6 +23,47 @@ TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
 FALSE_VALUES = frozenset({"0", "false", "no", "off"})
 
 
+def _coerce_bool(text: str) -> Any:
+    """
+    Return the boolean an environment string names, or the string itself.
+
+    An unrecognised value is left alone rather than guessed at: validation
+    reports it against the field, naming the file and the value, which is more
+    use than silently reading "maybe" as False.
+
+    Args:
+        text: The stripped environment value.
+
+    Returns:
+        True, False, or the original text.
+    """
+    lowered = text.lower()
+    if lowered in TRUE_VALUES:
+        return True
+    if lowered in FALSE_VALUES:
+        return False
+    return text
+
+
+def _coerce_int(text: str) -> Any:
+    """Return the int the text names, or the text when it names none."""
+    return int(text) if _looks_numeric(text) else text
+
+
+def _coerce_float(text: str) -> Any:
+    """Return the float the text names, or the text when it names none."""
+    return float(text) if _looks_numeric(text) else text
+
+
+#: Declared field type -> how to read an environment string as that type.
+#: Anything not listed is passed through as a string for validation to judge.
+_CONVERTERS: dict[Any, Any] = {
+    bool: _coerce_bool,
+    int: _coerce_int,
+    float: _coerce_float,
+}
+
+
 def coerce(raw: str, annotation: Any) -> Any:
     """
     Convert an environment string to the type the model expects.
@@ -36,23 +77,11 @@ def coerce(raw: str, annotation: Any) -> Any:
     """
     text = raw.strip()
 
-    if annotation is bool:
-        lowered = text.lower()
-        if lowered in TRUE_VALUES:
-            return True
-        if lowered in FALSE_VALUES:
-            return False
-        return text
-
-    if annotation is int:
-        return int(text) if _looks_numeric(text) else text
-    if annotation is float:
-        return float(text) if _looks_numeric(text) else text
-
     if annotation in (list, dict) or str(annotation).startswith(("list", "dict")):
         return _coerce_collection(text)
 
-    return text
+    converter = _CONVERTERS.get(annotation)
+    return converter(text) if converter else text
 
 
 def _coerce_collection(text: str) -> Any:

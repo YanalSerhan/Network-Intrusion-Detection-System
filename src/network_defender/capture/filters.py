@@ -29,12 +29,45 @@ except ImportError:
     pass
 
 
+#: Scapy layer -> the protocol it identifies, most specific first. A table
+#: rather than a chain of branches: the priority order *is* the data, and
+#: reading it top to bottom is how you check that DNS beats UDP.
+_LAYER_PROTOCOLS: tuple[tuple[type[Packet], str], ...] = (
+    (DNS, Protocol.DNS),
+    (HTTP, Protocol.HTTP),
+    (TCP, Protocol.TCP),
+    (UDP, Protocol.UDP),
+    (ICMP, Protocol.ICMP),
+    (ARP, Protocol.ARP),
+    (IPv6, Protocol.IPV6),
+    (IP, Protocol.IP),
+    (Ether, Protocol.ETHERNET),
+)
+
+#: TLS record content type for a handshake message, and the smallest record
+#: header worth inspecting. Scapy's TLS layer is optional, so TLS is
+#: recognised from the first bytes of the TCP payload instead.
+_TLS_HANDSHAKE_CONTENT_TYPE = 0x16
+_TLS_MIN_RECORD_BYTES = 3
+
+
+def _is_tls(packet: Packet) -> bool:
+    """
+    Return True if the TCP payload opens with a TLS handshake record.
+
+    Args:
+        packet: A Scapy packet already known to carry TCP.
+
+    Returns:
+        Whether the payload looks like TLS.
+    """
+    raw = bytes(packet[TCP].payload)
+    return len(raw) >= _TLS_MIN_RECORD_BYTES and raw[0] == _TLS_HANDSHAKE_CONTENT_TYPE
+
+
 def detect_protocol(packet: Packet) -> str:
     """
     Detect the highest-layer protocol of a Scapy packet.
-
-    Priority order (most specific first): DNS, HTTP, TLS, TCP, UDP, ICMP,
-    ARP, IPv6, IPv4, Ethernet.
 
     Args:
         packet: A Scapy packet object.
@@ -42,30 +75,11 @@ def detect_protocol(packet: Packet) -> str:
     Returns:
         A Protocol enum value string (e.g. 'tcp', 'dns').
     """
-    if packet.haslayer(DNS):
-        return Protocol.DNS
-    if packet.haslayer(HTTP):
-        return Protocol.HTTP
-    # TLS detection: TCP payload starting with content-type 0x16 (handshake/app-data)
-    if packet.haslayer(TCP):
-        tcp_layer = packet[TCP]
-        raw = bytes(tcp_layer.payload)
-        if len(raw) >= 3 and raw[0] == 0x16:
-            return Protocol.TLS
-    if packet.haslayer(TCP):
-        return Protocol.TCP
-    if packet.haslayer(UDP):
-        return Protocol.UDP
-    if packet.haslayer(ICMP):
-        return Protocol.ICMP
-    if packet.haslayer(ARP):
-        return Protocol.ARP
-    if packet.haslayer(IPv6):
-        return Protocol.IPV6
-    if packet.haslayer(IP):
-        return Protocol.IP
-    if packet.haslayer(Ether):
-        return Protocol.ETHERNET
+    if packet.haslayer(TCP) and _is_tls(packet):
+        return Protocol.TLS
+    for layer, protocol in _LAYER_PROTOCOLS:
+        if packet.haslayer(layer):
+            return protocol
     return Protocol.UNKNOWN
 
 

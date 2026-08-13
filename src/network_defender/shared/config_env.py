@@ -28,6 +28,10 @@ from .config_coerce import coerce, field_annotation
 ENV_PREFIX = "ND__"
 ENV_SEPARATOR = "__"
 
+#: ND__SECTION__KEY splits into exactly two parts; anything deeper is not a
+#: path this configuration format has.
+_SECTION_AND_KEY = 2
+
 def collect_overrides(
     model: type[BaseModel], environ: dict[str, str] | None = None
 ) -> dict[str, Any]:
@@ -51,7 +55,7 @@ def collect_overrides(
         path = name[len(ENV_PREFIX) :].lower().split(ENV_SEPARATOR)
         if len(path) == 1:
             overrides[path[0]] = raw
-        elif len(path) == 2:
+        elif len(path) == _SECTION_AND_KEY:
             section, key = path
             overrides.setdefault(section, {})[key] = coerce(
                 raw, field_annotation(model, section, key)

@@ -37,7 +37,7 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "D"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "D", "C90", "PLR", "ARG", "RET"]
 # D212 wants the summary on the same line as the opening quotes; this project
 # puts it on the next line (D213) and has done since the first module. One of
 # the pair has to be off, and changing 300 files to satisfy a linter default
@@ -48,12 +48,20 @@ extend-select = ["D213"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
 [tool.ruff.lint.per-file-ignores]
+# SQLAlchemy calls these with a `dialect` argument the implementation does not
+# need. The signature is the framework's, not ours.
+"src/network_defender/database/base.py" = ["ARG002"]
+"src/network_defender/database/types.py" = ["ARG002"]
+
 # A test's name is its documentation — `test_syn_ack_replies_are_not_a_syn_scan`
 # says more than a docstring restating it would, and docs/TESTING.md makes that
 # the convention. Module docstrings are still required: they are where a suite
 # says what it is responsible for proving.
-"tests/**" = ["D101", "D102", "D103", "D107"]
+"tests/**" = ["D101", "D102", "D103", "D107", "PLR2004", "ARG001", "ARG002"]
 
 [tool.mypy]
 strict = true

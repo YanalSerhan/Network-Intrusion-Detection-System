@@ -84,7 +84,7 @@ def get_asset(asset_path: str) -> Response:
 
 @router.get("", include_in_schema=False)
 @router.get("/{spa_path:path}", include_in_schema=False)
-def serve_dashboard(spa_path: str = "") -> Response:
+def serve_dashboard(spa_path: str = "") -> Response:  # noqa: ARG001 - see below
     """
     Serve the SPA shell for any dashboard route.
 

@@ -24,7 +24,6 @@ class _RecordingService(ThreatIntelService):
 
     def enrich_alert(self, alert: Alert) -> None:
         self.seen.append(alert)
-        return None
 
 
 def _alert(ip: str = PUBLIC_IP) -> Alert:

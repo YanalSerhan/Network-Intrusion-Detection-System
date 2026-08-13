@@ -7,6 +7,7 @@ Data Output: Boolean indicating if the packet matches the condition.
 """
 
 import re
+from collections.abc import Callable
 from typing import Any
 
 from network_defender.parser.models import ParsedPacket
@@ -27,6 +28,19 @@ def _get_field_value(packet: ParsedPacket, field_path: str) -> Any:
     return current
 
 
+#: Operator name from the YAML schema -> the comparison it performs. A table
+#: rather than a chain of branches: adding an operator is one entry, and the
+#: set of supported operators is readable in one place — which is what
+#: docs/RULE_SCHEMA.md has to stay in step with.
+OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
+    "equals": lambda field, value: bool(field == value),
+    "not_equals": lambda field, value: bool(field != value),
+    "greater_than": lambda field, value: bool(field > value),
+    "less_than": lambda field, value: bool(field < value),
+    "regex": lambda field, value: bool(re.search(str(value), str(field))),
+}
+
+
 def evaluate_condition(packet: ParsedPacket, condition: RuleCondition) -> bool:
     """Evaluate a single condition against a packet."""
     packet_value = _get_field_value(packet, condition.field)
@@ -35,20 +49,14 @@ def evaluate_condition(packet: ParsedPacket, condition: RuleCondition) -> bool:
         # Field missing or null (e.g., tcp_flags on a UDP packet)
         return False
 
-    operator = condition.operator
-    val = condition.value
+    comparison = OPERATORS.get(condition.operator)
+    if comparison is None:
+        return False
 
     try:
-        if operator == "equals":
-            return bool(packet_value == val)
-        if operator == "not_equals":
-            return bool(packet_value != val)
-        if operator == "greater_than":
-            return bool(packet_value > val)
-        if operator == "less_than":
-            return bool(packet_value < val)
-        if operator == "regex":
-            return bool(re.search(str(val), str(packet_value)))
-        return False
+        return comparison(packet_value, condition.value)
     except TypeError:
+        # A rule can name any field and any value, so comparing a string to an
+        # int is a configuration mistake rather than a bug — the rule simply
+        # does not match.
         return False

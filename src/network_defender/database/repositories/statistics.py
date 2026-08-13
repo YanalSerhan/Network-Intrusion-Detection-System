@@ -35,8 +35,9 @@ class StatisticsRepository:
         """
         self._session_factory = session_factory
 
-    def record_snapshot(
+    def record_snapshot(  # noqa: PLR0913 - one parameter per column, see below
         self,
+        *,
         total_packets: int = 0,
         total_alerts: int = 0,
         packets_per_second: float = 0.0,
@@ -57,6 +58,13 @@ class StatisticsRepository:
 
         Returns:
             The persisted StatisticsRecord.
+
+        Note:
+            The parameter count is the column count. Bundling them into a
+            model would add a type whose only job is to be unpacked one line
+            later, and every caller already builds them with
+            `build_snapshot_payload`. They are keyword-only so no caller can
+            get the order wrong.
         """
         record = StatisticsRecord(
             captured_at=captured_at or datetime.now(UTC),

@@ -24,6 +24,10 @@ from ..models import ProviderResult, WhoisInfo
 
 RDAP_URL = "https://rdap.org/ip/{ip}"
 
+#: A jCard property is [name, parameters, type, value] (RFC 7095 §3.3), so a
+#: shorter entry cannot carry a value to read.
+_VCARD_VALUE_FIELDS = 4
+
 
 class RdapWhoisProvider(ThreatIntelProvider):
     """Looks up the registered network block containing an address."""
@@ -96,7 +100,11 @@ class RdapWhoisProvider(ThreatIntelProvider):
             if not (isinstance(vcard, list) and len(vcard) > 1):
                 continue
             for field in vcard[1]:
-                if isinstance(field, list) and len(field) >= 4 and field[0] == "email":
+                if (
+                    isinstance(field, list)
+                    and len(field) >= _VCARD_VALUE_FIELDS
+                    and field[0] == "email"
+                ):
                     return str(field[3])
         return None
 
