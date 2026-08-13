@@ -1,15 +1,15 @@
-import time
 import sys
-import os
+import time
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 # Add src to Python path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from network_defender.services.detection import DetectionService
 from network_defender.constants import Protocol
 from network_defender.parser.models import ParsedPacket, TcpFlags
+from network_defender.services.detection import DetectionService
+
 
 def main():
     config_dir = Path(__file__).resolve().parent.parent / "config"
@@ -20,7 +20,7 @@ def main():
     print(f"Benchmarking Detection Engine with {num_packets} synthetic packets...")
 
     base_packet = ParsedPacket(
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         src_ip="192.168.1.50",
         dst_ip="10.0.0.1",
         src_port=12345,
@@ -37,7 +37,7 @@ def main():
         # vary ports slightly to prevent hitting port scan limits immediately
         base_packet.dst_port = 80 + (i % 5)
         service.process_packet(base_packet)
-    
+
     # Force evaluate to clear state
     alerts = service.evaluate_detectors()
 
