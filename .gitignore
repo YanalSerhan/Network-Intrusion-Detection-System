@@ -76,3 +76,5 @@ frontend/node_modules/
 frontend/dist/
 # Built dashboard bundle (produced by `npm run build`, see frontend/README.md)
 src/network_defender/api/static/
+mutants/
+.mutmut-cache

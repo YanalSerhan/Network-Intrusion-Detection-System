@@ -106,3 +106,42 @@ def test_irregular_traffic_is_not_flagged_as_beaconing() -> None:
         when = start + timedelta(seconds=gap * (i + 1))
         detector.ingest(_packet("10.0.0.5", "203.0.113.9", when))
     assert detector.evaluate() == []
+
+
+# --------------------------------------------------------------------------
+# Beaconing: interval computation
+# --------------------------------------------------------------------------
+
+
+def test_an_irregular_first_gap_still_counts_against_the_variance() -> None:
+    """
+    Every interval must be measured, including the first.
+
+    Found by the mutation spot check: dropping the first interval left the
+    remaining ones perfectly regular, so a host that checked in once and then
+    settled into a rhythm would be reported as beaconing from the start.
+    """
+    detector = BeaconingDetector(
+        BeaconingConfig(connection_count_threshold=5, interval_variance_tolerance=0.1)
+    )
+    base = datetime.now(UTC)
+    # One long gap, then a steady 60-second cadence.
+    offsets = [0, 600, 660, 720, 780, 840]
+    for offset in offsets:
+        detector.ingest(_packet("10.0.0.5", "203.0.113.9", base + timedelta(seconds=offset)))
+
+    assert detector.evaluate() == []
+
+
+def test_a_steady_cadence_is_still_reported() -> None:
+    """The check above must not have made the detector unable to fire."""
+    detector = BeaconingDetector(
+        BeaconingConfig(connection_count_threshold=5, interval_variance_tolerance=0.1)
+    )
+    base = datetime.now(UTC)
+    for index in range(6):
+        detector.ingest(_packet("10.0.0.5", "203.0.113.9", base + timedelta(seconds=60 * index)))
+
+    alerts = detector.evaluate()
+    assert len(alerts) == 1
+    assert alerts[0].evidence["mean_interval"] == 60.0

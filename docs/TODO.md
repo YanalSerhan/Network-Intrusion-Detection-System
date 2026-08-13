@@ -321,7 +321,7 @@
 - [x] Mock all external dependencies (threat intel APIs, filesystem, DB) in unit tests
 - [x] Configure and enforce ≥85% global test coverage (`fail_under = 85`)
 - [x] Ensure no test file exceeds 150 lines (split into logical suites if needed)
-- [ ] Add mutation-testing spot-check (optional stretch goal) for critical detectors
+- [x] Add mutation-testing spot-check (optional stretch goal) for critical detectors
 - [x] Store expected test outputs / golden files for regression testing where applicable
 - [x] Publish coverage and pass/fail reports as CI artifacts
 

@@ -29,6 +29,7 @@ dev = [
     "mypy>=1.10.0",
     "respx>=0.21.1",
     "types-PyYAML>=6.0.12",
+    "mutmut>=3.7.0",
 ]
 
 [tool.ruff]
@@ -76,6 +77,22 @@ branch = true
 fail_under = 85
 show_missing = true
 skip_covered = true
+
+# Mutation testing — a spot check, not a gate. Scoped to the detector
+# implementations because that is where a silently-weakened test is most
+# expensive: a detector that stops detecting still passes every assertion
+# about the alerts it does raise. See docs/TESTING.md for how to read the
+# results and scripts/mutation_spot_check.sh for the invocation.
+[tool.mutmut]
+source_paths = ["src/network_defender"]
+only_mutate = ["src/network_defender/detectors/*"]
+pytest_add_cli_args_test_selection = ["tests/unit/detectors", "tests/e2e"]
+# The suite-wide coverage gate would fail every run of this subset, which
+# mutmut would read as "every mutant killed" — the most flattering possible
+# wrong answer.
+pytest_add_cli_args = ["--no-cov"]
+also_copy = ["config", "rules", "scripts", "migrations", "alembic.ini"]
+do_not_mutate = ["*/__init__.py"]
 
 [build-system]
 requires = ["hatchling"]
