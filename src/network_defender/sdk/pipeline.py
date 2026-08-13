@@ -42,7 +42,7 @@ class PipelineMixin(LoggableMixin):
         """Register the capture callback that drives the whole pipeline."""
         self._capture_service.set_packet_callback(self._on_raw_packet)
 
-    def _on_raw_packet(self, pkt: Packet) -> None:
+    def _on_raw_packet(self, packet: Packet) -> None:
         """
         Parse a captured packet and hand it to the detection service.
 
@@ -50,9 +50,9 @@ class PipelineMixin(LoggableMixin):
         interrupt a live capture.
 
         Args:
-            pkt: Raw Scapy packet admitted by the capture filters.
+            packet: Raw Scapy packet admitted by the capture filters.
         """
-        parsed = self._parser_service.parse_safe(pkt)
+        parsed = self._parser_service.parse_safe(packet)
         if parsed is None:
             return
         self._detection_service.process_packet(parsed)

@@ -22,21 +22,21 @@ from network_defender.constants import Protocol
 
 
 def test_allow_list_passes_matching_protocol() -> None:
-    pkt = Ether() / IP() / TCP()
+    packet = Ether() / IP() / TCP()
     cfg = ProtocolFilterConfig(allow_list=[Protocol.TCP], deny_list=[])
-    assert apply_protocol_filter(pkt, cfg) is True
+    assert apply_protocol_filter(packet, cfg) is True
 
 
 def test_allow_list_drops_non_matching_protocol() -> None:
-    pkt = Ether() / IP() / UDP()
+    packet = Ether() / IP() / UDP()
     cfg = ProtocolFilterConfig(allow_list=[Protocol.TCP], deny_list=[])
-    assert apply_protocol_filter(pkt, cfg) is False
+    assert apply_protocol_filter(packet, cfg) is False
 
 
 def test_empty_allow_list_passes_all() -> None:
-    pkt = Ether() / IP() / UDP()
+    packet = Ether() / IP() / UDP()
     cfg = ProtocolFilterConfig(allow_list=[], deny_list=[])
-    assert apply_protocol_filter(pkt, cfg) is True
+    assert apply_protocol_filter(packet, cfg) is True
 
 # ---------------------------------------------------------------------------
 # apply_protocol_filter — deny_list
@@ -44,15 +44,15 @@ def test_empty_allow_list_passes_all() -> None:
 
 
 def test_deny_list_drops_matching_protocol() -> None:
-    pkt = Ether() / IP() / UDP()
+    packet = Ether() / IP() / UDP()
     cfg = ProtocolFilterConfig(allow_list=[], deny_list=[Protocol.UDP])
-    assert apply_protocol_filter(pkt, cfg) is False
+    assert apply_protocol_filter(packet, cfg) is False
 
 
 def test_deny_list_takes_precedence_over_allow_list() -> None:
-    pkt = Ether() / IP() / TCP()
+    packet = Ether() / IP() / TCP()
     cfg = ProtocolFilterConfig(allow_list=[Protocol.TCP], deny_list=[Protocol.TCP])
-    assert apply_protocol_filter(pkt, cfg) is False
+    assert apply_protocol_filter(packet, cfg) is False
 
 # ---------------------------------------------------------------------------
 # validate_bpf_filter

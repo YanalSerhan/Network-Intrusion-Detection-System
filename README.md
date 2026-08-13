@@ -36,4 +36,5 @@ uv run mypy src
 ```
 
 See [docs/TESTING.md](docs/TESTING.md) for the test layout, the TDD workflow,
-the sample captures and the mutation spot check.
+the sample captures and the mutation spot check, and
+[docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming.

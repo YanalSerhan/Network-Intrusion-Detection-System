@@ -88,8 +88,8 @@ def apply_alert_to_record(alert: Alert, record: AlertRecord) -> AlertRecord:
     record.status = str(alert.status)
     record.tactic = str(alert.tactic) if alert.tactic else None
     record.technique = alert.technique
-    ti = alert.threat_intel
-    record.threat_intel = ti.model_dump(mode="json") if ti else None
+    threat_intel = alert.threat_intel
+    record.threat_intel = threat_intel.model_dump(mode="json") if threat_intel else None
     return record
 
 

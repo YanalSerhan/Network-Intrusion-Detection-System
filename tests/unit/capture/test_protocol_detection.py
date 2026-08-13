@@ -21,52 +21,52 @@ from network_defender.constants import Protocol
 
 
 def test_detect_tcp_packet() -> None:
-    pkt = Ether() / IP() / TCP()
-    assert detect_protocol(pkt) == Protocol.TCP
+    packet = Ether() / IP() / TCP()
+    assert detect_protocol(packet) == Protocol.TCP
 
 
 def test_detect_udp_packet() -> None:
-    pkt = Ether() / IP() / UDP()
-    assert detect_protocol(pkt) == Protocol.UDP
+    packet = Ether() / IP() / UDP()
+    assert detect_protocol(packet) == Protocol.UDP
 
 
 def test_detect_dns_packet() -> None:
-    pkt = Ether() / IP() / UDP() / DNS(qd=DNSQR(qname="example.com"))
-    assert detect_protocol(pkt) == Protocol.DNS
+    packet = Ether() / IP() / UDP() / DNS(qd=DNSQR(qname="example.com"))
+    assert detect_protocol(packet) == Protocol.DNS
 
 
 def test_detect_arp_packet() -> None:
-    pkt = Ether() / ARP()
-    assert detect_protocol(pkt) == Protocol.ARP
+    packet = Ether() / ARP()
+    assert detect_protocol(packet) == Protocol.ARP
 
 
 def test_detect_icmp_packet() -> None:
     from scapy.layers.inet import ICMP
 
-    pkt = Ether() / IP() / ICMP()
-    assert detect_protocol(pkt) == Protocol.ICMP
+    packet = Ether() / IP() / ICMP()
+    assert detect_protocol(packet) == Protocol.ICMP
 
 
 def test_detect_ipv6_packet() -> None:
     from scapy.layers.inet6 import IPv6
 
-    pkt = Ether() / IPv6()
-    assert detect_protocol(pkt) == Protocol.IPV6
+    packet = Ether() / IPv6()
+    assert detect_protocol(packet) == Protocol.IPV6
 
 
 def test_detect_ipv4_only_packet() -> None:
     """A bare IP packet (no TCP/UDP/ICMP) should resolve to IPv4."""
     from scapy.packet import Raw
 
-    pkt = Ether() / IP() / Raw(b"\x00")
+    packet = Ether() / IP() / Raw(b"\x00")
     # Raw payload has no recognised layer; IP is detected
-    assert detect_protocol(pkt) in (Protocol.IP, Protocol.UNKNOWN)
+    assert detect_protocol(packet) in (Protocol.IP, Protocol.UNKNOWN)
 
 
 def test_detect_ethernet_only_packet() -> None:
     """A bare Ethernet frame with no IP should resolve to ETHERNET."""
-    pkt = Ether()
-    assert detect_protocol(pkt) == Protocol.ETHERNET
+    packet = Ether()
+    assert detect_protocol(packet) == Protocol.ETHERNET
 
 
 def test_detect_tls_packet() -> None:
@@ -74,12 +74,12 @@ def test_detect_tls_packet() -> None:
     from scapy.packet import Raw
 
     tls_record = b"\x16\x03\x03" + b"\x00" * 20
-    pkt = Ether() / IP() / TCP() / Raw(tls_record)
-    assert detect_protocol(pkt) == Protocol.TLS
+    packet = Ether() / IP() / TCP() / Raw(tls_record)
+    assert detect_protocol(packet) == Protocol.TLS
 
 
 def test_detect_unknown_packet() -> None:
     from scapy.packet import Raw
 
-    pkt = Raw(b"\x00\x01\x02\x03")
-    assert detect_protocol(pkt) == Protocol.UNKNOWN
+    packet = Raw(b"\x00\x01\x02\x03")
+    assert detect_protocol(packet) == Protocol.UNKNOWN

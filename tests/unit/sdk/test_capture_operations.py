@@ -79,9 +79,9 @@ def test_sdk_start_capture_from_pcap(sdk: NetworkDefenderSDK, tmp_path: Path) ->
     from network_defender.capture.pcap_io import write_pcap
 
     pcap_file = tmp_path / "test.pcap"
-    pkt = Ether() / IP() / TCP()
-    pkt.time = 1_700_000_000.0
-    write_pcap([pkt], pcap_file)
+    packet = Ether() / IP() / TCP()
+    packet.time = 1_700_000_000.0
+    write_pcap([packet], pcap_file)
 
     received: list[object] = []
     sdk._capture_service.set_packet_callback(received.append)
@@ -98,9 +98,9 @@ def test_sdk_save_capture_to_pcap(sdk: NetworkDefenderSDK, tmp_path: Path) -> No
     from scapy.layers.inet import IP, TCP
     from scapy.layers.l2 import Ether
 
-    pkt = Ether() / IP() / TCP()
-    pkt.time = 1_700_000_000.0
-    sdk._capture_service._on_packet(pkt)
+    packet = Ether() / IP() / TCP()
+    packet.time = 1_700_000_000.0
+    sdk._capture_service._on_packet(packet)
 
     out = tmp_path / "sdk_save.pcap"
     sdk.save_capture_to_pcap(out)

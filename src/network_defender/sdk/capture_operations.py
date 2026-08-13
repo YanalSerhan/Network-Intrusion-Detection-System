@@ -60,22 +60,22 @@ class CaptureOperationsMixin:
         """Return the sorted list of interfaces visible to Scapy."""
         return list_interfaces()
 
-    def parse_packet(self, pkt: Packet) -> ParsedPacket:
+    def parse_packet(self, packet: Packet) -> ParsedPacket:
         """
         Parse a raw Scapy packet into a normalised ParsedPacket.
 
         Args:
-            pkt: A Scapy Packet captured by CaptureService.
+            packet: A Scapy Packet captured by CaptureService.
 
         Returns:
             ParsedPacket with all available protocol fields populated.
 
         Raises:
-            ValueError: If pkt is not a valid Packet.
+            ValueError: If packet is not a valid Packet.
         """
-        return self._parser_service.parse(pkt)
+        return self._parser_service.parse(packet)
 
-    def parse_packet_safe(self, pkt: Packet) -> ParsedPacket | None:
+    def parse_packet_safe(self, packet: Packet) -> ParsedPacket | None:
         """
         Parse a packet without raising, returning None on any failure.
 
@@ -83,12 +83,12 @@ class CaptureOperationsMixin:
         not interrupt the pipeline.
 
         Args:
-            pkt: A Scapy Packet.
+            packet: A Scapy Packet.
 
         Returns:
             ParsedPacket on success; None if parsing fails.
         """
-        return self._parser_service.parse_safe(pkt)
+        return self._parser_service.parse_safe(packet)
 
     def get_gatekeeper(self, service_name: str) -> ApiGatekeeper:
         """

@@ -24,40 +24,40 @@ _TLS_SNI_EXTENSION_TYPE = 0x0000
 
 
 
-def extract_dns_fields(pkt: Packet) -> DnsFields | None:
+def extract_dns_fields(packet: Packet) -> DnsFields | None:
     """
     Extract DNS query name and record type from the first DNSQR record.
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         DnsFields model, or None if no DNS query record is present.
     """
     try:
-        if not pkt.haslayer(DNSQR):
+        if not packet.haslayer(DNSQR):
             return None
-        qr = pkt[DNSQR]
-        query_name = (qr.qname or b"").decode("utf-8", "replace").rstrip(".")
-        return DnsFields(query_name=query_name or None, record_type=int(qr.qtype))
+        question = packet[DNSQR]
+        query_name = (question.qname or b"").decode("utf-8", "replace").rstrip(".")
+        return DnsFields(query_name=query_name or None, record_type=int(question.qtype))
     except Exception:
         return None
 
 
-def extract_http_fields(pkt: Packet) -> HttpFields | None:
+def extract_http_fields(packet: Packet) -> HttpFields | None:
     """
     Extract HTTP/1.x request fields from the HTTPRequest Scapy layer.
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         HttpFields model, or None if no HTTPRequest layer is present.
     """
     try:
-        if not pkt.haslayer(HTTPRequest):
+        if not packet.haslayer(HTTPRequest):
             return None
-        req = pkt[HTTPRequest]
+        req = packet[HTTPRequest]
         return HttpFields(
             method=(req.Method or b"").decode("utf-8", "replace") or None,
             path=(req.Path or b"").decode("utf-8", "replace") or None,
@@ -68,22 +68,22 @@ def extract_http_fields(pkt: Packet) -> HttpFields | None:
         return None
 
 
-def extract_tls_fields(pkt: Packet) -> TlsFields | None:
+def extract_tls_fields(packet: Packet) -> TlsFields | None:
     """
     Extract TLS ClientHello metadata (SNI + cipher suites) from a TCP payload.
 
     Performs metadata-only extraction — no key material, no decryption.
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         TlsFields model, or None if no TLS ClientHello is detected.
     """
     try:
-        if not pkt.haslayer(TCP):
+        if not packet.haslayer(TCP):
             return None
-        raw = bytes(pkt[TCP].payload)
+        raw = bytes(packet[TCP].payload)
         if len(raw) < 6 or raw[0] != _TLS_CONTENT_TYPE_HANDSHAKE:
             return None
         if raw[5] != TlsHandshakeType.CLIENT_HELLO:

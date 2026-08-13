@@ -333,7 +333,7 @@
 - [x] Achieve zero MyPy errors (or documented, justified `# type: ignore`)
 - [x] Verify zero hardcoded config-like values in source code (API URLs, ports, thresholds, secrets)
 - [x] Verify every module/class/function has a docstring explaining **why**, not just what
-- [ ] Verify consistent naming conventions (descriptive variables/functions) project-wide
+- [x] Verify consistent naming conventions (descriptive variables/functions) project-wide
 - [ ] Verify DRY principle — no duplicated logic blocks across 2+ files
 - [ ] Enforce single-responsibility functions (short, focused, one job each)
 - [ ] Audit all files for the 150-line limit; split oversized files by concern

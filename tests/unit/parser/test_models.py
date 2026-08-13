@@ -112,22 +112,22 @@ def _make_parsed_packet(**kwargs: Any) -> ParsedPacket:
 
 
 def test_parsed_packet_required_fields() -> None:
-    pkt = _make_parsed_packet()
-    assert pkt.protocol == Protocol.TCP
-    assert pkt.length == 60
-    assert pkt.timestamp.tzinfo == UTC
+    packet = _make_parsed_packet()
+    assert packet.protocol == Protocol.TCP
+    assert packet.length == 60
+    assert packet.timestamp.tzinfo == UTC
 
 
 def test_parsed_packet_optional_fields_default_none() -> None:
-    pkt = _make_parsed_packet()
-    assert pkt.src_ip is None
-    assert pkt.dst_ip is None
-    assert pkt.src_port is None
-    assert pkt.dst_port is None
-    assert pkt.tcp_flags is None
-    assert pkt.dns is None
-    assert pkt.http is None
-    assert pkt.tls is None
+    packet = _make_parsed_packet()
+    assert packet.src_ip is None
+    assert packet.dst_ip is None
+    assert packet.src_port is None
+    assert packet.dst_port is None
+    assert packet.tcp_flags is None
+    assert packet.dns is None
+    assert packet.http is None
+    assert packet.tls is None
 
 
 def test_parsed_packet_round_trips_model_dump() -> None:

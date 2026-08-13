@@ -55,36 +55,36 @@ class PacketParser(BaseService, ValidatableMixin):
         """
         return data is not None and isinstance(data, Packet)
 
-    def parse(self, pkt: Packet) -> ParsedPacket:
+    def parse(self, packet: Packet) -> ParsedPacket:
         """
         Parse a Scapy packet into a normalised ParsedPacket.
 
         Args:
-            pkt: A Scapy Packet object (must not be None).
+            packet: A Scapy Packet object (must not be None).
 
         Returns:
             Populated ParsedPacket model.
 
         Raises:
-            ValueError: If pkt fails validation.
+            ValueError: If packet fails validation.
         """
-        if not self.validate(pkt):
+        if not self.validate(packet):
             raise ValueError("PacketParser.parse() received an invalid packet.")
 
-        ts = datetime.fromtimestamp(float(pkt.time), tz=UTC)
-        protocol = detect_protocol(pkt)
-        length = len(pkt)
-        src_ip, dst_ip = extract_ip_addresses(pkt)
-        src_port, dst_port = extract_ports(pkt)
-        tcp_flags = extract_tcp_flags(pkt)
-        dns = extract_dns_fields(pkt)
-        http = extract_http_fields(pkt)
-        tls = extract_tls_fields(pkt)
-        raw_summary = summarise_packet(pkt).summary
+        timestamp = datetime.fromtimestamp(float(packet.time), tz=UTC)
+        protocol = detect_protocol(packet)
+        length = len(packet)
+        src_ip, dst_ip = extract_ip_addresses(packet)
+        src_port, dst_port = extract_ports(packet)
+        tcp_flags = extract_tcp_flags(packet)
+        dns = extract_dns_fields(packet)
+        http = extract_http_fields(packet)
+        tls = extract_tls_fields(packet)
+        raw_summary = summarise_packet(packet).summary
 
         self._packets_parsed += 1
         return ParsedPacket(
-            timestamp=ts,
+            timestamp=timestamp,
             src_ip=src_ip,
             dst_ip=dst_ip,
             src_port=src_port,
@@ -98,18 +98,18 @@ class PacketParser(BaseService, ValidatableMixin):
             raw_summary=raw_summary,
         )
 
-    def parse_safe(self, pkt: Packet) -> ParsedPacket | None:
+    def parse_safe(self, packet: Packet) -> ParsedPacket | None:
         """
         Parse a packet, returning None instead of raising on any failure.
 
         Args:
-            pkt: A Scapy Packet object.
+            packet: A Scapy Packet object.
 
         Returns:
             ParsedPacket on success; None on validation failure or exception.
         """
         try:
-            return self.parse(pkt)
+            return self.parse(packet)
         except Exception as exc:
             self._packets_failed += 1
             self.logger.warning("parse_safe: failed to parse packet — %s", exc)

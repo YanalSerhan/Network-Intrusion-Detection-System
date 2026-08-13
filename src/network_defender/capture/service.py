@@ -128,19 +128,19 @@ class CaptureService(PcapReplayMixin, BaseService):
                 pcap_output_dir=self._config.pcap_output_dir,
             )
 
-    def _on_packet(self, pkt: Packet) -> None:
+    def _on_packet(self, packet: Packet) -> None:
         """Callback invoked by AsyncSniffer for each captured packet."""
         if not self._rate_limiter.acquire():
             return  # backpressure: drop silently
 
-        if not apply_protocol_filter(pkt, self._protocol_filter):
+        if not apply_protocol_filter(packet, self._protocol_filter):
             with self._lock:
                 self._packets_dropped_filter += 1
             return
 
         with self._lock:
             self._packets_captured += 1
-            self._captured_packets.append(pkt)
+            self._captured_packets.append(packet)
 
         if self._callback is not None:
-            self._callback(pkt)
+            self._callback(packet)

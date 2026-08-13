@@ -24,19 +24,19 @@ from .models import PacketSummary
 from .tls_metadata import extract_tls_metadata
 
 
-def summarise_packet(pkt: Packet) -> PacketSummary:
+def summarise_packet(packet: Packet) -> PacketSummary:
     """
     Build a human-readable PacketSummary from a Scapy packet.
 
     Args:
-        pkt: Any Scapy packet (Ethernet, IP, raw, etc.).
+        packet: Any Scapy packet (Ethernet, IP, raw, etc.).
 
     Returns:
         Populated PacketSummary with all available fields set.
     """
-    ts = datetime.fromtimestamp(float(pkt.time), tz=UTC)
-    length = len(pkt)
-    protocol = detect_protocol(pkt)
+    timestamp = datetime.fromtimestamp(float(packet.time), tz=UTC)
+    length = len(packet)
+    protocol = detect_protocol(packet)
 
     src_ip: str | None = None
     dst_ip: str | None = None
@@ -51,30 +51,30 @@ def summarise_packet(pkt: Packet) -> PacketSummary:
     tls_ciphers: list[int] | None = None
 
     # IP addressing
-    if pkt.haslayer(IP):
-        src_ip, dst_ip = pkt[IP].src, pkt[IP].dst
-    elif pkt.haslayer(IPv6):
-        src_ip, dst_ip = pkt[IPv6].src, pkt[IPv6].dst
-    elif pkt.haslayer(ARP):
-        src_ip, dst_ip = pkt[ARP].psrc, pkt[ARP].pdst
+    if packet.haslayer(IP):
+        src_ip, dst_ip = packet[IP].src, packet[IP].dst
+    elif packet.haslayer(IPv6):
+        src_ip, dst_ip = packet[IPv6].src, packet[IPv6].dst
+    elif packet.haslayer(ARP):
+        src_ip, dst_ip = packet[ARP].psrc, packet[ARP].pdst
 
     # Transport ports
-    if pkt.haslayer(TCP):
-        src_port, dst_port = pkt[TCP].sport, pkt[TCP].dport
-    elif pkt.haslayer(UDP):
-        src_port, dst_port = pkt[UDP].sport, pkt[UDP].dport
+    if packet.haslayer(TCP):
+        src_port, dst_port = packet[TCP].sport, packet[TCP].dport
+    elif packet.haslayer(UDP):
+        src_port, dst_port = packet[UDP].sport, packet[UDP].dport
 
     # Protocol-specific extraction
-    if protocol == Protocol.DNS and pkt.haslayer(DNSQR):
-        dns_query = pkt[DNSQR].qname.decode("utf-8", "replace").rstrip(".")
-    elif protocol == Protocol.HTTP and pkt.haslayer(HTTPRequest):
-        req = pkt[HTTPRequest]
+    if protocol == Protocol.DNS and packet.haslayer(DNSQR):
+        dns_query = packet[DNSQR].qname.decode("utf-8", "replace").rstrip(".")
+    elif protocol == Protocol.HTTP and packet.haslayer(HTTPRequest):
+        req = packet[HTTPRequest]
         http_method = (req.Method or b"").decode("utf-8", "replace")
         http_path = (req.Path or b"").decode("utf-8", "replace")
         http_host = (req.Host or b"").decode("utf-8", "replace")
         http_ua = (req.User_Agent or b"").decode("utf-8", "replace") or None
-    elif protocol == Protocol.TLS and pkt.haslayer(TCP):
-        tls_sni, tls_ciphers = extract_tls_metadata(pkt)
+    elif protocol == Protocol.TLS and packet.haslayer(TCP):
+        tls_sni, tls_ciphers = extract_tls_metadata(packet)
 
     summary_str = (
         f"{protocol} {src_ip or '?'}:{src_port or '?'} → {dst_ip or '?'}:{dst_port or '?'} "
@@ -82,7 +82,7 @@ def summarise_packet(pkt: Packet) -> PacketSummary:
     )
 
     return PacketSummary(
-        timestamp=ts,
+        timestamp=timestamp,
         protocol=protocol,
         src_ip=src_ip,
         dst_ip=dst_ip,

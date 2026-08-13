@@ -17,8 +17,8 @@ def test_summarise_tls_extracts_sni() -> None:
     from scapy.packet import Raw
 
     raw_tls = tls_client_hello("secure.example.com")
-    pkt = Ether() / IP() / TCP(dport=443) / Raw(raw_tls)
-    pkt.time = 1_700_000_000.0
-    summary = summarise_packet(pkt)
+    packet = Ether() / IP() / TCP(dport=443) / Raw(raw_tls)
+    packet.time = 1_700_000_000.0
+    summary = summarise_packet(packet)
     assert summary.protocol == Protocol.TLS
     assert summary.tls_sni == "secure.example.com"

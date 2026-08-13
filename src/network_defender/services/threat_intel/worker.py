@@ -72,7 +72,9 @@ class EnrichmentWorker(LoggableMixin):
         if self.is_running:
             return
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._run, name="ti-enrichment", daemon=True)
+        self._thread = threading.Thread(
+            target=self._run, name="threat-intel-enrichment", daemon=True
+        )
         self._thread.start()
 
     def stop(self, timeout: float | None = None) -> None:

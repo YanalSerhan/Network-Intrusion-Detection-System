@@ -29,7 +29,7 @@ except ImportError:
     pass
 
 
-def detect_protocol(pkt: Packet) -> str:
+def detect_protocol(packet: Packet) -> str:
     """
     Detect the highest-layer protocol of a Scapy packet.
 
@@ -37,39 +37,39 @@ def detect_protocol(pkt: Packet) -> str:
     ARP, IPv6, IPv4, Ethernet.
 
     Args:
-        pkt: A Scapy packet object.
+        packet: A Scapy packet object.
 
     Returns:
         A Protocol enum value string (e.g. 'tcp', 'dns').
     """
-    if pkt.haslayer(DNS):
+    if packet.haslayer(DNS):
         return Protocol.DNS
-    if pkt.haslayer(HTTP):
+    if packet.haslayer(HTTP):
         return Protocol.HTTP
     # TLS detection: TCP payload starting with content-type 0x16 (handshake/app-data)
-    if pkt.haslayer(TCP):
-        tcp_layer = pkt[TCP]
+    if packet.haslayer(TCP):
+        tcp_layer = packet[TCP]
         raw = bytes(tcp_layer.payload)
         if len(raw) >= 3 and raw[0] == 0x16:
             return Protocol.TLS
-    if pkt.haslayer(TCP):
+    if packet.haslayer(TCP):
         return Protocol.TCP
-    if pkt.haslayer(UDP):
+    if packet.haslayer(UDP):
         return Protocol.UDP
-    if pkt.haslayer(ICMP):
+    if packet.haslayer(ICMP):
         return Protocol.ICMP
-    if pkt.haslayer(ARP):
+    if packet.haslayer(ARP):
         return Protocol.ARP
-    if pkt.haslayer(IPv6):
+    if packet.haslayer(IPv6):
         return Protocol.IPV6
-    if pkt.haslayer(IP):
+    if packet.haslayer(IP):
         return Protocol.IP
-    if pkt.haslayer(Ether):
+    if packet.haslayer(Ether):
         return Protocol.ETHERNET
     return Protocol.UNKNOWN
 
 
-def apply_protocol_filter(pkt: Packet, filter_cfg: ProtocolFilterConfig) -> bool:
+def apply_protocol_filter(packet: Packet, filter_cfg: ProtocolFilterConfig) -> bool:
     """
     Decide whether a packet should be passed downstream.
 
@@ -79,13 +79,13 @@ def apply_protocol_filter(pkt: Packet, filter_cfg: ProtocolFilterConfig) -> bool
       3. Otherwise → pass (return True).
 
     Args:
-        pkt:        Scapy packet to evaluate.
+        packet:        Scapy packet to evaluate.
         filter_cfg: Allow/deny configuration.
 
     Returns:
         True if the packet passes the filter; False if it should be dropped.
     """
-    protocol = detect_protocol(pkt)
+    protocol = detect_protocol(packet)
 
     if protocol in filter_cfg.deny_list:
         return False

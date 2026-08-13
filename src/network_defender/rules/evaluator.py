@@ -35,19 +35,19 @@ def evaluate_condition(packet: ParsedPacket, condition: RuleCondition) -> bool:
         # Field missing or null (e.g., tcp_flags on a UDP packet)
         return False
 
-    op = condition.operator
+    operator = condition.operator
     val = condition.value
 
     try:
-        if op == "equals":
+        if operator == "equals":
             return bool(packet_value == val)
-        if op == "not_equals":
+        if operator == "not_equals":
             return bool(packet_value != val)
-        if op == "greater_than":
+        if operator == "greater_than":
             return bool(packet_value > val)
-        if op == "less_than":
+        if operator == "less_than":
             return bool(packet_value < val)
-        if op == "regex":
+        if operator == "regex":
             return bool(re.search(str(val), str(packet_value)))
         return False
     except TypeError:

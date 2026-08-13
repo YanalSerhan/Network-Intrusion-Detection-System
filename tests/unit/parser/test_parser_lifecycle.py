@@ -29,8 +29,8 @@ def test_health_check_after_start(started_parser: PacketParser) -> None:
 
 
 def test_health_check_counts_parsed(started_parser: PacketParser) -> None:
-    pkt = stamped(Ether() / IP(src="1.2.3.4", dst="5.6.7.8") / TCP(sport=100, dport=80))
-    started_parser.parse(pkt)
+    packet = stamped(Ether() / IP(src="1.2.3.4", dst="5.6.7.8") / TCP(sport=100, dport=80))
+    started_parser.parse(packet)
     health = started_parser.health_check()
     assert health["packets_parsed"] == 1
     started_parser.stop()
@@ -52,6 +52,6 @@ def test_validate_returns_false_for_string() -> None:
 
 def test_validate_returns_true_for_packet() -> None:
     parser = PacketParser()
-    pkt = Ether() / IP() / TCP()
-    pkt.time = CAPTURE_TIMESTAMP
-    assert parser.validate(pkt) is True
+    packet = Ether() / IP() / TCP()
+    packet.time = CAPTURE_TIMESTAMP
+    assert parser.validate(packet) is True

@@ -68,7 +68,7 @@ def test_detection_latency_does_not_grow_with_accumulated_state() -> None:
     service = DetectionService(config_dir=PROJECT_ROOT / "config")
     service.registry.load_detectors()
 
-    parsed = [p for p in (parser.parse_safe(pkt) for pkt in packets) if p is not None]
+    parsed = [p for p in (parser.parse_safe(packet) for packet in packets) if p is not None]
     sample_size = max(len(parsed) // 10, 1)
 
     def _mean_latency(batch: list[ParsedPacket]) -> float:

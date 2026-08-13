@@ -32,18 +32,18 @@ _CLIENT_RANDOM_BYTES = 32
 _MIN_RECORD_BYTES = 6
 
 
-def extract_tls_metadata(pkt: Packet) -> tuple[str | None, list[int] | None]:
+def extract_tls_metadata(packet: Packet) -> tuple[str | None, list[int] | None]:
     """
     Parse a TLS ClientHello for its SNI hostname and offered cipher suites.
 
     Args:
-        pkt: Scapy packet with a TCP layer carrying a TLS record.
+        packet: Scapy packet with a TCP layer carrying a TLS record.
 
     Returns:
         Tuple of (sni_hostname | None, cipher_suite_ids | None).
     """
     try:
-        raw = bytes(pkt[TCP].payload)
+        raw = bytes(packet[TCP].payload)
         if len(raw) < _MIN_RECORD_BYTES or raw[0] != _TLS_CONTENT_TYPE_HANDSHAKE:
             return None, None
         if raw[5] != TlsHandshakeType.CLIENT_HELLO:

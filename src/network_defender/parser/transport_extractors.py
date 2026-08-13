@@ -23,66 +23,66 @@ _TLS_SNI_EXTENSION_TYPE = 0x0000
 
 
 
-def extract_ip_addresses(pkt: Packet) -> tuple[str | None, str | None]:
+def extract_ip_addresses(packet: Packet) -> tuple[str | None, str | None]:
     """
     Extract source and destination IP addresses from a packet.
 
     Supports IPv4, IPv6, and ARP layers (in priority order).
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         Tuple of (src_ip, dst_ip); both None if no IP layer is present.
     """
     try:
-        if pkt.haslayer(IP):
-            return pkt[IP].src, pkt[IP].dst
-        if pkt.haslayer(IPv6):
-            return pkt[IPv6].src, pkt[IPv6].dst
-        if pkt.haslayer(ARP):
-            return pkt[ARP].psrc, pkt[ARP].pdst
+        if packet.haslayer(IP):
+            return packet[IP].src, packet[IP].dst
+        if packet.haslayer(IPv6):
+            return packet[IPv6].src, packet[IPv6].dst
+        if packet.haslayer(ARP):
+            return packet[ARP].psrc, packet[ARP].pdst
     except Exception:
         pass
     return None, None
 
 
-def extract_ports(pkt: Packet) -> tuple[int | None, int | None]:
+def extract_ports(packet: Packet) -> tuple[int | None, int | None]:
     """
     Extract source and destination transport ports from a packet.
 
     Checks TCP then UDP layers in priority order.
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         Tuple of (src_port, dst_port); both None for non-transport packets.
     """
     try:
-        if pkt.haslayer(TCP):
-            return pkt[TCP].sport, pkt[TCP].dport
-        if pkt.haslayer(UDP):
-            return pkt[UDP].sport, pkt[UDP].dport
+        if packet.haslayer(TCP):
+            return packet[TCP].sport, packet[TCP].dport
+        if packet.haslayer(UDP):
+            return packet[UDP].sport, packet[UDP].dport
     except Exception:
         pass
     return None, None
 
 
-def extract_tcp_flags(pkt: Packet) -> TcpFlags | None:
+def extract_tcp_flags(packet: Packet) -> TcpFlags | None:
     """
     Extract named TCP control flags from the TCP layer.
 
     Args:
-        pkt: Scapy packet object.
+        packet: Scapy packet object.
 
     Returns:
         TcpFlags model, or None if no TCP layer is present.
     """
     try:
-        if not pkt.haslayer(TCP):
+        if not packet.haslayer(TCP):
             return None
-        flags = pkt[TCP].flags
+        flags = packet[TCP].flags
         return TcpFlags(
             syn=bool(flags & 0x02),
             ack=bool(flags & 0x10),
