@@ -17,13 +17,8 @@ from .engine import (
     resolve_database_url,
     session_scope,
 )
-from .models import (
-    AlertRecord,
-    PacketRecord,
-    RuleRecord,
-    StatisticsRecord,
-    ThreatIntelCacheRecord,
-)
+from .models import AlertRecord, PacketRecord, RuleRecord
+from .models_operational import StatisticsRecord, ThreatIntelCacheRecord
 
 __all__ = [
     "AlertRecord",

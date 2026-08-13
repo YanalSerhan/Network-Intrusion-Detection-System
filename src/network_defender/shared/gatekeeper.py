@@ -28,8 +28,11 @@ class GatekeeperError(Exception):
 
 class ApiGatekeeper:
     """
-    Mediates outbound API calls: rate limiting, FIFO queuing, backpressure,
-    retry-with-backoff and structured logging.
+    The single door every outbound API call goes through.
+
+    Rate limiting, FIFO queuing, backpressure, retry-with-backoff and
+    structured logging, in one place — because a rate limit enforced in nine
+    call sites is a rate limit enforced in eight call sites.
 
     Usage:
         gatekeeper = ApiGatekeeper(service_name="abuseipdb", config=cfg)

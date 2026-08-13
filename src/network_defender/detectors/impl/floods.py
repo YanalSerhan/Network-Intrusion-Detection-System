@@ -1,134 +1,135 @@
 """
-Detectors for flood attacks (DoS/DDoS).
-"""
+Volumetric flood detectors: SYN, UDP and ICMP.
 
-from collections import defaultdict
+Data Setup:  Per-destination counters, reset every evaluation window.
+Data Input:  Parsed packets, one at a time.
+Data Output: One DetectionAlert per destination that crossed its threshold.
+
+The counting, alerting and window-clearing are shared — see `flood_base`. What
+differs between the three is only which packets count, how many are too many,
+and how bad it is: a SYN flood consumes a connection-table entry per packet
+and is CRITICAL, a UDP flood consumes bandwidth and is HIGH, and an ICMP flood
+is usually noise and is MEDIUM.
+"""
 
 from pydantic import Field
 
-from network_defender.constants import MitreTactic, Protocol, Severity
-from network_defender.detectors.base import BaseDetector
-from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.constants import Protocol, Severity
+from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
+
+from .flood_base import DestinationFloodDetector
 
 
 class SynFloodConfig(DetectorConfig):
+    """Tunables for the SYN flood detector."""
+
     time_window_seconds: int = Field(default=1)
     syn_count_threshold: int = Field(default=100)
 
 
-class SynFloodDetector(BaseDetector[SynFloodConfig]):
+class SynFloodDetector(DestinationFloodDetector[SynFloodConfig]):
     """
-    Detects a high volume of SYN packets from a single source or to a single destination.
+    Detects a high volume of SYN packets aimed at one destination.
+
+    Counts bare SYNs only. A SYN-ACK is a server answering, and an established
+    connection's data carries ACK — counting either would make every busy
+    server look like a victim.
     """
 
-    def __init__(self, config: SynFloodConfig) -> None:
-        super().__init__(config)
-        self._dst_syn_counts: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "syn_count"
+    severity = Severity.CRITICAL
 
     @property
     def name(self) -> str:
+        """Detector name used in alerts and configuration."""
         return "SynFloodDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        if (
-            packet.protocol == Protocol.TCP
-            and packet.tcp_flags
-            and packet.tcp_flags.syn
-            and packet.dst_ip
-        ):
-            self._dst_syn_counts[packet.dst_ip] += 1
+    @property
+    def threshold(self) -> int:
+        """SYNs per window at or above which the flood is reported."""
+        return self.config.syn_count_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        alerts = []
-        for dst_ip, count in self._dst_syn_counts.items():
-            if count >= self.config.syn_count_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.CRITICAL,
-                        tactic=MitreTactic.IMPACT,
-                        dst_ip=dst_ip,
-                        description=f"SYN Flood detected: {count} SYN packets to destination.",
-                        evidence={"syn_count": count}
-                    )
-                )
-        self._dst_syn_counts.clear()
-        return alerts
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for a bare SYN — no ACK, no established connection."""
+        return bool(
+            packet.protocol == Protocol.TCP and packet.tcp_flags and packet.tcp_flags.syn
+        )
+
+    def describe(self, count: int) -> str:
+        """Describe the flood for the analyst reading the alert."""
+        return f"SYN Flood detected: {count} SYN packets to destination."
 
 
 class UdpFloodConfig(DetectorConfig):
+    """Tunables for the UDP flood detector."""
+
     time_window_seconds: int = Field(default=1)
     udp_count_threshold: int = Field(default=200)
 
 
-class UdpFloodDetector(BaseDetector[UdpFloodConfig]):
+class UdpFloodDetector(DestinationFloodDetector[UdpFloodConfig]):
     """
-    Detects a high volume of UDP packets to a single destination.
+    Detects a high volume of UDP datagrams aimed at one destination.
+
+    The threshold is the highest of the three because normal UDP is the
+    chattiest: DNS, NTP and discovery protocols all run over it.
     """
 
-    def __init__(self, config: UdpFloodConfig) -> None:
-        super().__init__(config)
-        self._dst_udp_counts: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "udp_count"
+    severity = Severity.HIGH
 
     @property
     def name(self) -> str:
+        """Detector name used in alerts and configuration."""
         return "UdpFloodDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        if packet.protocol == Protocol.UDP and packet.dst_ip:
-            self._dst_udp_counts[packet.dst_ip] += 1
+    @property
+    def threshold(self) -> int:
+        """Datagrams per window at or above which the flood is reported."""
+        return self.config.udp_count_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        alerts = []
-        for dst_ip, count in self._dst_udp_counts.items():
-            if count >= self.config.udp_count_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.IMPACT,
-                        dst_ip=dst_ip,
-                        description=f"UDP Flood detected: {count} packets.",
-                        evidence={"udp_count": count}
-                    )
-                )
-        self._dst_udp_counts.clear()
-        return alerts
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for any UDP datagram."""
+        return bool(packet.protocol == Protocol.UDP)
+
+    def describe(self, count: int) -> str:
+        """Describe the flood for the analyst reading the alert."""
+        return f"UDP Flood detected: {count} packets."
 
 
 class IcmpFloodConfig(DetectorConfig):
+    """Tunables for the ICMP flood detector."""
+
     time_window_seconds: int = Field(default=1)
     icmp_count_threshold: int = Field(default=50)
 
 
-class IcmpFloodDetector(BaseDetector[IcmpFloodConfig]):
+class IcmpFloodDetector(DestinationFloodDetector[IcmpFloodConfig]):
     """
-    Detects a high volume of ICMP packets (e.g., ping flood) to a destination.
+    Detects a high volume of ICMP traffic, such as a ping flood.
+
+    The lowest threshold of the three: sustained ICMP at any real rate is
+    already abnormal, since nothing legitimate pings in bulk.
     """
 
-    def __init__(self, config: IcmpFloodConfig) -> None:
-        super().__init__(config)
-        self._dst_icmp_counts: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "icmp_count"
+    severity = Severity.MEDIUM
 
     @property
     def name(self) -> str:
+        """Detector name used in alerts and configuration."""
         return "IcmpFloodDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        if packet.protocol == Protocol.ICMP and packet.dst_ip:
-            self._dst_icmp_counts[packet.dst_ip] += 1
+    @property
+    def threshold(self) -> int:
+        """Packets per window at or above which the flood is reported."""
+        return self.config.icmp_count_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        alerts = []
-        for dst_ip, count in self._dst_icmp_counts.items():
-            if count >= self.config.icmp_count_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.MEDIUM,
-                        tactic=MitreTactic.IMPACT,
-                        dst_ip=dst_ip,
-                        description=f"ICMP Flood detected: {count} packets.",
-                        evidence={"icmp_count": count}
-                    )
-                )
-        self._dst_icmp_counts.clear()
-        return alerts
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for any ICMP packet."""
+        return bool(packet.protocol == Protocol.ICMP)
+
+    def describe(self, count: int) -> str:
+        """Describe the flood for the analyst reading the alert."""
+        return f"ICMP Flood detected: {count} packets."

@@ -13,8 +13,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
 from network_defender.detectors.registry import DetectorRegistry
@@ -68,15 +66,6 @@ class ExplodingDetector(WorkingDetector):
 
     def __init__(self, config: WorkingConfig) -> None:
         raise RuntimeError("plugin is broken")
-
-
-@pytest.fixture()
-def registry(tmp_path: Path) -> DetectorRegistry:
-    """A registry over a config directory holding one detector's settings."""
-    (tmp_path / "detectors.json").write_text(
-        json.dumps({"WorkingDetector": {"enabled": True, "threshold": 42}})
-    )
-    return DetectorRegistry(str(tmp_path))
 
 
 def test_configured_values_reach_the_detector(registry: DetectorRegistry) -> None:

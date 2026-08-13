@@ -1,4 +1,5 @@
-"""Regression tests for detector correctness fixes.
+"""
+Regression tests for detector correctness fixes.
 
 `_is_internal` used string prefixes: it raised IndexError/ValueError on short or
 malformed addresses and ignored IPv6 private space. `BeaconingDetector` assumed

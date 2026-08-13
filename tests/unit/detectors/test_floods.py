@@ -1,3 +1,5 @@
+"""Tests for the SYN flood detector's counting and window reset."""
+
 from datetime import UTC, datetime
 
 import pytest

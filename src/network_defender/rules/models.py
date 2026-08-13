@@ -14,9 +14,8 @@ from network_defender.constants import Severity
 
 
 class RuleCondition(BaseModel):
-    """
-    A single condition to evaluate against a parsed packet.
-    """
+    """A single condition to evaluate against a parsed packet."""
+
     field: str = Field(
         description="The packet field to evaluate (e.g. 'protocol', 'tcp_flags.syn')."
     )
@@ -26,9 +25,8 @@ class RuleCondition(BaseModel):
     value: Any = Field(description="The value to compare against.")
 
 class Rule(BaseModel):
-    """
-    A complete detection rule.
-    """
+    """A complete detection rule, as loaded from one YAML file."""
+
     name: str = Field(description="Unique name of the rule.")
     severity: Severity = Field(description="Severity if this rule matches.")
     enabled: bool = Field(default=True, description="Whether the rule is actively evaluated.")

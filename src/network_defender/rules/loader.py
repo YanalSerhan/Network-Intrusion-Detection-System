@@ -26,6 +26,7 @@ class RuleRegistry:
     """Thread-safe registry for active rules."""
 
     def __init__(self) -> None:
+        """Initialise an empty registry guarded by its own lock."""
         self._rules: dict[str, Rule] = {}
         self._lock = threading.Lock()
 
@@ -72,6 +73,12 @@ class RuleFileHandler(FileSystemEventHandler):
     """Watchdog handler that reloads rules on file changes."""
 
     def __init__(self, registry: RuleRegistry) -> None:
+        """
+        Initialise the handler.
+
+        Args:
+            registry: The registry to keep in step with the directory.
+        """
         super().__init__()
         self.registry = registry
 
@@ -104,6 +111,12 @@ class RuleLoader:
     """Discovers rules and watches for changes."""
 
     def __init__(self, rules_dir: str) -> None:
+        """
+        Initialise the loader.
+
+        Args:
+            rules_dir: Directory of YAML rules to load and then watch.
+        """
         self.rules_dir = Path(rules_dir)
         self.registry = RuleRegistry()
         self._observer: BaseObserver | None = None

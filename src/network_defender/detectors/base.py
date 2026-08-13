@@ -19,11 +19,27 @@ TConfig = TypeVar("TConfig", bound=DetectorConfig)
 
 class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     """
-    Abstract base class for all heuristic detectors.
-    Ensures that new detectors can be added by subclassing without changing existing code.
+    The lifecycle every heuristic detector implements.
+
+    Three methods, deliberately: ingest a packet, evaluate the accumulated
+    state, and name yourself. A new detector is added by subclassing this and
+    dropping the module into `impl/` — the registry discovers it, and no
+    existing code changes. That is the Open/Closed Principle doing real work
+    rather than being cited.
+
+    Detectors are stateful by design. `ingest` is on the hot path and must be
+    cheap; the expensive decision belongs in `evaluate`, which the service
+    calls on a timer.
     """
 
     def __init__(self, config: TConfig) -> None:
+        """
+        Initialise with the detector's validated configuration.
+
+        Args:
+            config: The subclass's config model, already validated by the
+                registry against config/detectors.json.
+        """
         self.config = config
 
     @property
@@ -35,22 +51,42 @@ class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     @abstractmethod
     def ingest(self, packet: ParsedPacket) -> None:
         """
-        Ingest a parsed packet.
-        Detectors should update their internal state/counters here.
+        Take one packet into the detector's state.
+
+        On the hot path — every enabled detector sees every packet — so this
+        should update a counter and return, not decide anything.
+
+        Args:
+            packet: The packet to account for.
         """
         pass
 
     @abstractmethod
     def evaluate(self) -> list[DetectionAlert]:
         """
-        Evaluate the internal state and emit alerts if thresholds are met.
-        Detectors must also handle clearing/resetting their state for the next window.
+        Decide what the accumulated state means, and start a fresh window.
+
+        Implementations must clear their state before returning. A window that
+        is never cleared grows without bound and, worse, keeps re-alerting on
+        traffic that has already been reported.
+
+        Returns:
+            Alerts for whatever crossed a threshold this window.
         """
         pass
 
     def emit_alert(self, **kwargs: Any) -> DetectionAlert:
         """
-        Helper method to instantiate a DetectionAlert.
-        Ensures `detector_name` is correctly populated.
+        Build a DetectionAlert attributed to this detector.
+
+        Exists so no subclass has to remember to set `detector_name`, which
+        the alert service uses to select MITRE mapping and confidence scoring
+        — an alert with the wrong name is misfiled rather than merely mislabelled.
+
+        Args:
+            **kwargs: Any DetectionAlert field except `detector_name`.
+
+        Returns:
+            The constructed alert.
         """
         return DetectionAlert(detector_name=self.name, **kwargs)

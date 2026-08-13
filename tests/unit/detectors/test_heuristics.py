@@ -1,3 +1,5 @@
+"""Tests for the DNS tunnelling detector's entropy and volume signals."""
+
 from datetime import UTC, datetime
 
 from network_defender.constants import Protocol

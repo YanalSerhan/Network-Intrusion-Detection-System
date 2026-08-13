@@ -1,6 +1,4 @@
-"""
-Heuristic Detection Engine.
-"""
+"""Heuristic detection engine: the detector lifecycle, models and registry."""
 
 from .base import BaseDetector
 from .models import DetectionAlert, DetectorConfig

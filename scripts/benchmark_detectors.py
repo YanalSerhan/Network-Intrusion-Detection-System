@@ -1,3 +1,11 @@
+"""
+Ad-hoc detection-engine benchmark.
+
+Feeds synthetic packets through the detection service and reports the rate.
+The repeatable version of this measurement lives in tests/performance/;
+this script is for trying a change without running the suite.
+"""
+
 import sys
 import time
 from datetime import UTC, datetime
@@ -12,6 +20,7 @@ from network_defender.services.detection import DetectionService
 
 
 def main() -> None:
+    """Run the benchmark and print the result."""
     config_dir = Path(__file__).resolve().parent.parent / "config"
     service = DetectionService(config_dir)
     service._do_start()

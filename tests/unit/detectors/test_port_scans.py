@@ -1,3 +1,5 @@
+"""Tests for the TCP port scan detector's unique-port counting."""
+
 from datetime import UTC, datetime
 
 from network_defender.constants import Protocol

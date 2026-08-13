@@ -24,27 +24,39 @@ from .entropy import shannon_entropy
 
 
 class ArpSpoofingConfig(DetectorConfig):
+    """Tunables for the ARP spoofing detector."""
+
     time_window_seconds: int = Field(default=60)
     gratuitous_arp_threshold: int = Field(default=5)
 
 class ArpSpoofingDetector(BaseDetector[ArpSpoofingConfig]):
     """
-    Detects excessive gratuitous ARPs or MAC-IP mapping changes (simplified).
-    Currently implemented as counting ARP packets from a single source.
+    Detects a host announcing itself over ARP far more often than it should.
+
+    A simplification of full MAC-to-IP mapping surveillance: it counts ARP
+    traffic per claimed source rather than tracking which MAC currently owns
+    which address. That catches the flood of gratuitous replies a poisoner
+    sends to keep its mapping cached, which is the noisy part of the attack,
+    and misses a single well-timed reply — which is the quiet part.
     """
+
     def __init__(self, config: ArpSpoofingConfig) -> None:
+        """Initialise with the validated gratuitous-ARP threshold."""
         super().__init__(config)
         self._src_counts: defaultdict[str, int] = defaultdict(int)
 
     @property
     def name(self) -> str:
+        """Detector name used in alerts and configuration."""
         return "ArpSpoofingDetector"
 
     def ingest(self, packet: ParsedPacket) -> None:
+        """Count the ARP packet against the address claiming to have sent it."""
         if packet.protocol == Protocol.ARP and packet.src_ip:
             self._src_counts[packet.src_ip] += 1
 
     def evaluate(self) -> list[DetectionAlert]:
+        """Emit an alert per over-announcing host, then clear the window."""
         alerts = []
         for src_ip, count in self._src_counts.items():
             if count >= self.config.gratuitous_arp_threshold:
@@ -62,12 +74,26 @@ class ArpSpoofingDetector(BaseDetector[ArpSpoofingConfig]):
 
 
 class DnsTunnelingConfig(DetectorConfig):
+    """Tunables for the DNS tunnelling detector."""
+
     time_window_seconds: int = Field(default=60)
     query_count_threshold: int = Field(default=50)
     entropy_threshold: float = Field(default=4.5)
 
 class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
+    """
+    Detects DNS queries carrying encoded payload rather than hostnames.
+
+    Two signals together, because neither alone is enough: query volume, and
+    what fraction of those queries have high-entropy names. A real hostname is
+    a word or two and scores low on Shannon entropy; base32-encoded tunnel
+    payload is close to uniform over its alphabet and scores high. Volume
+    alone would flag a busy resolver, and entropy alone would flag the random
+    subdomains that CDNs and malware sandboxes generate legitimately.
+    """
+
     def __init__(self, config: DnsTunnelingConfig) -> None:
+        """Initialise with the validated query-count and entropy thresholds."""
         super().__init__(config)
         self._src_stats: defaultdict[str, dict[str, Any]] = defaultdict(
             lambda: {"count": 0, "high_entropy": 0}
@@ -75,9 +101,11 @@ class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
 
     @property
     def name(self) -> str:
+        """Detector name used in alerts and configuration."""
         return "DnsTunnelingDetector"
 
     def ingest(self, packet: ParsedPacket) -> None:
+        """Tally the query against its source, and whether it looks encoded."""
         if (
             packet.protocol == Protocol.DNS
             and packet.dns
@@ -91,6 +119,7 @@ class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
                 stats["high_entropy"] += 1
 
     def evaluate(self) -> list[DetectionAlert]:
+        """Emit an alert per tunnelling source, then clear the window."""
         alerts = []
         for src_ip, stats in self._src_stats.items():
             mostly_high_entropy = stats["high_entropy"] > (stats["count"] * 0.5)

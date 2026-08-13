@@ -33,7 +33,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ..shared.base import LoggableMixin
 from .engine import session_scope
-from .models import AlertRecord, PacketRecord, StatisticsRecord, ThreatIntelCacheRecord
+from .models import AlertRecord, PacketRecord
+from .models_operational import StatisticsRecord, ThreatIntelCacheRecord
 
 
 @dataclass(frozen=True)

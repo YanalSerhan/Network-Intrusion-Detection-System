@@ -1,6 +1,4 @@
-"""
-Runtime constants: protocols, capture defaults, alerting thresholds.
-"""
+"""Runtime constants: protocols, capture defaults, alerting thresholds."""
 
 from enum import Enum, StrEnum
 

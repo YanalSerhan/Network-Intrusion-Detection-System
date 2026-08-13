@@ -17,7 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..engine import session_scope
-from ..models import StatisticsRecord
+from ..models_operational import StatisticsRecord
 
 #: Default window for a dashboard trend query.
 STATISTICS_DEFAULT_HOURS = 24

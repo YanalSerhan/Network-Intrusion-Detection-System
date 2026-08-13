@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ...services.threat_intel.models import ProviderResult
 from ..engine import session_scope
-from ..models import ThreatIntelCacheRecord
+from ..models_operational import ThreatIntelCacheRecord
 
 
 class ThreatIntelCacheRepository:

@@ -12,7 +12,7 @@ from tests.fixtures.threat_intel import mock_upstreams
 
 
 def test_only_configured_providers_are_built(enrichment_sdk: NetworkDefenderSDK) -> None:
-    """abuseipdb has no rate-limit bucket here, so it must not be constructed."""
+    """Abuseipdb has no rate-limit bucket here, so it must not be constructed."""
     names = {p.name for p in enrichment_sdk._threat_intel_service.providers}
     assert names == {"ip_api_geo", "ip_api_asn", "whois"}
 

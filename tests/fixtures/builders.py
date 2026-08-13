@@ -66,8 +66,10 @@ def make_detection(
     **overrides: Any,
 ) -> DetectionAlert:
     """
-    Build the raw DetectionAlert a detector emits before the alert service
-    enriches, scores and deduplicates it.
+    Build the raw DetectionAlert a detector emits.
+
+    This is the shape before the alert service enriches, scores and
+    deduplicates it.
 
     Args:
         detector_name: Name of the emitting detector.

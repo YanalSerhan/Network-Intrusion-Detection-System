@@ -1,3 +1,5 @@
+"""Integration tests: the detection service over a real detector configuration."""
+
 from datetime import UTC, datetime
 from pathlib import Path
 

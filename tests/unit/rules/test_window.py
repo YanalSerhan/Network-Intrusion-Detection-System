@@ -1,4 +1,5 @@
-"""Regression tests: time-window aggregation in the rule engine.
+"""
+Regression tests: time-window aggregation in the rule engine.
 
 Before this fix `Rule.window` was documented and configured but ignored, so a
 single SYN packet raised a high-severity "SYN Flood".

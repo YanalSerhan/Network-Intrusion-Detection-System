@@ -1,5 +1,14 @@
 """
-Detector registry and plugin loader.
+Detector discovery and instantiation.
+
+Data Setup:  A config directory holding detectors.json.
+Data Input:  A package to scan for BaseDetector subclasses.
+Data Output: Instantiated, configured detectors.
+
+Every failure here is contained to one detector: a malformed config section, a
+missing threshold, a plugin whose constructor raises. A sensor that refuses to
+start because one detector is misconfigured is worse than a sensor running
+twelve of thirteen detectors and saying so in the log.
 """
 
 import importlib
@@ -7,7 +16,7 @@ import inspect
 import json
 import logging
 from pathlib import Path
-from typing import Any, get_origin
+from typing import Any, TypeVar, get_origin
 
 from network_defender.constants import CONFIG_FILE_DETECTORS
 
@@ -18,11 +27,15 @@ logger = logging.getLogger(__name__)
 
 
 class DetectorRegistry:
-    """
-    Auto-discovers and registers detector modules.
-    """
+    """Auto-discovers and registers detector modules."""
 
     def __init__(self, config_dir: str) -> None:
+        """
+        Initialise the registry and read the detector configuration.
+
+        Args:
+            config_dir: Directory holding detectors.json.
+        """
         self.config_dir = Path(config_dir)
         self.detectors: list[BaseDetector[Any]] = []
         self.config_data: dict[str, dict[str, Any]] = {}
@@ -42,8 +55,10 @@ class DetectorRegistry:
 
     def load_detectors(self, package_name: str = "network_defender.detectors.impl") -> None:
         """
-        Dynamically import all modules in the given package and instantiate
-        all non-abstract subclasses of BaseDetector.
+        Import every module in a package and register the detectors in it.
+
+        Args:
+            package_name: Dotted path of the package to scan.
         """
         self.detectors.clear()
 
@@ -91,8 +106,13 @@ class DetectorRegistry:
 
         config_cls = config_param.annotation
 
-        # Handle string annotations or Generic Aliases if present
-        if isinstance(config_cls, str) or get_origin(config_cls) is not None:
+        # The annotation is not always the config class itself. It is a string
+        # under `from __future__ import annotations`, a generic alias when the
+        # parameter is parameterised, and a TypeVar when the detector inherits
+        # its __init__ from a generic base — which is what a detector family
+        # sharing an implementation looks like. In all three cases the class is
+        # resolved by name instead.
+        if isinstance(config_cls, str | TypeVar) or get_origin(config_cls) is not None:
             # Assume the config class shares the detector's name but ends in
             # "Config"; otherwise look it up in the defining module.
             module = importlib.import_module(detector_cls.__module__)

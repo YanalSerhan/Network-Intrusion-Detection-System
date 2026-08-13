@@ -1,3 +1,5 @@
+"""Tests for the SSH and HTTP credential brute force detectors."""
+
 from datetime import UTC, datetime
 
 from network_defender.constants import Protocol

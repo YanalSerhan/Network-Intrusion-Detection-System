@@ -5,11 +5,7 @@ Data Setup:  Registered against the shared declarative Base.
 Data Input:  Domain objects mapped by `database/mappers.py`.
 Data Output: Persisted rows queried through the repository layer.
 
-Indices target the queries the dashboard and API actually run: alerts filtered
-by severity or status over a time range, and lookups by source IP during an
-investigation. Composite indices are ordered with the equality column first and
-the range column second, which is the order SQLite and PostgreSQL can both use
-for a filter-then-sort without a separate sort step.
+Index choices are explained where the indices are declared.
 """
 
 from datetime import datetime
@@ -20,18 +16,14 @@ from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, JsonDict, UtcDateTime
+from .column_widths import (
+    ENUM_LENGTH,
+    GROUP_BY_LENGTH,
+    IP_ADDRESS_LENGTH,
+    RULE_NAME_LENGTH,
+    STATUS_LENGTH,
+)
 from .types import GUID
-
-#: Column widths. Named because the same number appearing in six places is
-#: six chances to widen five of them: 45 is the longest possible textual IPv6
-#: address (RFC 4291 §2.2, with an embedded IPv4 suffix), and the rest are
-#: sized to the enums and identifiers they store.
-IP_ADDRESS_LENGTH = 45
-ENUM_LENGTH = 16
-STATUS_LENGTH = 24
-GROUP_BY_LENGTH = 32
-PROVIDER_LENGTH = 64
-RULE_NAME_LENGTH = 128
 
 
 class AlertRecord(Base):
@@ -66,6 +58,11 @@ class AlertRecord(Base):
         back_populates="alert", cascade="all, delete-orphan"
     )
 
+    # Targets the queries the dashboard and API actually run: alerts filtered
+    # by severity or status over a time range, and lookups by source IP during
+    # an investigation. Equality column first, range column second — the order
+    # both SQLite and PostgreSQL can use for a filter-then-sort without a
+    # separate sort step.
     __table_args__ = (
         # The dashboard's default view: "critical alerts, newest first".
         Index("ix_alerts_severity_timestamp", "severity", "timestamp"),
@@ -117,40 +114,3 @@ class RuleRecord(Base):
     conditions: Mapped[list[dict[str, Any]]] = mapped_column(JsonDict, default=list)
     source_path: Mapped[str | None] = mapped_column(Text)
     loaded_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
-
-
-class ThreatIntelCacheRecord(Base):
-    """
-    A cached provider response, surviving process restarts.
-
-    The in-memory cache is rebuilt empty on every deploy; without this table a
-    restart re-looks-up addresses already known, against provider budgets
-    measured in tens of requests per minute.
-    """
-
-    __tablename__ = "threat_intel_cache"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    provider: Mapped[str] = mapped_column(String(PROVIDER_LENGTH), nullable=False)
-    ip: Mapped[str] = mapped_column(String(IP_ADDRESS_LENGTH), nullable=False)
-    payload: Mapped[dict[str, Any]] = mapped_column(JsonDict, nullable=False)
-    fetched_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)
-
-    __table_args__ = (
-        Index("uq_threat_intel_cache_provider_ip", "provider", "ip", unique=True),
-    )
-
-
-class StatisticsRecord(Base):
-    """A point-in-time counter snapshot, used for dashboard trend charts."""
-
-    __tablename__ = "statistics"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    captured_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, index=True)
-    total_packets: Mapped[int] = mapped_column(default=0)
-    total_alerts: Mapped[int] = mapped_column(default=0)
-    packets_per_second: Mapped[float] = mapped_column(default=0.0)
-    alerts_by_severity: Mapped[dict[str, int]] = mapped_column(JsonDict, default=dict)
-    top_talkers: Mapped[dict[str, int]] = mapped_column(JsonDict, default=dict)

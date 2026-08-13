@@ -37,7 +37,23 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "D"]
+# D212 wants the summary on the same line as the opening quotes; this project
+# puts it on the next line (D213) and has done since the first module. One of
+# the pair has to be off, and changing 300 files to satisfy a linter default
+# is not a quality improvement.
+ignore = ["D212"]
+extend-select = ["D213"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# A test's name is its documentation — `test_syn_ack_replies_are_not_a_syn_scan`
+# says more than a docstring restating it would, and docs/TESTING.md makes that
+# the convention. Module docstrings are still required: they are where a suite
+# says what it is responsible for proving.
+"tests/**" = ["D101", "D102", "D103", "D107"]
 
 [tool.mypy]
 strict = true
