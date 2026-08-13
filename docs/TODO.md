@@ -314,7 +314,7 @@
 - [ ] Write unit tests for threat intel providers (mocked)
 - [ ] Write unit tests for database repositories
 - [ ] Write API integration tests (FastAPI TestClient)
-- [ ] Write end-to-end tests using sample/synthetic PCAP files representing each attack type
+- [x] Write end-to-end tests using sample/synthetic PCAP files representing each attack type
 - [ ] Write performance tests (sustained packet throughput, detection latency under load)
 - [ ] Ensure every public function/class has at least one test
 - [ ] Ensure both the success path and the failure/error path are tested per module

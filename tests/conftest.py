@@ -34,7 +34,7 @@ from .fixtures.database import (  # noqa: F401
 )
 from .fixtures.logs import handler  # noqa: F401
 from .fixtures.parser import started_parser  # noqa: F401
-from .fixtures.pcaps import scan_pcap  # noqa: F401
+from .fixtures.pcaps import running_sdk, scan_pcap  # noqa: F401
 from .fixtures.sdk import (  # noqa: F401
     enrichment_sdk,
     maintenance_sdk,
