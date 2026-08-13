@@ -21,7 +21,8 @@ from network_defender.shared.rate_limit_models import RateLimitConfig
 
 # Re-exported so pytest collects them as fixtures for the whole suite.
 from .fixtures.alerts import detection, packet, rule  # noqa: F401
-from .fixtures.api import client, sdk, seeded_alert, seeded_rules  # noqa: F401
+from .fixtures.api import client, seeded_alert, seeded_rules  # noqa: F401
+from .fixtures.capture import capture_config, service  # noqa: F401
 from .fixtures.database import (  # noqa: F401
     alert_repo,
     engine,
@@ -30,6 +31,15 @@ from .fixtures.database import (  # noqa: F401
     session_factory,
     stats_repo,
     ti_repo,
+)
+from .fixtures.logs import handler  # noqa: F401
+from .fixtures.parser import started_parser  # noqa: F401
+from .fixtures.pcaps import scan_pcap  # noqa: F401
+from .fixtures.sdk import (  # noqa: F401
+    enrichment_sdk,
+    maintenance_sdk,
+    readonly_sdk,
+    sdk,
 )
 from .fixtures.threat_intel import _no_proxy_env, gatekeeper  # noqa: F401
 

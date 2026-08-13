@@ -1,6 +1,8 @@
 """Fixtures and canned upstream responses for threat intel tests."""
 
+import httpx
 import pytest
+import respx
 
 from network_defender.shared.gatekeeper import ApiGatekeeper
 from network_defender.shared.rate_limit_models import ServiceRateLimitConfig
@@ -98,3 +100,22 @@ def make_gatekeeper(
 def gatekeeper() -> ApiGatekeeper:
     """A permissive gatekeeper for provider unit tests."""
     return make_gatekeeper()
+
+
+def mock_upstreams() -> None:
+    """
+    Route both ip-api field sets and RDAP to canned bodies.
+
+    The two ip-api providers share one host and differ only by the `fields`
+    query parameter, so the geolocation and ASN responses have to be chosen
+    from the request rather than registered as separate routes.
+    """
+
+    def ip_api(request: httpx.Request) -> httpx.Response:
+        fields = request.url.params.get("fields", "")
+        return httpx.Response(200, json=IP_API_ASN_BODY if "asname" in fields else IP_API_GEO_BODY)
+
+    respx.get(f"http://ip-api.com/json/{PUBLIC_IP}").mock(side_effect=ip_api)
+    respx.get(f"https://rdap.org/ip/{PUBLIC_IP}").mock(
+        return_value=httpx.Response(200, json=RDAP_BODY)
+    )

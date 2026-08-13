@@ -8,27 +8,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # pyrefly: ignore [missing-import]
-import pytest
-
 from network_defender.sdk.sdk import NetworkDefenderSDK
-from network_defender.shared.config_models import AppConfig, CaptureConfig
-from network_defender.shared.rate_limit_models import RateLimitConfig
 
 # ---------------------------------------------------------------------------
 # Fixture: minimal SDK with unlimited-rate capture config
 # ---------------------------------------------------------------------------
-
-
-@pytest.fixture()
-def sdk() -> NetworkDefenderSDK:
-    cfg = AppConfig(
-        capture=CaptureConfig(
-            interface="eth0",
-            max_packets_per_second=0,
-        )
-    )
-    rate_cfg = RateLimitConfig(services={})
-    return NetworkDefenderSDK(app_config=cfg, rate_limit_config=rate_cfg)
 
 
 # ---------------------------------------------------------------------------

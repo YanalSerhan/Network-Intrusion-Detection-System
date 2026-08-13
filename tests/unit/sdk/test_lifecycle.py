@@ -20,13 +20,6 @@ from network_defender.shared.rate_limit_models import RateLimitConfig, ServiceRa
 
 
 @pytest.fixture()
-def sdk() -> NetworkDefenderSDK:
-    cfg = AppConfig(capture=CaptureConfig(interface="eth0", max_packets_per_second=0))
-    rate_cfg = RateLimitConfig(services={})
-    return NetworkDefenderSDK(app_config=cfg, rate_limit_config=rate_cfg)
-
-
-@pytest.fixture()
 def sdk_with_gatekeeper() -> NetworkDefenderSDK:
     svc_cfg = ServiceRateLimitConfig(
         requests_per_minute=60,
