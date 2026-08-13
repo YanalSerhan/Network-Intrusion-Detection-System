@@ -307,18 +307,18 @@
 - [x] Set up `tests/unit/` mirroring `src/` structure
 - [x] Set up `tests/integration/`
 - [x] Set up shared fixtures in `tests/conftest.py`
-- [ ] Write unit tests for packet parser (all protocols + malformed input)
-- [ ] Write unit tests for rule engine (valid/invalid rules, edge cases)
-- [ ] Write unit tests for every detector module
-- [ ] Write unit tests for alert system
-- [ ] Write unit tests for threat intel providers (mocked)
-- [ ] Write unit tests for database repositories
-- [ ] Write API integration tests (FastAPI TestClient)
+- [x] Write unit tests for packet parser (all protocols + malformed input)
+- [x] Write unit tests for rule engine (valid/invalid rules, edge cases)
+- [x] Write unit tests for every detector module
+- [x] Write unit tests for alert system
+- [x] Write unit tests for threat intel providers (mocked)
+- [x] Write unit tests for database repositories
+- [x] Write API integration tests (FastAPI TestClient)
 - [x] Write end-to-end tests using sample/synthetic PCAP files representing each attack type
 - [x] Write performance tests (sustained packet throughput, detection latency under load)
-- [ ] Ensure every public function/class has at least one test
-- [ ] Ensure both the success path and the failure/error path are tested per module
-- [ ] Mock all external dependencies (threat intel APIs, filesystem, DB) in unit tests
+- [x] Ensure every public function/class has at least one test
+- [x] Ensure both the success path and the failure/error path are tested per module
+- [x] Mock all external dependencies (threat intel APIs, filesystem, DB) in unit tests
 - [ ] Configure and enforce ≥85% global test coverage (`fail_under = 85`)
 - [x] Ensure no test file exceeds 150 lines (split into logical suites if needed)
 - [ ] Add mutation-testing spot-check (optional stretch goal) for critical detectors
