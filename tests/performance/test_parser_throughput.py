@@ -1,80 +1,51 @@
 """
-Parser throughput benchmark — baseline performance test.
+Performance: how fast the parser turns raw packets into ParsedPackets.
 
-Milestone 4 requirement:
-  "Benchmark parser throughput (packets/sec) as a baseline for performance tests."
-
-This test synthesises 10 000 TCP/IP packets and measures total parse time.
-It asserts a minimum throughput of 1 000 packets/sec, which is deliberately
-conservative so the test passes on slow CI runners.
-
-The actual measured throughput is printed to stdout for manual inspection and
-acts as a regression baseline for future optimisation work.
+The parser sits on the hot path — every captured packet goes through it
+before any detector sees anything — so a regression here slows the whole
+sensor down. The floor is deliberately far below the real figure; it is
+there to catch an order-of-magnitude change, not to certify a number.
 """
 
-import time
+from typing import Any
 
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
 from network_defender.parser.parser import PacketParser
+from tests.fixtures.benchmark import measure, report
+from tests.fixtures.packets import CAPTURE_TIMESTAMP
 
-# ---------------------------------------------------------------------------
-# Constants — no hardcoded inline values per project rules
-# ---------------------------------------------------------------------------
-_PACKET_COUNT = 10_000
-_MIN_PACKETS_PER_SECOND = 100  # conservative floor for slow CI
-_TIMESTAMP = 1_700_000_000.0
+#: Enough packets that per-run startup noise stops dominating the measurement.
+PACKET_COUNT = 10_000
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+#: A conservative floor for a slow, shared CI runner.
+MIN_PACKETS_PER_SECOND = 100
 
 
-def _build_packets(n: int) -> list:
-    """Build n synthetic TCP/IP packets with unique source ports."""
+def _build_packets(count: int) -> list[Any]:
+    """Build synthetic TCP/IP packets with unique source ports."""
     packets = []
-    for i in range(n):
-        pkt = Ether() / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=1024 + (i % 60000), dport=80)
-        pkt.time = _TIMESTAMP + i * 0.001
-        packets.append(pkt)
+    for i in range(count):
+        packet = (
+            Ether() / IP(src="10.0.0.1", dst="10.0.0.2") / TCP(sport=1024 + (i % 60000), dport=80)
+        )
+        packet.time = CAPTURE_TIMESTAMP + i * 0.001
+        packets.append(packet)
     return packets
 
 
-# ---------------------------------------------------------------------------
-# Benchmark test
-# ---------------------------------------------------------------------------
+def test_parser_sustains_the_throughput_floor(started_parser: PacketParser) -> None:
+    """Parse 10 000 packets, and account for every one of them."""
+    packets = _build_packets(PACKET_COUNT)
 
+    rate = measure(PACKET_COUNT, lambda: [started_parser.parse(p) for p in packets])
+    report("parser", rate)
 
-def test_parser_throughput_baseline() -> None:
-    """
-    Parse 10 000 synthetic packets and assert a minimum throughput.
-
-    The measured packets/sec is printed for manual review and stored as a
-    baseline; it is not enforced strictly to avoid flakiness on CI runners.
-    """
-    packets = _build_packets(_PACKET_COUNT)
-    parser = PacketParser()
-    parser.start()
-
-    start = time.perf_counter()
-    for pkt in packets:
-        parser.parse(pkt)
-    elapsed = time.perf_counter() - start
-
-    parser.stop()
-
-    packets_per_second = _PACKET_COUNT / elapsed if elapsed > 0 else float("inf")
-    print(
-        f"\n[benchmark] Parsed {_PACKET_COUNT} packets in {elapsed:.3f}s "
-        f"({packets_per_second:,.0f} pkt/s)"
-    )
-
-    health = parser.health_check()
-    assert health["packets_parsed"] == _PACKET_COUNT, "Not all packets were parsed."
-    assert health["packets_failed"] == 0, "Some packets failed unexpectedly."
-    assert packets_per_second >= _MIN_PACKETS_PER_SECOND, (
-        f"Parser throughput {packets_per_second:.0f} pkt/s is below the minimum "
-        f"{_MIN_PACKETS_PER_SECOND} pkt/s baseline."
+    health = started_parser.health_check()
+    assert health["packets_parsed"] == PACKET_COUNT
+    assert health["packets_failed"] == 0
+    assert rate.per_second >= MIN_PACKETS_PER_SECOND, (
+        f"Parser throughput {rate.per_second:.0f} pkt/s is below the "
+        f"{MIN_PACKETS_PER_SECOND} pkt/s floor."
     )

@@ -315,7 +315,7 @@
 - [ ] Write unit tests for database repositories
 - [ ] Write API integration tests (FastAPI TestClient)
 - [x] Write end-to-end tests using sample/synthetic PCAP files representing each attack type
-- [ ] Write performance tests (sustained packet throughput, detection latency under load)
+- [x] Write performance tests (sustained packet throughput, detection latency under load)
 - [ ] Ensure every public function/class has at least one test
 - [ ] Ensure both the success path and the failure/error path are tested per module
 - [ ] Mock all external dependencies (threat intel APIs, filesystem, DB) in unit tests
