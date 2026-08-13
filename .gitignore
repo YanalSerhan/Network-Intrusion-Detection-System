@@ -58,6 +58,7 @@ docker-compose.override.yml
 # Test and Coverage
 .coverage
 htmlcov/
+reports/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

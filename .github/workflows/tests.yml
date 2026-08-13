@@ -1,0 +1,58 @@
+name: tests
+
+# Runs the suite and keeps the evidence. A CI job that only reports pass or
+# fail forces anyone investigating a failure to reproduce it locally first;
+# the coverage and JUnit reports below make the run itself inspectable.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# A new push supersedes the run in flight for the same ref.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        # --frozen fails rather than re-resolving, so a stale uv.lock is caught
+        # here instead of quietly testing versions nobody pinned.
+        run: uv sync --all-groups --frozen
+
+      - name: Run the test suite
+        # The coverage gate (fail_under = 85) lives in pyproject.toml, so it
+        # applies identically here and on a developer's machine.
+        run: uv run pytest
+
+      - name: Publish the coverage summary
+        if: always()
+        run: |
+          {
+            echo "### Coverage"
+            echo ""
+            uv run coverage report --format=markdown
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test and coverage reports
+        # always(), so a failing run is the one whose reports you can read.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          retention-days: 30
+          if-no-files-found: error

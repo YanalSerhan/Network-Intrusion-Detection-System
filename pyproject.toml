@@ -53,11 +53,29 @@ ignore_missing_imports = true
 follow_imports = "skip"
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/network_defender --cov-report=term-missing"
+# Reports are written on every run, not just in CI: a developer who wants the
+# HTML view should not have to remember a flag, and CI should not need its own
+# invocation that differs from the one people run locally.
+addopts = """
+    --cov=src/network_defender
+    --cov-report=term-missing
+    --cov-report=xml:reports/coverage.xml
+    --cov-report=html:reports/htmlcov
+    --junitxml=reports/junit.xml
+"""
 testpaths = ["tests"]
+markers = [
+    "performance: throughput and latency floors; slower than the rest of the suite.",
+]
+
+[tool.coverage.run]
+source = ["src/network_defender"]
+branch = true
 
 [tool.coverage.report]
 fail_under = 85
+show_missing = true
+skip_covered = true
 
 [build-system]
 requires = ["hatchling"]
