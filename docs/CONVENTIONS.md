@@ -60,3 +60,16 @@ un-registers the detector silently.
 A test's name is its claim: `test_syn_ack_replies_are_not_a_syn_scan` states
 what must be true. `test_syn_scan_2` states nothing, and when it fails nobody
 can tell whether the code or the test is wrong. See `docs/TESTING.md`.
+
+## File length
+
+ADR 4 caps a source file at 150 lines, and `tests/unit/test_file_length_limit.py`
+enforces it — one parametrised case per file, so a failure names the file and
+its length rather than reporting "something is too long".
+
+The number is a proxy. A file past a screen and a half is usually holding two
+concerns, and splitting it is easy at 160 lines and miserable at 600. When a
+file trips the limit, split it by concern; do not raise the limit.
+
+Migrations are exempt. A migration is a historical record of what the schema
+was, and reformatting one to satisfy a rule adopted later would falsify it.

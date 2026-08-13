@@ -15,10 +15,9 @@ from typing import Any
 from ..constants import AlertSource, AlertStatus, MitreTactic, Severity
 from ..parser.models import ParsedPacket
 from ..parser.projection import protocol_sections, scalar_fields
-from ..rules.models import Rule
 from ..services.alerts.models import Alert
 from ..services.threat_intel.models import ThreatIntelResult
-from .models import AlertRecord, PacketRecord, RuleRecord
+from .models import AlertRecord, PacketRecord
 
 #: Domain fields copied verbatim in both directions.
 _ALERT_FIELDS = (
@@ -120,40 +119,3 @@ def record_to_packet(record: PacketRecord) -> ParsedPacket:
         raw_summary=record.raw_summary,
         **(record.fields or {}),
     )
-
-
-def rule_to_record(rule: Rule, source_path: str | None, loaded_at: Any) -> RuleRecord:
-    """Snapshot a loaded YAML rule as an ORM row."""
-    return RuleRecord(
-        name=rule.name,
-        severity=str(rule.severity),
-        enabled=rule.enabled,
-        window=rule.window,
-        threshold=rule.threshold,
-        group_by=rule.group_by,
-        conditions=[condition.model_dump(mode="json") for condition in rule.conditions],
-        source_path=source_path,
-        loaded_at=loaded_at,
-    )
-
-
-def rule_record_to_dict(record: RuleRecord) -> dict[str, Any]:
-    """
-    Project a rule snapshot row onto the flat shape the SDK exposes.
-
-    Args:
-        record: A rule row read from the snapshot table.
-
-    Returns:
-        The rule's fields, ready for the API to serialise.
-    """
-    return {
-        "name": record.name,
-        "severity": record.severity,
-        "enabled": record.enabled,
-        "window": record.window,
-        "threshold": record.threshold,
-        "group_by": record.group_by,
-        "conditions": record.conditions,
-        "source_path": record.source_path,
-    }

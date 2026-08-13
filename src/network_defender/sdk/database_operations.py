@@ -16,7 +16,7 @@ the presentation layer.
 from typing import Any
 from uuid import UUID
 
-from ..database.mappers import rule_record_to_dict
+from ..database.mappers_rules import rule_record_to_dict
 from ..parser.models import ParsedPacket
 from ..services.database import DatabaseService
 from ..shared.config_models import AppConfig

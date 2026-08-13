@@ -14,7 +14,7 @@ what an operator committed. The override is cleared by a reload.
 
 from typing import Any
 
-from ..database.mappers import rule_record_to_dict
+from ..database.mappers_rules import rule_record_to_dict
 from ..services.database import DatabaseService
 from ..services.detection import DetectionService
 from ..shared.base import LoggableMixin

@@ -336,7 +336,7 @@
 - [x] Verify consistent naming conventions (descriptive variables/functions) project-wide
 - [x] Verify DRY principle — no duplicated logic blocks across 2+ files
 - [x] Enforce single-responsibility functions (short, focused, one job each)
-- [ ] Audit all files for the 150-line limit; split oversized files by concern
+- [x] Audit all files for the 150-line limit; split oversized files by concern
 - [ ] Run a full code review pass against the Final Checklist (Milestone 20)
 
 ---

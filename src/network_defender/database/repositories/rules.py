@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ...rules.models import Rule
 from ..engine import session_scope
-from ..mappers import rule_to_record
+from ..mappers_rules import rule_to_record
 from ..models import RuleRecord
 
 

@@ -18,14 +18,18 @@ import threading
 from collections.abc import Callable
 
 from network_defender.constants import TI_QUEUE_MAX_DEPTH, TI_WORKER_POLL_SECONDS
-from network_defender.observability import correlation_scope, get_correlation_id
+from network_defender.observability import get_correlation_id
 from network_defender.services.alerts.models import Alert
 from network_defender.shared.base import LoggableMixin
 
 from .service import ThreatIntelService
+from .worker_loop import EnrichmentLoopMixin
+
+#: Named so it is identifiable in a thread dump.
+WORKER_THREAD_NAME = "threat-intel-enrichment"
 
 
-class EnrichmentWorker(LoggableMixin):
+class EnrichmentWorker(EnrichmentLoopMixin, LoggableMixin):
     """Consumes a queue of alerts and enriches them on a background thread."""
 
     def __init__(
@@ -72,9 +76,7 @@ class EnrichmentWorker(LoggableMixin):
         if self.is_running:
             return
         self._stop_event.clear()
-        self._thread = threading.Thread(
-            target=self._run, name="threat-intel-enrichment", daemon=True
-        )
+        self._thread = threading.Thread(target=self._run, name=WORKER_THREAD_NAME, daemon=True)
         self._thread.start()
 
     def stop(self, timeout: float | None = None) -> None:
@@ -100,10 +102,10 @@ class EnrichmentWorker(LoggableMixin):
 
     def drain(self) -> int:
         """
-        Enrich every queued alert synchronously, returning the number processed.
+        Enrich every queued alert synchronously, and return how many.
 
-        Used by tests and at shutdown, where waiting on the poll interval would
-        be pointless.
+        Used by tests and at shutdown, where waiting on the poll interval
+        would be pointless.
         """
         processed = 0
         while True:
@@ -123,30 +125,3 @@ class EnrichmentWorker(LoggableMixin):
             "skipped_no_public_ip": self._skipped,
             "dropped": self._dropped,
         }
-
-    def _run(self) -> None:
-        """Thread body: enrich alerts until stopped."""
-        while not self._stop_event.is_set():
-            try:
-                alert, correlation_id = self._queue.get(timeout=self._poll_seconds)
-            except queue.Empty:
-                continue
-            self._process(alert, correlation_id)
-
-    def _process(self, alert: Alert, correlation_id: str | None = None) -> None:
-        """Enrich one alert under its originating correlation ID, containing any failure."""
-        with correlation_scope(correlation_id):
-            try:
-                if self._service.enrich_alert(alert) is None:
-                    # Internal-to-internal traffic: nothing to ask an external
-                    # provider, so this is a skip rather than an enrichment.
-                    self._skipped += 1
-                    return
-                self._enriched += 1
-                if self._on_enriched is not None:
-                    self._on_enriched(alert)
-            except Exception as exc:  # noqa: BLE001 - must never crash the worker
-                self.logger.error(
-                    "Alert enrichment failed",
-                    extra={"alert_id": str(alert.alert_id), "error": str(exc)},
-                )
