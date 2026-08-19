@@ -19,6 +19,8 @@ from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
 from network_defender.parser.models import ParsedPacket
 
+from .breadth import BreadthDetector
+
 
 class DataExfiltrationConfig(DetectorConfig):
     """Tunables for the data exfiltration detector."""
@@ -76,7 +78,7 @@ class LateralMovementConfig(DetectorConfig):
     time_window_seconds: int = Field(default=60)
     internal_connection_threshold: int = Field(default=20)
 
-class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
+class LateralMovementDetector(BreadthDetector[LateralMovementConfig]):
     """
     Detects one internal host reaching an unusual number of internal peers.
 
@@ -86,15 +88,19 @@ class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
     this from a port scan arriving from outside.
     """
 
-    def __init__(self, config: LateralMovementConfig) -> None:
-        """Initialise with the validated internal-peer threshold."""
-        super().__init__(config)
-        self._src_dst_counts: defaultdict[str, set[str]] = defaultdict(set)
+    evidence_key = "unique_internal_destinations"
+    severity = Severity.HIGH
+    tactic = MitreTactic.LATERAL_MOVEMENT
 
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "LateralMovementDetector"
+
+    @property
+    def threshold(self) -> int:
+        """Distinct internal peers per window at or above which to report."""
+        return self.config.internal_connection_threshold
 
     def _is_internal(self, ip: str) -> bool:
         """
@@ -110,32 +116,19 @@ class LateralMovementDetector(BaseDetector[LateralMovementConfig]):
         except ValueError:
             return False
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Record the peer if both ends of the conversation are internal."""
-        if (
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True only when both ends of the conversation are internal."""
+        return bool(
             packet.src_ip
             and packet.dst_ip
             and self._is_internal(packet.src_ip)
             and self._is_internal(packet.dst_ip)
-        ):
-            self._src_dst_counts[packet.src_ip].add(packet.dst_ip)
+        )
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per fanning-out host, then clear the window."""
-        alerts = []
-        for src_ip, destinations in self._src_dst_counts.items():
-            if len(destinations) >= self.config.internal_connection_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.LATERAL_MOVEMENT,
-                        src_ip=src_ip,
-                        description=(
-                            f"Suspicious Lateral Movement: connected to "
-                            f"{len(destinations)} internal hosts."
-                        ),
-                        evidence={"unique_internal_destinations": len(destinations)}
-                    )
-                )
-        self._src_dst_counts.clear()
-        return alerts
+    def peer(self, packet: ParsedPacket) -> str | None:
+        """An internal host is the unit of breadth for lateral movement."""
+        return packet.dst_ip
+
+    def describe(self, count: int) -> str:
+        """Describe the fan-out for the analyst reading the alert."""
+        return f"Suspicious Lateral Movement: connected to {count} internal hosts."

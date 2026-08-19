@@ -5,9 +5,10 @@ Data Setup:  Thresholds from config/detectors.json.
 Data Input:  ARP and DNS packets.
 Data Output: Alerts for gratuitous-ARP floods and high-entropy DNS traffic.
 
-Beaconing lives in `beaconing.py`; port, exfiltration and lateral-movement
-detectors live in `movement.py`. The registry auto-discovers every module in
-this package, so splitting them changes nothing at runtime.
+The registry auto-discovers every module in this package, so which detector
+lives in which file is an organisational choice with no runtime meaning — and
+a file-by-file inventory here would go stale on the next split, as this one
+already had.
 """
 
 from collections import defaultdict

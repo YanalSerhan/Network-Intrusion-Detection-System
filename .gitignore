@@ -70,6 +70,11 @@ reports/
 *.db-shm
 *.sqlite
 *.sqlite3
+# Passing ":memory:" as a filesystem path rather than as the URL
+# `sqlite:///:memory:` creates a real database file with that literal name.
+# One was committed with live capture rows in it; database/engine.py now
+# rejects the bare form, and this stops a stray file being committed again.
+:memory:
 
 # Frontend
 frontend/node_modules/

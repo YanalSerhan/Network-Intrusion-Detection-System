@@ -337,7 +337,7 @@
 - [x] Verify DRY principle — no duplicated logic blocks across 2+ files
 - [x] Enforce single-responsibility functions (short, focused, one job each)
 - [x] Audit all files for the 150-line limit; split oversized files by concern
-- [ ] Run a full code review pass against the Final Checklist (Milestone 20)
+- [x] Run a full code review pass against the Final Checklist (Milestone 20) — findings in `docs/CODE_REVIEW.md`
 
 ---
 
@@ -348,9 +348,15 @@
 - [ ] Confirm `.env` is git-ignored and `.env-example` is committed with placeholder values
 - [ ] Implement periodic API key rotation guidance/documentation
 - [ ] Apply principle of least privilege to any credentials used (DB, threat intel APIs)
+- [ ] Wire `retention_days` through to the pruner, and add `packets_days` / `statistics_days` — the value is configured, validated and reported by `GET /config`, but the pruner uses its own defaults
 - [ ] Run a secrets-scanning tool (e.g., `gitleaks`/`truffleHog`) in CI
 - [ ] Document a basic threat model for Network Defender itself (what it protects against, its own attack surface)
 - [ ] Add input validation/sanitization on all API and dashboard inputs (prevent injection)
+- [ ] Fix the gatekeeper's rate limiting (found by the Milestone 15 review, `docs/CODE_REVIEW.md`)
+  - [ ] Count retried requests against the window — failures currently consume no budget, so an outage fires 4x the configured rate
+  - [ ] Enforce `requests_per_day`, or remove it from config and docs rather than promising a control that does not exist
+  - [ ] Make the queue real or make `wait_for_slot()` bounded — `max_queue_depth` is currently unreachable and callers block instead of being shed
+  - [ ] Guard the window with a lock; the worker thread and the synchronous `/enrich` endpoint share it
 
 ---
 
@@ -405,6 +411,11 @@
 - [ ] Add architecture diagrams (C4, deployment) to `docs/`
 - [ ] Add annotated screenshots of the dashboard
 - [ ] Cross-check README against actual behavior (no stale instructions)
+- [ ] Fill in the README's usage section — it currently holds a placeholder, not a start command
+- [ ] Document the project structure, mapping the checklist's `dashboard/`, `models/` and `utils/` onto where they actually live
+- [ ] Redraw the PLAN.md Level 3 diagram — it predates the detector base classes added in Milestone 15
+- [ ] Correct `PRD_detection_engine.md`: detectors are discovered in `detectors/impl/`, not `detectors/`
+- [ ] Backfill `PROMPT_LOG.md` — one entry covers Milestone 0, against 70+ commits since
 
 ---
 

@@ -5,9 +5,9 @@ Data Setup:  A set of destination ports per source, reset every window.
 Data Input:  Parsed packets, one at a time.
 Data Output: One DetectionAlert per source that touched too many ports.
 
-Both count *unique* ports rather than packets. A client retrying one port is
-not scanning however many times it retries, and a scanner touching a thousand
-ports once each is — the distinguishing signal is breadth, not volume.
+Both count *unique* ports rather than packets — see `breadth`, which holds the
+shared measurement. A client retrying one port is not scanning however many
+times it retries; a scanner touching a thousand ports once each is.
 
 The two overlap on purpose. A half-open scan satisfies both, so a SYN scan
 raises two alerts: one saying "this host is scanning" and one saying "and it
@@ -15,14 +15,36 @@ is doing so without completing handshakes", which is what tells an analyst the
 scanner was trying not to be logged.
 """
 
-from collections import defaultdict
-
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
-from network_defender.detectors.base import BaseDetector
-from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
+
+from .breadth import BreadthDetector
+
+
+class PortBreadthDetector[TConfig: DetectorConfig](BreadthDetector[TConfig]):
+    """
+    Counts distinct destination ports per source.
+
+    Abstract: it fixes what a port scan measures and leaves the two concrete
+    detectors to say which packets qualify and how many are too many. They are
+    siblings rather than one subclassing the other — a SYN scan is not a
+    special kind of connect scan, they are two readings of the same traffic.
+    """
+
+    evidence_key = "unique_ports"
+    severity = Severity.HIGH
+    tactic = MitreTactic.RECONNAISSANCE
+
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for any TCP packet carrying a destination port."""
+        return bool(packet.protocol == Protocol.TCP and packet.dst_port)
+
+    def peer(self, packet: ParsedPacket) -> str | None:
+        """A port is the unit of breadth for a scan."""
+        return str(packet.dst_port)
 
 
 class TcpPortScanConfig(DetectorConfig):
@@ -32,7 +54,7 @@ class TcpPortScanConfig(DetectorConfig):
     unique_ports_threshold: int = Field(default=15)
 
 
-class TcpPortScanDetector(BaseDetector[TcpPortScanConfig]):
+class TcpPortScanDetector(PortBreadthDetector[TcpPortScanConfig]):
     """
     Detects one source reaching for many distinct ports on the network.
 
@@ -41,42 +63,19 @@ class TcpPortScanDetector(BaseDetector[TcpPortScanConfig]):
     busy load balancer. The SYN scan detector below is the narrower signal.
     """
 
-    def __init__(self, config: TcpPortScanConfig) -> None:
-        """
-        Initialise the detector.
-
-        Args:
-            config: Validated configuration holding the unique-port threshold.
-        """
-        super().__init__(config)
-        self._state: defaultdict[str, set[int]] = defaultdict(set)
-
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "TcpPortScanDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Record the destination port this source touched."""
-        if packet.protocol == Protocol.TCP and packet.src_ip and packet.dst_port:
-            self._state[packet.src_ip].add(packet.dst_port)
+    @property
+    def threshold(self) -> int:
+        """Distinct ports per window at or above which to report a scan."""
+        return self.config.unique_ports_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per scanning source, then clear the window."""
-        alerts = []
-        for src_ip, ports in self._state.items():
-            if len(ports) >= self.config.unique_ports_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.RECONNAISSANCE,
-                        src_ip=src_ip,
-                        description=f"TCP Port Scan detected: {len(ports)} unique ports scanned.",
-                        evidence={"unique_ports": len(ports)},
-                    )
-                )
-        self._state.clear()
-        return alerts
+    def describe(self, count: int) -> str:
+        """Describe the scan for the analyst reading the alert."""
+        return f"TCP Port Scan detected: {count} unique ports scanned."
 
 
 class SynScanConfig(DetectorConfig):
@@ -86,7 +85,7 @@ class SynScanConfig(DetectorConfig):
     unique_ports_threshold: int = Field(default=10)
 
 
-class SynScanDetector(BaseDetector[SynScanConfig]):
+class SynScanDetector(PortBreadthDetector[SynScanConfig]):
     """
     Detects half-open scanning: SYNs sent without completing the handshake.
 
@@ -99,46 +98,25 @@ class SynScanDetector(BaseDetector[SynScanConfig]):
     so less of it is needed before the finding is worth raising.
     """
 
-    def __init__(self, config: SynScanConfig) -> None:
-        """
-        Initialise the detector.
-
-        Args:
-            config: Validated configuration holding the unique-port threshold.
-        """
-        super().__init__(config)
-        self._state: defaultdict[str, set[int]] = defaultdict(set)
-
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "SynScanDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Record the port if this is a SYN with no ACK set."""
-        if (
-            packet.protocol == Protocol.TCP
+    @property
+    def threshold(self) -> int:
+        """Distinct ports per window at or above which to report a scan."""
+        return self.config.unique_ports_threshold
+
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for a SYN with no ACK — a handshake never completed."""
+        return bool(
+            super().counts(packet)
             and packet.tcp_flags
             and packet.tcp_flags.syn
             and not packet.tcp_flags.ack
-            and packet.src_ip
-            and packet.dst_port
-        ):
-            self._state[packet.src_ip].add(packet.dst_port)
+        )
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per scanning source, then clear the window."""
-        alerts = []
-        for src_ip, ports in self._state.items():
-            if len(ports) >= self.config.unique_ports_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.RECONNAISSANCE,
-                        src_ip=src_ip,
-                        description=f"SYN Scan detected: {len(ports)} unique ports targeted.",
-                        evidence={"unique_ports": len(ports)},
-                    )
-                )
-        self._state.clear()
-        return alerts
+    def describe(self, count: int) -> str:
+        """Describe the scan for the analyst reading the alert."""
+        return f"SYN Scan detected: {count} unique ports targeted."

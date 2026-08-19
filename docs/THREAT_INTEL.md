@@ -162,7 +162,7 @@ PROVIDER_BUCKETS = [
 
 4. **Test it** with `respx`, mocking at the transport layer so URL building,
    headers, status handling and JSON decoding are all exercised. See
-   `tests/threat_intel/test_providers.py`.
+   `tests/unit/services/threat_intel/test_providers.py`.
 
 No changes to `ThreatIntelService`, the cache, the breaker or the worker are
 needed — they operate on the port, not on concrete providers.

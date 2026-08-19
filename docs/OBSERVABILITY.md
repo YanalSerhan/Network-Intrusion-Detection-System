@@ -150,7 +150,7 @@ log line.
 ## Testing
 
 ```bash
-uv run pytest tests/observability
+uv run pytest tests/unit/observability
 ```
 
 33 tests covering required fields, single-line output, source-location
