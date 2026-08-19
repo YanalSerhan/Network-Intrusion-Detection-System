@@ -415,7 +415,7 @@
 - [x] Document the project structure, mapping the checklist's `dashboard/`, `models/` and `utils/` onto where they actually live
 - [x] Redraw the PLAN.md Level 3 diagram — it predates the detector base classes added in Milestone 15
 - [x] Correct `PRD_detection_engine.md`: detectors are discovered in `detectors/impl/`, not `detectors/`
-- [ ] Backfill `PROMPT_LOG.md` — one entry covers Milestone 0, against 70+ commits since
+- [x] Backfill `PROMPT_LOG.md` — one entry covers Milestone 0, against 70+ commits since
 
 ---
 
