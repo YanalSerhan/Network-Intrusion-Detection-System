@@ -19,28 +19,98 @@ graph TD
 ### Container Diagram (Level 2)
 ```mermaid
 graph TD
-    Capture[Packet Capture Module\n(Scapy)] -->|Raw Packets| Parser[Packet Parser]
+    Capture["Packet Capture Module<br/>(Scapy)"] -->|Raw Packets| Parser[Packet Parser]
     Parser -->|Parsed Packets| RuleEngine[Rule Engine & Detectors]
     RuleEngine -->|Generates Alerts| AlertSystem[Alert System]
     AlertSystem -->|Enriches| TIEngine[Threat Intel Service]
     TIEngine -->|Gatekeeper| ExternalAPI[External Threat Intel]
-    AlertSystem -->|Persists| Database[(SQLite/PostgreSQL)]
-    FastAPI[REST API\n(FastAPI)] -->|Queries| Database
+    AlertSystem -->|Persists| Database[("SQLite / PostgreSQL")]
+    FastAPI["REST API<br/>(FastAPI)"] -->|Queries| Database
     DashboardUI[Dashboard UI] -->|HTTP/WebSocket| FastAPI
 ```
 
 ### Component Diagram (Detection Layer) (Level 3)
+
+Two views, because the detection layer has two structures worth seeing: what
+calls what at runtime, and what shares an implementation.
+
+**Runtime.** `DetectorRegistry` imports every module in `detectors/impl/` and
+instantiates the concrete detectors it finds, each validated against its own
+section of `config/detectors.json`. `DetectionService` owns the registry and
+holds the two halves of the lifecycle apart: `process_packet` is on the hot
+path and only ingests, while `PeriodicEvaluator` calls `evaluate()` on a timer
+and dispatches whatever crossed a threshold.
+
 ```mermaid
 graph TD
-    Manager[Detector Manager] --> BaseDetector[Base Detector Interface]
-    BaseDetector <|-- TCPScan[TCP Scan Detector]
-    BaseDetector <|-- Beaconing[Beaconing Detector]
-    BaseDetector <|-- DNSTunnel[DNS Tunnel Detector]
-    Manager --> |Evaluates| Packets[Parsed Packet Stream]
-    TCPScan --> AlertBus[Alert Bus]
-    Beaconing --> AlertBus
-    DNSTunnel --> AlertBus
+    Packets[Parsed packet stream] --> Service[DetectionService]
+    Service -->|ingest, per packet| Detectors[Enabled detectors]
+    Service --> Rules[RuleEngine · YAML signatures]
+    Registry[DetectorRegistry] -->|discovers and configures| Detectors
+    Config[(config/detectors.json)] --> Registry
+    Timer[PeriodicEvaluator] -->|evaluate, on a timer| Detectors
+    Detectors -->|DetectionAlert| Callback[alert_callback]
+    Rules -->|Rule match| Callback
+    Callback --> AlertService[AlertService · dedupe, score, persist]
 ```
+
+**Inheritance.** Three detectors sat on a copy of the same "tally per endpoint"
+loop and three more on a copy of "count distinct peers"; both were factored
+into base classes in Milestone 15. The split between them is the point: one
+keeps an integer per address, the other a set, and that difference is why they
+are two hierarchies rather than one parameterised base.
+
+The four leaves hanging directly off `BaseDetector` are the ones whose state
+is genuinely their own — timestamp lists, byte totals, a seen-set.
+
+```mermaid
+classDiagram
+    class BaseDetector {
+        <<abstract>>
+        +ingest(packet)
+        +evaluate() list~DetectionAlert~
+    }
+    class CountingDetector {
+        <<abstract>>
+        counts per endpoint
+    }
+    class BreadthDetector {
+        <<abstract>>
+        distinct peers per source
+    }
+    class PortBreadthDetector {
+        <<abstract>>
+        peer = destination port
+    }
+
+    BaseDetector <|-- CountingDetector
+    BaseDetector <|-- BreadthDetector
+    BaseDetector <|-- BeaconingDetector
+    BaseDetector <|-- DnsTunnelingDetector
+    BaseDetector <|-- DataExfiltrationDetector
+    BaseDetector <|-- SuspiciousPortDetector
+
+    CountingDetector <|-- DestinationCountingDetector
+    CountingDetector <|-- SourceCountingDetector
+    DestinationCountingDetector <|-- SynFloodDetector
+    DestinationCountingDetector <|-- UdpFloodDetector
+    DestinationCountingDetector <|-- IcmpFloodDetector
+    SourceCountingDetector <|-- SshBruteForceDetector
+    SourceCountingDetector <|-- HttpBruteForceDetector
+    SourceCountingDetector <|-- ArpSpoofingDetector
+
+    BreadthDetector <|-- PortBreadthDetector
+    BreadthDetector <|-- LateralMovementDetector
+    PortBreadthDetector <|-- TcpPortScanDetector
+    PortBreadthDetector <|-- SynScanDetector
+```
+
+Which endpoint a counting detector blames is a decision, not an accident: a
+flood is attributed to its **destination**, because floods are usually
+distributed and no single source tally reaches a threshold while the victim is
+what every packet has in common; credential guessing and ARP abuse are
+attributed to their **source**, because one host is doing the work and that is
+the identity an analyst needs named.
 
 ## 3. Workflow UMLs
 
@@ -69,7 +139,7 @@ sequenceDiagram
 ```mermaid
 graph TD
     subgraph Docker Host
-        ND_Core[Network Defender Engine\n(Privileged, host network)]
+        ND_Core["Network Defender Engine<br/>(privileged, host network)"]
         ND_API[FastAPI Server]
         ND_UI[Dashboard Frontend]
         DB[(Database Container)]
