@@ -8,9 +8,11 @@ Data Output: alert_timeline.csv — one row per alert.
 Usage:
     uv run python scripts/run_alert_timeline.py [--output-dir DIR]
 
-Two configurations are replayed: what ships today, and what the sweep
-recommends. Both are run against the same packets, so the difference in the
-resulting chart is the configuration and nothing else.
+Three configurations are replayed against the same packets, so the difference
+in the resulting chart is the configuration and nothing else: what ships
+today, the point the sweep scores highest, and the one this analysis actually
+proposes. The middle one is included because it is the obvious reading of the
+sweep and it is wrong — seeing its alert volume is the argument.
 
 See docs/SENSITIVITY_ANALYSIS.md for the method.
 """
@@ -20,6 +22,7 @@ import csv
 from pathlib import Path
 
 from sensitivity.analysis import SHIPPED_WINDOW, load_metrics
+from sensitivity.proposal import PROPOSED_INTERVAL, PROPOSED_THRESHOLDS
 from sensitivity.recommendation import best_common_window, recommended_thresholds
 from sensitivity.scenario import DURATION, compose
 from sensitivity.timeline import run
@@ -51,7 +54,11 @@ def main() -> None:
     rows = run(parsed, SHIPPED_WINDOW, {}, f"shipped — {SHIPPED_WINDOW:g}s interval")
     rows += run(
         parsed, window, recommended_thresholds(metrics, window),
-        f"recommended — {window:g}s interval",
+        f"highest F1 — {window:g}s interval",
+    )
+    rows += run(
+        parsed, PROPOSED_INTERVAL, PROPOSED_THRESHOLDS,
+        f"proposed — {PROPOSED_INTERVAL:g}s interval",
     )
 
     path = output_dir / "alert_timeline.csv"

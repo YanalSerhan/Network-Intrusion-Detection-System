@@ -84,3 +84,41 @@ def recommended_thresholds(metrics: pd.DataFrame, window: float) -> dict[str, in
     )
     chosen = ordered.groupby("detector")["threshold"].first()
     return {str(detector): int(value) for detector, value in chosen.items()}
+
+
+def precision_first_thresholds(metrics: pd.DataFrame, window: float) -> dict[str, int]:
+    """
+    Return the most sensitive threshold that alerts on no benign case.
+
+    The F1 optimum above maximises a score computed on a corpus that is half
+    attacks. Production is not, so that score systematically favours a lowered
+    threshold: it prices a false positive against twenty-three negative cases
+    when a real segment offers millions. This picks the other end — the most
+    recall available while the detector stays silent on every benign case in
+    the corpus — which is the operating point an analyst's attention budget
+    argues for.
+
+    "No false positive here" is a necessary condition, not a sufficient one.
+    Twenty-three benign cases cannot certify a detector against real traffic.
+
+    Args:
+        metrics: The grid metrics.
+        window:  The evaluation interval to tune against.
+
+    Returns:
+        Detector -> threshold. Detectors that cannot both fire and stay clean
+        at this window are absent.
+    """
+    clean = metrics[
+        (metrics["window_seconds"] == window)
+        & (metrics["false_positives"] == 0)
+        & (metrics["true_positives"] > 0)
+    ]
+    # Recall first, then the *lowest* threshold that achieves it. Several
+    # thresholds usually tie at the same clean recall, and among them the
+    # lowest is the most sensitive at no measured cost — the opposite
+    # tie-break from `recommended_thresholds`, where the alternatives differ
+    # in how much they alert.
+    ordered = clean.sort_values(["detector", "recall", "threshold"], ascending=[True, False, True])
+    chosen = ordered.groupby("detector")["threshold"].first()
+    return {str(detector): int(value) for detector, value in chosen.items()}
