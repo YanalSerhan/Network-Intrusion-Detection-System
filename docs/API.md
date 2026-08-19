@@ -1,4 +1,4 @@
-# REST API (Milestone 10)
+# REST API
 
 FastAPI service exposing alerts, evidence, statistics and rules. Lives in
 `src/network_defender/api/`. The machine-readable contract is committed at
@@ -8,10 +8,22 @@ FastAPI service exposing alerts, evidence, statistics and rules. Lives in
 ## Running
 
 ```bash
-uv run uvicorn network_defender.api.app:create_app --factory --reload
+uv run network-defender api                       # config/setup.json defaults
+uv run network-defender api --port 9000 --reload  # overrides
 ```
 
-Defaults come from `config/setup.json` (`api.host`, `api.port`).
+Defaults come from `config/setup.json` (`api.host`, `api.port`). The
+underlying command is `uvicorn network_defender.api.app:create_app --factory`;
+`create_app` is a factory, so serving the attribute directly would hand
+uvicorn the function rather than an application.
+
+Three documentation surfaces, all live:
+
+| URL | What it is |
+|---|---|
+| `/docs` | Swagger UI — every endpoint, with a request builder that works. |
+| `/redoc` | The same contract as reference prose. |
+| `/openapi.json` | The machine-readable schema, also committed at [`docs/openapi.json`](openapi.json). |
 
 ## Topology
 
@@ -50,6 +62,11 @@ All paths are prefixed `/api/v1`.
 | `GET` | `/health` | Readiness. Returns 503 when a required component is down. |
 | `GET` | `/health/live` | Liveness. Touches nothing. |
 | `GET` | `/config` | Non-secret runtime configuration. |
+
+One endpoint is not under `/api/v1`, because it is a transport rather than
+part of the data contract:
+
+| `WS` | `/ws/live` | Alerts and counters, pushed as they happen. Authenticated with the same API key. |
 
 ### Pagination
 
@@ -123,6 +140,167 @@ committed to git. The override is cleared by `POST /rules/reload` or a restart,
 which is the right behaviour for an emergency "silence this noisy rule".
 
 To change a rule permanently, edit its YAML file — hot-reload picks it up.
+
+
+## A worked session
+
+Every response below is real output from a database seeded by replaying three
+sample captures:
+
+```bash
+uv run network-defender replay tests/data/pcaps/tcp_port_scan.pcap
+uv run network-defender replay tests/data/pcaps/ssh_brute_force.pcap
+uv run network-defender replay tests/data/pcaps/dns_tunneling.pcap
+uv run network-defender api --port 8000
+```
+
+**1. What is going on at all?** `/statistics` is the one call a dashboard makes
+first, and the aggregation runs in SQL rather than in Python:
+
+```bash
+curl -s localhost:8000/api/v1/statistics
+```
+
+```json
+{"total_alerts": 6,
+ "alerts_by_severity": {"info": 0, "low": 0, "medium": 2, "high": 4, "critical": 0},
+ "total_packets_retained": 2,
+ "top_talkers": [{"ip": "45.155.205.233", "alert_count": 5},
+                 {"ip": "192.168.1.50", "alert_count": 1}],
+ "protocol_distribution": {"tcp": 2}}
+```
+
+**2. Narrow to what matters.** List endpoints take filters and always return
+the same envelope — `items` plus `meta`, so a client never has to guess whether
+there is more:
+
+```bash
+curl -s "localhost:8000/api/v1/alerts?severity=high&limit=2"
+```
+
+```json
+{"items": [
+   {"alert_id": "0e9e4112-8a30-4d9c-acbf-35bf367672d6",
+    "timestamp": "2026-08-19T18:52:46.266687Z",
+    "severity": "high", "source": "detector",
+    "rule_triggered": "DnsTunnelingDetector",
+    "src_ip": "192.168.1.50", "confidence": 0.662,
+    "tactic": "TA0011", "status": "new", "occurrences": 1}, ...],
+ "meta": {"limit": 2, "offset": 0, "count": 2, "total": 4, "has_more": true}}
+```
+
+`occurrences` is the deduplication count: one row can stand for hundreds of
+repeats of the same finding inside the dedup window, which is what stops a
+scan from filling the table.
+
+**3. Open one.** The detail endpoint adds everything the list view omits —
+the description an analyst reads first, the evidence the detector based its
+decision on, the MITRE technique, and enrichment if it has arrived:
+
+```bash
+curl -s localhost:8000/api/v1/alerts/0e9e4112-8a30-4d9c-acbf-35bf367672d6
+```
+
+```json
+{"alert_id": "0e9e4112-8a30-4d9c-acbf-35bf367672d6",
+ "severity": "high", "rule_triggered": "DnsTunnelingDetector",
+ "confidence": 0.662, "tactic": "TA0011", "technique": "T1071.004",
+ "description": "Possible DNS Tunneling: high frequency of high-entropy DNS queries.",
+ "evidence": {"count": 60, "high_entropy": 59},
+ "threat_intel": null}
+```
+
+`evidence` is the detector's own numbers, not a rendered string: 59 of 60
+queries were above the entropy threshold. That is what makes an alert
+arguable rather than merely assertive.
+
+**4. Get the packets.** Evidence packets are retained per alert:
+
+```bash
+curl -s "localhost:8000/api/v1/alerts/{alert_id}/packets"
+```
+
+```json
+{"items": [{"timestamp": "2023-11-14T22:13:21.533820Z",
+            "src_ip": "45.155.205.233", "dst_ip": "192.168.1.10",
+            "src_port": 20, "dst_port": 1014, "protocol": "tcp", "length": 54,
+            "raw_summary": "tcp 45.155.205.233:20 \u2192 192.168.1.10:1014 len=54",
+            "fields": {"tcp_flags": {"syn": true, "ack": false, ...}}}]}
+```
+
+**5. Enrich on demand.** Enrichment normally runs asynchronously; this forces
+it for one alert and waits:
+
+```bash
+curl -s -X POST localhost:8000/api/v1/alerts/{alert_id}/enrich
+```
+
+It is best-effort by design. A provider outage degrades enrichment rather than
+detection, so this can legitimately return an alert whose `threat_intel` is
+still null. See [THREAT_INTEL.md](THREAT_INTEL.md).
+
+**6. Triage it.** The only write in the whole API:
+
+```bash
+curl -s -X PATCH localhost:8000/api/v1/alerts/{alert_id} \
+     -H 'Content-Type: application/json' -d '{"status": "acknowledged"}'
+```
+
+```json
+{"alert_id": "0e9e4112-...", "status": "acknowledged",
+ "rule_triggered": "DnsTunnelingDetector"}
+```
+
+Valid statuses are `new`, `acknowledged`, `resolved` and `false_positive`.
+Anything else is a 422 that names the field and lists what was allowed:
+
+```json
+{"error": {"code": "validation_error", "message": "Request validation failed.",
+           "detail": [{"field": "body.status",
+                       "message": "Input should be 'new', 'acknowledged', 'resolved' or 'false_positive'",
+                       "type": "enum"}]}}
+```
+
+**7. Follow it live.** Rather than polling, subscribe:
+
+```python
+import asyncio, json, websockets
+
+async def watch() -> None:
+    async with websockets.connect("ws://localhost:8000/ws/live") as socket:
+        async for frame in socket:
+            event = json.loads(frame)
+            print(event["type"], event.get("payload", {}).get("rule_triggered", ""))
+
+asyncio.run(watch())
+```
+
+The dashboard uses exactly this. With an API key configured, pass it as a
+query parameter — a browser WebSocket cannot set headers.
+
+**8. Check what is running.** `/health` reports per component, and returns 503
+when a *required* one is down. On an API-only process capture and detection
+are legitimately not running, which is why they report `unknown` rather than
+failing the probe:
+
+```bash
+curl -s localhost:8000/api/v1/health      # readiness, 503 when degraded
+curl -s localhost:8000/api/v1/health/live # liveness, touches nothing
+```
+
+`/config` returns the non-secret configuration the process actually loaded,
+which is the quickest way to find out whether an environment override took
+effect:
+
+```json
+{"version": "1.00",
+ "api": {"host": "0.0.0.0", "port": 8000, "reload": false, "workers": 1},
+ "capture": {"interface": "eth0", "bpf_filter": "", "snaplen": 65535, ...},
+ "detection": {"evaluation_interval_seconds": 5.0, "evaluate_rules": true}}
+```
+
+Secrets never appear here. `/config` reports *whether* an API key is
+configured, never the key.
 
 ## Architecture rule
 

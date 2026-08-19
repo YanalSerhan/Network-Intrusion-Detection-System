@@ -404,7 +404,7 @@
 - [x] Write "Threat Model" documentation section
 - [x] Write "Example Attacks" walkthrough (how to simulate each detected attack type)
 - [x] Write "How Detections Work" explainer per detector
-- [ ] Publish full API documentation (OpenAPI/Swagger link + narrative guide)
+- [x] Publish full API documentation (OpenAPI/Swagger link + narrative guide)
 - [ ] Write Developer Guide (project structure, how to add a new detector/provider)
 - [ ] Write Contribution Guide (coding standards, PR process, branch naming)
 - [ ] Write Future Roadmap section (planned features, known limitations)
