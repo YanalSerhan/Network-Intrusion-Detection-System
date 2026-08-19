@@ -391,7 +391,7 @@
 - [x] Design a sensitivity-analysis process for detector thresholds (e.g., port-scan window, brute-force count)
 - [x] Run systematic experiments varying key detector parameters and record precision/recall/false-positive rate
 - [x] Build a Jupyter notebook (`notebooks/detection_analysis.ipynb`) analyzing results
-- [ ] Produce comparison visualizations: precision/recall vs. threshold, ROC-style curves per detector
+- [x] Produce comparison visualizations: precision/recall vs. threshold, ROC-style curves per detector
 - [ ] Produce heatmaps for parameter sensitivity
 - [ ] Produce time-series charts of alert volume during simulated attack scenarios
 - [ ] Summarize findings and recommended default thresholds in `docs/`
