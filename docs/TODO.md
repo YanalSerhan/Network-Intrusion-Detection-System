@@ -403,7 +403,7 @@
 - [ ] Write comprehensive `README.md`: overview, features, architecture diagram, folder structure, installation, quick start, screenshots, usage examples
 - [ ] Write "Threat Model" documentation section
 - [ ] Write "Example Attacks" walkthrough (how to simulate each detected attack type)
-- [ ] Write "How Detections Work" explainer per detector
+- [x] Write "How Detections Work" explainer per detector
 - [ ] Publish full API documentation (OpenAPI/Swagger link + narrative guide)
 - [ ] Write Developer Guide (project structure, how to add a new detector/provider)
 - [ ] Write Contribution Guide (coding standards, PR process, branch naming)
