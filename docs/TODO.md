@@ -408,7 +408,7 @@
 - [ ] Write Developer Guide (project structure, how to add a new detector/provider)
 - [ ] Write Contribution Guide (coding standards, PR process, branch naming)
 - [ ] Write Future Roadmap section (planned features, known limitations)
-- [ ] Add architecture diagrams (C4, deployment) to `docs/`
+- [x] Add architecture diagrams (C4, deployment) to `docs/`
 - [ ] Add annotated screenshots of the dashboard
 - [ ] Cross-check README against actual behavior (no stale instructions)
 - [ ] Fill in the README's usage section — it currently holds a placeholder, not a start command
