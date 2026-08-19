@@ -388,7 +388,7 @@
 
 ## Milestone 19 — Research, Sensitivity Analysis & Visualization
 
-- [ ] Design a sensitivity-analysis process for detector thresholds (e.g., port-scan window, brute-force count)
+- [x] Design a sensitivity-analysis process for detector thresholds (e.g., port-scan window, brute-force count)
 - [ ] Run systematic experiments varying key detector parameters and record precision/recall/false-positive rate
 - [ ] Build a Jupyter notebook (`notebooks/detection_analysis.ipynb`) analyzing results
 - [ ] Produce comparison visualizations: precision/recall vs. threshold, ROC-style curves per detector
