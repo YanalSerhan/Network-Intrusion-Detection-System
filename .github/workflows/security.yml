@@ -1,0 +1,62 @@
+name: security
+
+# Secrets scanning. Separate from the test workflow because it answers a
+# different question — not "does this change work?" but "does this change, or
+# anything before it, leak a credential?" — and because it has to scan history,
+# which the test job has no reason to fetch.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly, so a leak committed on a branch that never opened a PR is still
+    # found. A scanner that only runs on PRs misses exactly the commits nobody
+    # reviewed.
+    - cron: "0 6 * * 1"
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: a secret removed from the tip is still in every
+          # clone, and finding it there is the only finding that matters.
+          fetch-depth: 0
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-groups --frozen
+
+      - name: Audit dependencies for known vulnerabilities
+        # A sensor is a high-value target and pulls in a parser stack; a known
+        # CVE in it is as much a way in as a bug in our own code.
+        run: uvx pip-audit --strict --requirement <(uv export --format requirements-txt --no-hashes)

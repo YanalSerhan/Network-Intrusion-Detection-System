@@ -169,3 +169,33 @@ runs the suite, writes the coverage table into the job summary, and uploads
 
 The coverage gate lives in `pyproject.toml`, so CI and a laptop enforce the
 same number from the same file.
+
+## Secrets scanning
+
+```bash
+gitleaks detect --config .gitleaks.toml --redact       # tree and full history
+gitleaks detect --config .gitleaks.toml --no-git       # working tree only
+```
+
+CI runs the first form on every push and PR, and weekly on a schedule — a
+scanner that only runs on pull requests misses exactly the commits nobody
+reviewed. History is scanned with `fetch-depth: 0`, because a secret removed
+from the tip is still in every clone, and finding it there is the only finding
+that matters.
+
+`.gitleaks.toml` extends the upstream rule set rather than replacing it; a
+hand-rolled pattern list is a list of the leaks someone thought of. Every
+allowlist entry states why it is safe, because an unexplained one is how a
+real finding gets silenced by someone assuming a predecessor checked.
+
+The redaction tests are allowlisted under both their current and pre-Milestone-14
+paths. They contain credential-shaped strings because that is the input — each
+asserts the logging filter rewrites it — and history is scanned, so an
+allowlist that only knows the current layout goes blind on every commit before
+the move.
+
+`tests/unit/security/` covers the same ground in milliseconds on every test
+run, with a much narrower rule set. The two are complementary: that suite
+catches a paste while it is still uncommitted, gitleaks catches everything
+else.
+
