@@ -123,7 +123,9 @@ would invalidate every curve drawn from these results.
 
 ```bash
 uv sync --all-groups
-uv run python scripts/run_sensitivity_sweep.py     # writes research/*.csv
+uv run python scripts/run_sensitivity_sweep.py     # the grid
+uv run python scripts/run_alert_timeline.py       # the composed half-hour
+uv run python scripts/make_sensitivity_figures.py # docs/images/*.png
 uv run jupyter lab notebooks/detection_analysis.ipynb
 ```
 
@@ -136,6 +138,26 @@ the registry loads, names must be unique, every swept detector needs at least
 two positive intensities, and every case must state why it is there. Each of
 those failures is invisible in the results — the numbers stay plausible while
 measuring progressively less.
+
+## The composed timeline
+
+The sweep replays each case in isolation, which is what makes precision and
+recall well-defined. It is not what an analyst sees, and the difference turns
+out to matter more than any single threshold.
+
+`scripts/sensitivity/timeline.py` lays the same cases end to end on one clock:
+half an hour with benign traffic running throughout and five attacks placed
+inside it, replayed at the shipped configuration and at the recommended one
+over identical packets. Each alert is recorded with the window boundary that
+produced it — an alert does not exist until the evaluation that emits it — and
+with whether an attack the detector is responsible for was running inside that
+window.
+
+This is where the corpus's composition stops being a convenience. Half of it
+is attacks; a real segment is not, so every false-positive rate measured
+against it is multiplied by a much larger denominator in production. An F1
+score computed on a balanced corpus will always flatter a lowered threshold,
+and the timeline is what prices that back in.
 
 ## What this does not measure
 

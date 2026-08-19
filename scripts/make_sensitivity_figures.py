@@ -18,6 +18,7 @@ import argparse
 from pathlib import Path
 
 import matplotlib
+import pandas as pd
 
 # Headless: this runs in CI and over SSH, where importing pyplot against an
 # interactive backend fails rather than degrading.
@@ -28,6 +29,8 @@ from sensitivity.detectors import shipped_value
 from sensitivity.grid import THRESHOLDS, WINDOWS
 from sensitivity.plots_curves import precision_recall_grid, roc_grid
 from sensitivity.plots_heatmaps import f1_heatmaps
+from sensitivity.plots_timeline import alert_volume
+from sensitivity.scenario import DURATION, attack_spans
 from sensitivity.style import FIGURE_DIR, apply_style, save
 
 from network_defender.shared.paths import PROJECT_ROOT
@@ -94,6 +97,25 @@ def draw_heatmaps(output_dir: Path) -> None:
     )
 
 
+def draw_timeline(output_dir: Path) -> None:
+    """
+    Draw alert volume over the composed timeline.
+
+    Args:
+        output_dir: Where the PNG is written.
+    """
+    rows = pd.read_csv(PROJECT_ROOT / "research" / "alert_timeline.csv")
+    save(
+        alert_volume(
+            rows,
+            attack_spans(),
+            DURATION,
+            "Alerts raised over half an hour of traffic containing five attacks",
+        ),
+        str(output_dir / "alert_volume_timeline.png"),
+    )
+
+
 def main() -> None:
     """Parse arguments and draw every figure."""
     parser = argparse.ArgumentParser(description="Draw the sensitivity-analysis figures.")
@@ -104,6 +126,7 @@ def main() -> None:
     apply_style()
     draw_curves(output_dir)
     draw_heatmaps(output_dir)
+    draw_timeline(output_dir)
 
 
 if __name__ == "__main__":
