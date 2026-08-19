@@ -24,8 +24,10 @@ import matplotlib
 matplotlib.use("Agg")
 
 from sensitivity.analysis import SHIPPED_WINDOW, best_operating_points, load_metrics
+from sensitivity.detectors import shipped_value
 from sensitivity.grid import THRESHOLDS, WINDOWS
 from sensitivity.plots_curves import precision_recall_grid, roc_grid
+from sensitivity.plots_heatmaps import f1_heatmaps
 from sensitivity.style import FIGURE_DIR, apply_style, save
 
 from network_defender.shared.paths import PROJECT_ROOT
@@ -69,6 +71,29 @@ def draw_curves(output_dir: Path) -> None:
     )
 
 
+def draw_heatmaps(output_dir: Path) -> None:
+    """
+    Draw the parameter-sensitivity heatmaps.
+
+    Args:
+        output_dir: Where the PNG is written.
+    """
+    metrics = load_metrics()
+    shipped = {
+        detector: float(shipped_value(detector, parameter))
+        for detector, (parameter, _) in THRESHOLDS.items()
+    }
+    save(
+        f1_heatmaps(
+            metrics,
+            shipped,
+            "F1 over threshold and evaluation window "
+            "(outlined row: the configured threshold)",
+        ),
+        str(output_dir / "f1_threshold_window_heatmaps.png"),
+    )
+
+
 def main() -> None:
     """Parse arguments and draw every figure."""
     parser = argparse.ArgumentParser(description="Draw the sensitivity-analysis figures.")
@@ -78,6 +103,7 @@ def main() -> None:
 
     apply_style()
     draw_curves(output_dir)
+    draw_heatmaps(output_dir)
 
 
 if __name__ == "__main__":
