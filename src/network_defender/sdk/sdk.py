@@ -23,6 +23,7 @@ from .alert_operations import AlertOperationsMixin
 from .builder import Callbacks, build_services
 from .capture_operations import CaptureOperationsMixin
 from .database_operations import DatabaseOperationsMixin
+from .health import HealthMixin
 from .lifecycle import LifecycleMixin
 from .maintenance_operations import MaintenanceOperationsMixin
 from .pipeline import PipelineMixin
@@ -39,6 +40,7 @@ class NetworkDefenderSDK(
     CaptureOperationsMixin,
     PipelineMixin,
     LifecycleMixin,
+    HealthMixin,
 ):
     """
     Facade over all Network Defender domain services.

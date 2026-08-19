@@ -21,6 +21,12 @@ dependencies = [
     "alembic>=1.13.1",
 ]
 
+# The three ways to run the system; see `network-defender --help`. Without
+# this the project had no entry point at all, and the README's usage section
+# held a placeholder because there was no command to put there.
+[project.scripts]
+network-defender = "network_defender.cli.main:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.2.2",

@@ -411,7 +411,7 @@
 - [x] Add architecture diagrams (C4, deployment) to `docs/`
 - [ ] Add annotated screenshots of the dashboard
 - [ ] Cross-check README against actual behavior (no stale instructions)
-- [ ] Fill in the README's usage section — it currently holds a placeholder, not a start command
+- [x] Fill in the README's usage section — it currently holds a placeholder, not a start command
 - [ ] Document the project structure, mapping the checklist's `dashboard/`, `models/` and `utils/` onto where they actually live
 - [x] Redraw the PLAN.md Level 3 diagram — it predates the detector base classes added in Milestone 15
 - [x] Correct `PRD_detection_engine.md`: detectors are discovered in `detectors/impl/`, not `detectors/`
