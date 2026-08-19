@@ -402,7 +402,7 @@
 
 - [ ] Write comprehensive `README.md`: overview, features, architecture diagram, folder structure, installation, quick start, screenshots, usage examples
 - [ ] Write "Threat Model" documentation section
-- [ ] Write "Example Attacks" walkthrough (how to simulate each detected attack type)
+- [x] Write "Example Attacks" walkthrough (how to simulate each detected attack type)
 - [x] Write "How Detections Work" explainer per detector
 - [ ] Publish full API documentation (OpenAPI/Swagger link + narrative guide)
 - [ ] Write Developer Guide (project structure, how to add a new detector/provider)
@@ -432,6 +432,8 @@
 - [ ] Replace the tumbling evaluation window with a sliding one, so a detection no longer depends on where a burst falls relative to a boundary fixed at process start
 - [ ] Raise `detection.evaluation_interval_seconds` to 60 and apply the three threshold changes in `docs/DETECTION_TUNING.md` §2, as the interim configuration until per-detector windows exist
 - [ ] Give `DnsTunnelingDetector` a registered-domain allowlist and `DataExfiltrationDetector` a destination classification — the corpus shows neither is separable from its benign twin by threshold alone
+- [ ] Fix `rules/tcp_port_scan.yaml`: it counts SYN packets, not unique destination ports, so it labels a SYN flood, an SSH brute force, a bulk transfer and lateral movement as port scans. Either give the rule schema a distinct-value threshold or retire the rule, which the heuristic detector already covers correctly — see `docs/EXAMPLE_ATTACKS.md`
+- [ ] Make a threshold rule fire once per window rather than once per packet past the threshold: `hits >= threshold` stays true for the rest of the window, so `lateral_movement.pcap` raises twelve alerts for one behaviour
 - [ ] Map project quality against ISO/IEC 25010 characteristics (functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, portability) and document gaps
 
 ---
