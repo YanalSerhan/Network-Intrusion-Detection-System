@@ -27,6 +27,65 @@ Pre-commit hooks run ruff and mypy against the locked environment:
 uv run pre-commit install
 ```
 
+## Project structure
+
+```
+network-defender/
+├── src/network_defender/       the library; everything importable
+│   ├── capture/                Scapy sniffer, BPF filters, PCAP read/write
+│   ├── parser/                 raw packet → ParsedPacket
+│   ├── detectors/              base classes, registry, and impl/ (13 detectors)
+│   ├── rules/                  YAML signature engine, windowed counters
+│   ├── services/               capture, detection, alerts/, threat_intel/, maintenance
+│   ├── database/               SQLAlchemy models, repositories, retention
+│   ├── api/                    FastAPI app, routers/, schemas/, live/, static SPA
+│   ├── sdk/                    NetworkDefenderSDK — the only entry point
+│   ├── cli/                    `network-defender` sensor | api | replay
+│   ├── shared/                 config, gatekeeper, credentials, paths, secrets
+│   ├── observability/          structured logging, redaction, correlation IDs
+│   └── constants/              names and defaults nothing else may hardcode
+├── frontend/                   React + TypeScript dashboard (Vite)
+├── config/                     detectors.json, setup.json, rate_limits.json
+├── rules/                      YAML signature rules
+├── migrations/                 Alembic revisions
+├── scripts/                    pcap generation, benchmarks, sensitivity analysis
+├── notebooks/                  detection_analysis.ipynb
+├── research/                   committed sweep results
+├── tests/                      unit/ mirrors src/; integration/, e2e/, performance/
+└── docs/                       everything in this directory
+```
+
+### Where the checklist's packages actually live
+
+The Milestone 22 checklist names `dashboard/`, `models/` and `utils/`. None
+exists, and the deviations are decisions rather than drift — recorded here so
+they read as such.
+
+| Checklist name | Where it is | Why |
+|---|---|---|
+| `dashboard/` | `frontend/` (the SPA), `api/routers/dashboard.py` (serving it), `api/static/` (build output) | The dashboard is a TypeScript application with its own toolchain, tests and lockfile. Putting it under the Python package would make `uv` responsible for a Vite build. Serving it is 40 lines and belongs with the other routes. |
+| `models/` | `parser/models.py`, `detectors/models.py`, `services/alerts/models.py`, `services/threat_intel/models.py`, `database/models.py`, `api/schemas/` | A single `models/` package would import from every layer, which is the shape that produces circular imports and a module nobody can change safely. Each package owns its own types, and the boundary crossings are explicit and few. |
+| `utils/` | `shared/` | `utils` is a name that means "things with no home", and a directory called that accumulates them. `shared/` holds config loading, the gatekeeper, credential comparison, path resolution and secret access — each with a docstring saying what it is responsible for. Nothing goes there because it fits nowhere else. |
+
+Two more worth knowing:
+
+- **`constants/`** exists so that no threshold, path or magic string is written
+  twice. If you are about to type a literal that another module also knows,
+  it goes here — or, if an operator should be able to change it, in
+  `config/`.
+- **`services/alerts/` and `services/threat_intel/` are packages, not
+  modules.** Both outgrew a file: alerting is deduplication, confidence
+  scoring, MITRE mapping, notification and persistence, and each of those is
+  separately testable.
+
+### Tests mirror source
+
+`tests/unit/<package>/test_<module>.py` for every module, so the test for a
+file is always at the mirrored path and a failure names the file that broke.
+`tests/integration/` wires real components together, `tests/e2e/` replays
+captures through the SDK with nothing mocked, and `tests/performance/` holds
+the throughput floors.
+
 ## The rules that hold the layering up
 
 Three, and each exists because breaking it is easy and the damage is delayed.
