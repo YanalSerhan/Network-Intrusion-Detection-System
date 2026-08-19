@@ -164,11 +164,22 @@ One entry per upstream service (`abuseipdb`, `ip_api`, `whois`):
 
 | Key | Description |
 |---|---|
-| `requests_per_minute` | Hard ceiling; the gatekeeper blocks past it. |
-| `requests_per_day` | Daily budget. |
-| `max_queue_depth` | Pending requests before backpressure rejects new ones. |
+| `requests_per_minute` | Hard ceiling. A caller waits up to one window for a slot, then is shed. |
+| `requests_per_day` | Daily budget. Once spent, requests are refused until it rolls over — waiting out a day is not waiting. |
+| `max_queue_depth` | Callers allowed to wait at once before new ones are rejected. |
 | `retry_attempts` | Retries on transient failure. |
 | `retry_backoff_base_seconds` | Base for exponential backoff. |
+
+Every attempt counts against both windows, retries included: a failed request
+still reached the provider, and an HTTP 429 is exactly the case a rate limit
+exists to avoid making worse.
+
+The queue is callers, not deferred work. The gatekeeper is synchronous — it
+does not hand a request to a background thread — so a caller waiting its turn
+*is* the queued item, and `max_queue_depth` is how many may wait before the
+rest are shed. Shedding beats an unbounded pile-up: an enrichment that never
+happens costs one alert its threat intel, while a stalled worker costs every
+later alert as well.
 
 ## `detectors.json`
 

@@ -76,9 +76,9 @@ def test_backpressure_rejects_when_the_queue_is_full() -> None:
             retry_backoff_base_seconds=0.01,
         ),
     )
-    gatekeeper._queue.append(lambda: None)  # noqa: SLF001 - simulate a saturated queue
+    gatekeeper._guard.enter_queue()  # noqa: SLF001 - occupy the only place
 
-    with pytest.raises(GatekeeperError):
+    with pytest.raises(GatekeeperError, match="Queue full"):
         gatekeeper.execute(lambda: None)
 
 # --------------------------------------------------------------------------

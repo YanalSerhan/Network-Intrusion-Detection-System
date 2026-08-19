@@ -352,11 +352,11 @@
 - [ ] Run a secrets-scanning tool (e.g., `gitleaks`/`truffleHog`) in CI
 - [ ] Document a basic threat model for Network Defender itself (what it protects against, its own attack surface)
 - [ ] Add input validation/sanitization on all API and dashboard inputs (prevent injection)
-- [ ] Fix the gatekeeper's rate limiting (found by the Milestone 15 review, `docs/CODE_REVIEW.md`)
-  - [ ] Count retried requests against the window — failures currently consume no budget, so an outage fires 4x the configured rate
-  - [ ] Enforce `requests_per_day`, or remove it from config and docs rather than promising a control that does not exist
-  - [ ] Make the queue real or make `wait_for_slot()` bounded — `max_queue_depth` is currently unreachable and callers block instead of being shed
-  - [ ] Guard the window with a lock; the worker thread and the synchronous `/enrich` endpoint share it
+- [x] Fix the gatekeeper's rate limiting (found by the Milestone 15 review, `docs/CODE_REVIEW.md`)
+  - [x] Count retried requests against the window — failures currently consume no budget, so an outage fires 4x the configured rate
+  - [x] Enforce `requests_per_day`, or remove it from config and docs rather than promising a control that does not exist
+  - [x] Make the queue real or make `wait_for_slot()` bounded — `max_queue_depth` is currently unreachable and callers block instead of being shed
+  - [x] Guard the window with a lock; the worker thread and the synchronous `/enrich` endpoint share it
 
 ---
 
