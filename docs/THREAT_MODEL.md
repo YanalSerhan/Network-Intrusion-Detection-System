@@ -39,6 +39,17 @@ worse than one they know they lack.
   jittered beacon, exfiltration paced below the byte limit — evades it. The
   thresholds are configuration precisely so a defender can trade false
   positives for that margin.
+- **In the shipped configuration, considerably more than that.** Milestone 19
+  measured it: five of the twelve tunable detectors have a recall of **0.00**
+  on live traffic as shipped, and three more sit at or below 0.5. An attacker
+  does not need to stay under the beaconing, DNS-tunnelling, HTTP-brute-force,
+  exfiltration or lateral-movement thresholds, because none of those detectors
+  can reach its threshold at all. The cause is a single defect — every
+  detector runs on a five-second window while nine are configured for sixty
+  seconds or more — and it is quantified in
+  [DETECTION_TUNING.md](DETECTION_TUNING.md) and open under Milestone 21.
+  Until it is fixed, treat this system's coverage as the four detectors in
+  that document with a non-zero measured recall.
 - **Availability of the monitored network.** It reports floods; it does not
   stop them. There is no blocking, no RST injection, no firewall integration.
 
@@ -101,7 +112,11 @@ create an entry per address.
   in one interval rather than growing forever.
 - Alert deduplication is bounded (`DEDUP_MAX_TRACKED_KEYS`).
 - **Residual risk:** a spoofing burst inside one window still allocates. The
-  bound is the evaluation interval, which is configuration.
+  bound is the evaluation interval, which is configuration — and lengthening
+  that interval is exactly what [DETECTION_TUNING.md](DETECTION_TUNING.md)
+  recommends for detection quality. The two pull against each other: a longer
+  window detects more and holds more forged state at once. Sixty seconds of
+  one interface's traffic is the quantity to size for.
 
 ### 3. Alert flooding as cover
 
@@ -113,6 +128,14 @@ storm buries the one alert that matters.
   cannot stall detection.
 - The gatekeeper sheds callers past its queue depth instead of piling up.
 - **Residual risk:** the analyst's attention. Nothing here solves that.
+- **Known amplifier.** A threshold rule fires once for *every* matching packet
+  after its threshold is reached, not once per window, and deduplication only
+  collapses repeats that share a source *and* a destination. An attacker who
+  crosses a rule threshold and then rotates destinations gets one alert per
+  packet — `lateral_movement.pcap` produces twelve alerts for one behaviour
+  without trying. That turns a cheap action into an alert multiplier, which is
+  precisely the shape this section is about. Open under Milestone 21; see
+  [EXAMPLE_ATTACKS.md](EXAMPLE_ATTACKS.md).
 
 ### 4. The REST API
 
@@ -191,3 +214,17 @@ The model above assumes:
 Breaking any of these invalidates the corresponding section. Assumption 2 is
 the important one: a sensor reachable from the network it watches is a sensor
 an attacker can attack with the traffic it is trying to inspect.
+
+## Reviewing this document
+
+It is written to be falsifiable. Every "residual risk" above names something
+that is *not* handled, and each control claims something testable rather than
+something reassuring — the constant-time comparison, the bounded dedup, the
+single outbound call site are all things a reader can check in the code or in
+`tests/unit/security/`.
+
+Two of the entries here were added after the fact, by measurement rather than
+by review: the shipped-configuration coverage gap in "What it does not defend"
+and the alert amplifier in §3. Both were found by running the system and
+reading the output, which is the failure mode a threat model written once at
+design time has — it describes the system someone intended to build.
