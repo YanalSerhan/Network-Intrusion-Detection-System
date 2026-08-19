@@ -156,7 +156,9 @@ Disabling `retention_enabled` means the database grows without bound.
 | `version` | `1.00` | Config schema version. |
 | `rules_dir` | `rules/` | YAML rules directory. Relative paths resolve from the project root, not the working directory. |
 | `config_dir` | `config/` | Directory holding `detectors.json`. |
-| `retention_days` | `30` | Alert retention window. |
+| `retention.alerts_days` | `30` | Days to keep alerts — the investigation audit trail. |
+| `retention.packets_days` | `7` | Days to keep packet evidence. Must not exceed `alerts_days`: deleting an alert cascades to its packets, so a longer window has no effect and startup refuses it. |
+| `retention.statistics_days` | `90` | Days to keep counter snapshots. |
 
 ## `rate_limits.json`
 

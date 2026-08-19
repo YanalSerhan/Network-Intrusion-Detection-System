@@ -69,7 +69,7 @@ class ConfigResponse(BaseModel):
     detection: dict[str, Any] = Field(description="Detection settings.")
     dashboard: dict[str, Any] = Field(description="Dashboard settings.")
     database: dict[str, Any] = Field(description="Database settings, URL redacted.")
-    retention_days: int = Field(description="Configured retention window.")
+    retention: dict[str, Any] = Field(description="Per-table retention windows, in days.")
     secrets_configured: dict[str, bool] = Field(
         description="Which credentials are set. Names and booleans only, never values."
     )

@@ -67,7 +67,9 @@ def test_config_returns_non_secret_settings(client: TestClient) -> None:
     body = client.get(CONFIG).json()
 
     assert body["api"]["port"] == 8000
-    assert body["retention_days"] == 30
+    # The window the pruner will actually apply, not a number only this
+    # endpoint has ever read.
+    assert body["retention"]["alerts_days"] == 30
     assert "evaluation_interval_seconds" in body["detection"]
 
 

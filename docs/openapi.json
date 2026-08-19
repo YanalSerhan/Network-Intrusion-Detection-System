@@ -440,10 +440,11 @@
             "title": "Detection",
             "type": "object"
           },
-          "retention_days": {
-            "description": "Configured retention window.",
-            "title": "Retention Days",
-            "type": "integer"
+          "retention": {
+            "additionalProperties": true,
+            "description": "Per-table retention windows, in days.",
+            "title": "Retention",
+            "type": "object"
           },
           "secrets_configured": {
             "additionalProperties": {
@@ -466,7 +467,7 @@
           "detection",
           "dashboard",
           "database",
-          "retention_days",
+          "retention",
           "secrets_configured"
         ],
         "title": "ConfigResponse",

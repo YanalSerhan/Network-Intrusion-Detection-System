@@ -13,7 +13,12 @@ and are re-exported here, so every consumer keeps importing one module.
 # pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 
-from .config_pipeline import DetectionConfig, MaintenanceConfig, ThreatIntelConfig
+from .config_pipeline import (
+    DetectionConfig,
+    MaintenanceConfig,
+    RetentionConfig,
+    ThreatIntelConfig,
+)
 
 __all__ = [
     "ApiConfig",
@@ -23,6 +28,7 @@ __all__ = [
     "DatabaseConfig",
     "DetectionConfig",
     "MaintenanceConfig",
+    "RetentionConfig",
     "ThreatIntelConfig",
 ]
 
@@ -96,4 +102,6 @@ class AppConfig(BaseModel):
     config_dir: str = Field(
         default="config/", description="Path to the directory holding detectors.json."
     )
-    retention_days: int = Field(default=30, description="Days to retain packet/alert records.")
+    retention: RetentionConfig = Field(
+        default_factory=RetentionConfig, description="Per-table retention windows."
+    )

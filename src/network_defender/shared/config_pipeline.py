@@ -92,3 +92,28 @@ class MaintenanceConfig(BaseModel):
         description="Seconds between retention sweeps. Hourly suits day-scale windows "
         "and keeps the delete cost off the hot path.",
     )
+
+
+class RetentionConfig(BaseModel):
+    """
+    How long each table's rows are kept.
+
+    Every table grows monotonically and an unattended sensor fills its disk, so
+    these are operational settings rather than defaults nobody touches. They
+    mirror `database.retention.RetentionPolicy`, which enforces the ordering
+    constraint between them: deleting an alert cascades to its packets, so
+    keeping packets longer than alerts has no effect.
+    """
+
+    alerts_days: int = Field(
+        default=30, gt=0, description="Days to keep alerts — the investigation audit trail."
+    )
+    packets_days: int = Field(
+        default=7,
+        gt=0,
+        description="Days to keep packet evidence. Bulky, and only useful while the "
+        "alert it supports is being investigated. Must not exceed alerts_days.",
+    )
+    statistics_days: int = Field(
+        default=90, gt=0, description="Days to keep counter snapshots for dashboard trends."
+    )

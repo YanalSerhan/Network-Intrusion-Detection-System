@@ -41,7 +41,7 @@ def get_config(sdk: SdkDep) -> ConfigResponse:
         detection=app_config.detection.model_dump(),
         dashboard=app_config.dashboard.model_dump(),
         database={key: database[key] for key in SAFE_DATABASE_KEYS},
-        retention_days=app_config.retention_days,
+        retention=app_config.retention.model_dump(),
         secrets_configured=sdk.describe_configured_secrets(
             ENV_API_KEY, ENV_ABUSEIPDB_API_KEY
         ),

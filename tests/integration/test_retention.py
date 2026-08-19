@@ -1,4 +1,4 @@
-"""Integration tests: retention prunes stale data and nothing else."""
+"""Integration tests: retention prunes stale data, and only what is configured."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -13,9 +13,13 @@ from network_defender.database.repositories import (
     ThreatIntelCacheRepository,
 )
 from network_defender.database.retention import RetentionPolicy, RetentionService
+from network_defender.sdk.sdk import NetworkDefenderSDK
 from network_defender.services.threat_intel.models import ProviderResult
+from network_defender.shared.config_pipeline import RetentionConfig
+from network_defender.shared.rate_limit_models import RateLimitConfig
 from tests.fixtures.builders import make_alert, make_packet
 from tests.fixtures.constants import PUBLIC_IP
+from tests.fixtures.sdk import build_app_config
 
 # --------------------------------------------------------------------------
 # Retention
@@ -77,3 +81,38 @@ def test_pruning_an_empty_database_is_a_no_op(
     session_factory: sessionmaker[Session],
 ) -> None:
     assert sum(RetentionService(session_factory).prune().values()) == 0
+
+
+def test_the_configured_window_is_the_one_that_prunes() -> None:
+    """
+    Retention has to be settable without editing source.
+
+    It was not: `retention_days` sat in config/setup.json, was validated, and
+    was reported by GET /config, while the pruner used its own defaults. An
+    operator could set it to 7, watch the API agree, and still have alerts
+    kept for 30 days.
+    """
+    config = build_app_config(retention=RetentionConfig(alerts_days=2, packets_days=1))
+    sdk = NetworkDefenderSDK(
+        app_config=config, rate_limit_config=RateLimitConfig(services={})
+    )
+
+    assert sdk._database_service.retention.policy.alerts_days == 2
+    assert sdk._database_service.retention.policy.packets_days == 1
+
+
+def test_an_impossible_retention_pairing_is_refused_at_startup() -> None:
+    """
+    Keeping packets longer than alerts cannot work, so it must not validate.
+
+    Deleting an alert cascades to its packets, so a longer packet window is
+    not merely ineffective — it is a configuration whose author believed
+    something the database will never do.
+    """
+    with pytest.raises(ValueError, match="packets_days must not exceed alerts_days"):
+        NetworkDefenderSDK(
+            app_config=build_app_config(
+                retention=RetentionConfig(alerts_days=5, packets_days=10)
+            ),
+            rate_limit_config=RateLimitConfig(services={}),
+        )

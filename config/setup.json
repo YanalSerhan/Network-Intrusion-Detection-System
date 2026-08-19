@@ -54,5 +54,9 @@
     },
     "rules_dir": "rules/",
     "config_dir": "config/",
-    "retention_days": 30
+    "retention": {
+        "alerts_days": 30,
+        "packets_days": 7,
+        "statistics_days": 90
+    }
 }

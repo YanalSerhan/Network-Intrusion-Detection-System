@@ -19,6 +19,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from ..database.retention import RetentionPolicy
 from ..services.alerts import AlertService
 from ..services.capture import CaptureService
 from ..services.database import DatabaseService
@@ -81,7 +82,10 @@ def build_services(
     """
     # The database comes first: every other service either persists through it
     # or reads a repository from it.
-    database = DatabaseService(config=app_config.database)
+    database = DatabaseService(
+        config=app_config.database,
+        retention=RetentionPolicy(**app_config.retention.model_dump()),
+    )
 
     # Alerts before detection, so detector callbacks have somewhere to deliver.
     alerts = AlertService(
