@@ -1,4 +1,4 @@
-# Dashboard UI (Milestone 11)
+# Dashboard UI
 
 React + TypeScript SPA served by FastAPI at `/dashboard`. Source in
 [`frontend/`](../frontend/README.md); stack rationale in
@@ -13,6 +13,80 @@ design in [ADR 8](PLAN.md#adr-8-websocket-live-feed-polled-server-side).
 | `/dashboard/alerts` | Searchable, filterable alert log with server-side pagination. |
 | `/dashboard/alerts/:id` | Alert detail — detection facts, MITRE mapping, triage, threat intel, packet evidence. |
 | `/dashboard/rules` | Loaded rules, with runtime enable/disable and reload. |
+
+## What it looks like
+
+Screenshots of a live instance, taken against a database seeded by replaying
+the sample captures. Regenerate them with:
+
+```bash
+cd frontend && npm run build
+uv run network-defender api &
+BASE=http://127.0.0.1:8000 ALERT=<alert-uuid> node frontend/shots.mjs
+```
+
+The capture script is committed for a reason: a screenshot nobody can
+reproduce goes stale the first time the UI changes, and nobody notices,
+because a stale screenshot still looks plausible.
+
+### Overview
+
+![Dashboard overview](images/dashboard-overview.png)
+
+Four stat tiles across the top — total, critical, high, packets retained —
+then two columns. The left holds throughput and the most recent detections;
+the right holds top sources, top destinations and the protocol mix, each a
+bar list rather than a pie, because the question is "which is biggest" and a
+length answers that better than an angle.
+
+The badge at top right is the live connection, and it is deliberately
+prominent: a dashboard whose socket has quietly dropped shows numbers that
+look current and are not. It reads **Live** when connected and
+**Reconnecting** while it is not.
+
+"No statistics recorded yet" in the throughput panel is correct here rather
+than a bug — the counters come from the sensor's sampler, and this instance
+replayed capture files rather than running one. An empty state that says why
+it is empty is the difference between a working dashboard and a broken one.
+
+### Alerts
+
+![Alert log](images/dashboard-alerts.png)
+
+Server-side pagination and filtering: the query goes to `/api/v1/alerts` with
+`severity`, `status` and `hours`, so filtering a million alerts does not
+transfer a million rows. Severity is a badge with a text label, never colour
+alone.
+
+### Alert detail
+
+![Alert detail](images/dashboard-alert-detail-dark.png)
+
+The screen an analyst spends their time on, in dark mode. Detection facts on
+the left, MITRE tactic and technique linked out to ATT&CK on the right, triage
+below that, then threat intelligence and the raw evidence the detector based
+its decision on — `{"unique_internal_destinations": 25}` here.
+
+Two things are worth pointing at. The threat-intelligence panel explains its
+own empty state — *"Internal-only traffic is never sent to third parties"* —
+which is an eligibility rule from [THREAT_INTEL.md](THREAT_INTEL.md) surfaced
+where someone would otherwise assume a failure. And the evidence is shown as
+the detector's own numbers rather than as prose, so the alert is arguable.
+
+### Rules
+
+![Rules](images/dashboard-rules.png)
+
+The loaded signature rules, with runtime enable/disable and a reload button
+that re-reads `rules/` from disk without restarting the sensor.
+
+### Dark mode
+
+![Overview in dark mode](images/dashboard-overview-dark.png)
+
+Both modes are first-class, not an inverted filter. Every colour is a CSS
+custom property switched by `data-theme` on `<html>`, and the severity palette
+is chosen separately per mode so the contrast holds against each surface.
 
 ## Flows
 
@@ -70,9 +144,15 @@ defences, at three layers:
 ## Theming
 
 Dark by default, following the OS preference on first visit and remembering the
-choice after that. The theme is applied by an inline script in `index.html`
+choice after that. The theme is applied by `public/theme.js`, loaded synchronously in `<head>`
 **before first paint** — resolving it in React would render the default theme
 first and flash the wrong colours on every load.
+
+It is an external file rather than an inline script, and that is not a style
+choice. The API serves this page under a Content-Security-Policy whose
+`script-src` has no `unsafe-inline`, so the inline version was refused on
+every load — causing precisely the flash it existed to prevent, while logging
+a CSP violation nobody was reading.
 
 Colours are CSS custom properties switched by `data-theme` on `<html>`, so
 components reference semantic names (`--surface`, `--text`, `--sev-critical`)

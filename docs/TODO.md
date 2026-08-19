@@ -409,7 +409,7 @@
 - [x] Write Contribution Guide (coding standards, PR process, branch naming)
 - [x] Write Future Roadmap section (planned features, known limitations)
 - [x] Add architecture diagrams (C4, deployment) to `docs/`
-- [ ] Add annotated screenshots of the dashboard
+- [x] Add annotated screenshots of the dashboard
 - [ ] Cross-check README against actual behavior (no stale instructions)
 - [x] Fill in the README's usage section — it currently holds a placeholder, not a start command
 - [x] Document the project structure, mapping the checklist's `dashboard/`, `models/` and `utils/` onto where they actually live

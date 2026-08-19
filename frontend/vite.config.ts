@@ -21,6 +21,12 @@ export default defineConfig({
     outDir: "../src/network_defender/api/static",
     emptyOutDir: true,
     sourcemap: true,
+    // Vite emits the module-preload polyfill as an *inline* script, which the
+    // API's Content-Security-Policy refuses to execute — script-src has no
+    // 'unsafe-inline' on purpose. Every browser this dashboard targets
+    // supports modulepreload natively, so the polyfill is dropped rather than
+    // the header being weakened.
+    modulePreload: { polyfill: false },
     rollupOptions: {
       output: {
         // Charting is by far the largest dependency and is only needed on the

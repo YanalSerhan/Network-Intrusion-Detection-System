@@ -12,6 +12,13 @@ dependencies = [
     "scapy>=2.5.0",
     "fastapi>=0.111.0",
     "uvicorn>=0.30.1",
+    # Uvicorn serves WebSockets only when a protocol library is present; with
+    # none installed it logs a warning and answers every upgrade with 404.
+    # The dashboard gets its counters, recent alerts and top talkers from
+    # /ws/live, so without this the dashboard is an empty shell in any real
+    # deployment. Starlette's TestClient implements WebSockets itself, which
+    # is why the whole test suite passed against a broken server.
+    "websockets>=12.0",
     "sqlalchemy>=2.0.30",
     "pydantic>=2.7.4",
     "pyyaml>=6.0.1",
@@ -70,6 +77,14 @@ max-complexity = 10
 # need. The signature is the framework's, not ours.
 "src/network_defender/database/base.py" = ["ARG002"]
 "src/network_defender/database/types.py" = ["ARG002"]
+
+# The analysis notebook is linted — an unused import or an undefined name is
+# worth catching there too — but not for line length or magic values. A cell is
+# read as a unit beside its output, and splitting a DataFrame column list across
+# four lines to satisfy a formatter makes it harder to read rather than easier.
+# The bare literals are experiment parameters, which is the opposite of the
+# hardcoded constant PLR2004 exists to catch.
+"notebooks/*.ipynb" = ["E501", "PLR2004"]
 
 # A test's name is its documentation — `test_syn_ack_replies_are_not_a_syn_scan`
 # says more than a docstring restating it would, and docs/TESTING.md makes that

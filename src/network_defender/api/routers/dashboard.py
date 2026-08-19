@@ -12,6 +12,13 @@ Two things this has to get right:
     for a path that has no file. Without a catch-all returning index.html,
     every deep link and refresh 404s — the classic SPA deployment bug.
 
+    The catch-all has to check for a real file first, though. Without that,
+    everything the bundler copies from `public/` — the favicon, the icon
+    sprite, the pre-paint theme script — is answered with index.html at status
+    200, and the browser refuses to execute or render HTML it asked for as
+    JavaScript or SVG. That is the second half of the same deployment bug and
+    it fails more quietly than a 404.
+
   * **Cache headers.** Vite fingerprints asset filenames, so bundles are safe
     to cache forever, but `index.html` must never be cached: it is the file
     that points at the current bundle hashes, and a stale copy pins browsers
@@ -82,21 +89,49 @@ def get_asset(asset_path: str) -> Response:
     return FileResponse(candidate, headers={"Cache-Control": ASSET_CACHE_CONTROL})
 
 
-@router.get("", include_in_schema=False)
-@router.get("/{spa_path:path}", include_in_schema=False)
-def serve_dashboard(spa_path: str = "") -> Response:  # noqa: ARG001 - see below
+def _static_file(spa_path: str) -> Path | None:
     """
-    Serve the SPA shell for any dashboard route.
-
-    Client-side routes have no corresponding file, so every unmatched path
-    returns index.html and lets the router resolve it in the browser.
+    Return the real file a dashboard path names, if there is one.
 
     Args:
-        spa_path: The requested client-side path; unused beyond routing.
+        spa_path: The requested path, relative to /dashboard.
 
     Returns:
-        index.html, or a 503 explaining that the dashboard is not built.
+        The file, or None when the path is a client-side route.
+    """
+    if not spa_path:
+        return None
+    candidate = (STATIC_DIR / spa_path).resolve()
+    root = STATIC_DIR.resolve()
+    # Same containment check as the asset route: without it, `../../etc/passwd`
+    # escapes the static directory.
+    if candidate.is_file() and root in candidate.parents:
+        return candidate
+    return None
+
+
+@router.get("", include_in_schema=False)
+@router.get("/{spa_path:path}", include_in_schema=False)
+def serve_dashboard(spa_path: str = "") -> Response:
+    """
+    Serve a real static file if the path names one, else the SPA shell.
+
+    Client-side routes have no corresponding file, so every unmatched path
+    returns index.html and lets the router resolve it in the browser. Paths
+    that *do* name a file — the favicon, the icon sprite, the theme script —
+    must not, because a browser will not execute a script served as HTML.
+
+    Args:
+        spa_path: The requested path, relative to /dashboard.
+
+    Returns:
+        The named file, index.html, or a 503 explaining that the dashboard is
+        not built.
     """
     if not dashboard_is_built():
         return _not_built()
+
+    static_file = _static_file(spa_path)
+    if static_file is not None:
+        return FileResponse(static_file, headers={"Cache-Control": INDEX_CACHE_CONTROL})
     return FileResponse(INDEX_FILE, headers={"Cache-Control": INDEX_CACHE_CONTROL})

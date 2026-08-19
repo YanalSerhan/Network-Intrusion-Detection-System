@@ -23,6 +23,7 @@ from network_defender.shared.rate_limit_models import RateLimitConfig
 from .fixtures.alerts import detection, packet, rule  # noqa: F401
 from .fixtures.api import client, seeded_alert, seeded_rules  # noqa: F401
 from .fixtures.capture import capture_config, service  # noqa: F401
+from .fixtures.dashboard import built_dashboard  # noqa: F401
 from .fixtures.database import (  # noqa: F401
     alert_repo,
     engine,

@@ -6,20 +6,10 @@
     <meta name="description" content="Network Defender — network intrusion detection dashboard" />
     <meta name="color-scheme" content="dark light" />
     <title>Network Defender</title>
-    <script>
-      // Applied before first paint: reading the stored theme in React would
-      // render the default theme first, producing a flash of the wrong colours
-      // on every page load.
-      (function () {
-        try {
-          var stored = localStorage.getItem("nd-theme");
-          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.dataset.theme = stored || (prefersDark ? "dark" : "light");
-        } catch (e) {
-          document.documentElement.dataset.theme = "dark";
-        }
-      })();
-    </script>
+    <link rel="icon" type="image/svg+xml" href="/dashboard/favicon.svg" />
+    <!-- External, not inline: the API serves this page under a CSP whose
+         script-src has no 'unsafe-inline'. See public/theme.js. -->
+    <script src="/dashboard/theme.js"></script>
   </head>
   <body>
     <div id="root"></div>
