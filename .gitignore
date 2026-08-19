@@ -83,3 +83,6 @@ frontend/dist/
 src/network_defender/api/static/
 mutants/
 .mutmut-cache
+
+# Jupyter
+.ipynb_checkpoints/
