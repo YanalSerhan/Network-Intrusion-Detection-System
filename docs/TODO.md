@@ -406,7 +406,7 @@
 - [x] Write "How Detections Work" explainer per detector
 - [x] Publish full API documentation (OpenAPI/Swagger link + narrative guide)
 - [x] Write Developer Guide (project structure, how to add a new detector/provider)
-- [ ] Write Contribution Guide (coding standards, PR process, branch naming)
+- [x] Write Contribution Guide (coding standards, PR process, branch naming)
 - [ ] Write Future Roadmap section (planned features, known limitations)
 - [x] Add architecture diagrams (C4, deployment) to `docs/`
 - [ ] Add annotated screenshots of the dashboard
