@@ -19,6 +19,7 @@ from fastapi import Depends, Query, Request
 
 from ..constants import ALERT_QUERY_DEFAULT_LIMIT, ENV_API_KEY
 from ..sdk.sdk import NetworkDefenderSDK
+from ..shared.credentials import matches as credentials_match
 from ..shared.secrets import get_secret
 from .errors import UnauthorisedError
 from .schemas.common import MAX_PAGE_SIZE, PaginationParams
@@ -84,7 +85,7 @@ def require_api_key(request: Request) -> None:
         return
 
     supplied = request.headers.get(API_KEY_HEADER)
-    if supplied != expected:
+    if not credentials_match(supplied, expected):
         raise UnauthorisedError(
             f"A valid {API_KEY_HEADER} header is required.",
             detail={"header": API_KEY_HEADER},

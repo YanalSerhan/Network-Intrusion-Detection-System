@@ -16,6 +16,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from ...constants import ENV_API_KEY
+from ...shared.credentials import matches as credentials_match
 from ...shared.secrets import get_secret
 from ..live.broadcaster import LiveBroadcaster
 
@@ -28,7 +29,7 @@ WS_POLICY_VIOLATION = 1008
 def _is_authorised(token: str | None) -> bool:
     """Return True if the connection may proceed."""
     expected = get_secret(ENV_API_KEY)
-    return not expected or token == expected
+    return not expected or credentials_match(token, expected)
 
 
 @router.websocket("/ws/live")

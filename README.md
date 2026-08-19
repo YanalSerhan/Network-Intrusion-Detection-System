@@ -37,4 +37,5 @@ uv run mypy src
 
 See [docs/TESTING.md](docs/TESTING.md) for the test layout, the TDD workflow,
 the sample captures and the mutation spot check, and
-[docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming.
+[docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming, and
+[docs/CREDENTIALS.md](docs/CREDENTIALS.md) for credential handling and rotation.
