@@ -343,9 +343,9 @@
 
 ## Milestone 16 — Security & Secrets Management
 
-- [ ] Confirm no API keys, tokens, or passwords exist anywhere in source code or Git history
-- [ ] Confirm all secrets are read exclusively via environment variables
-- [ ] Confirm `.env` is git-ignored and `.env-example` is committed with placeholder values
+- [x] Confirm no API keys, tokens, or passwords exist anywhere in source code or Git history
+- [x] Confirm all secrets are read exclusively via environment variables
+- [x] Confirm `.env` is git-ignored and `.env-example` is committed with placeholder values
 - [ ] Implement periodic API key rotation guidance/documentation
 - [ ] Apply principle of least privilege to any credentials used (DB, threat intel APIs)
 - [x] Wire `retention_days` through to the pruner, and add `packets_days` / `statistics_days` — the value is configured, validated and reported by `GET /config`, but the pruner uses its own defaults
