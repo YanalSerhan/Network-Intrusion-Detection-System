@@ -350,7 +350,7 @@
 - [x] Apply principle of least privilege to any credentials used (DB, threat intel APIs)
 - [x] Wire `retention_days` through to the pruner, and add `packets_days` / `statistics_days` — the value is configured, validated and reported by `GET /config`, but the pruner uses its own defaults
 - [x] Run a secrets-scanning tool (e.g., `gitleaks`/`truffleHog`) in CI
-- [ ] Document a basic threat model for Network Defender itself (what it protects against, its own attack surface)
+- [x] Document a basic threat model for Network Defender itself (what it protects against, its own attack surface)
 - [x] Add input validation/sanitization on all API and dashboard inputs (prevent injection)
 - [x] Fix the gatekeeper's rate limiting (found by the Milestone 15 review, `docs/CODE_REVIEW.md`)
   - [x] Count retried requests against the window — failures currently consume no budget, so an outage fires 4x the configured rate
