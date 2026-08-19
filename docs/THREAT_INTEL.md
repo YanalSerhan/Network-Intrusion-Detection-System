@@ -1,4 +1,4 @@
-# Threat Intelligence Enrichment (Milestone 8)
+# Threat intelligence
 
 Enriches alerts with external context — IP reputation, geolocation, ASN and
 registration data — without ever blocking detection. Lives in

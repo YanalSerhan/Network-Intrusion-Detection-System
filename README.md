@@ -204,11 +204,12 @@ adding a detector or a threat intelligence provider.
 
 ## Status
 
-Milestones 0–16 and 19–20 are complete. Docker (17) is not started; of the
-CI work (18), lint, types, tests with the coverage gate, dependency audit and
-secrets scanning already run on every push, and the Docker build, version
-matrix and branch protection do not. Known limitations, with measurements, are
-in [docs/ROADMAP.md](docs/ROADMAP.md).
+Milestones 0–16 and 19–20 are complete. Docker (17) is not started. Of the CI
+work (18), the test suite with its coverage gate, the dependency audit and the
+secrets scan run on every push; lint and type checking run in the pre-commit
+hooks but **not** in CI, and neither does a Docker build, a version matrix or
+branch protection. Known limitations, with measurements, are in
+[docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 

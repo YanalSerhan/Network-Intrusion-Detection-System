@@ -1,6 +1,6 @@
-# Testing & Quality Assurance (Milestone 14)
+# Testing & quality assurance
 
-714 tests, 97.5% branch coverage, gated at 85%. This document covers how the
+1185 tests, 97.5% branch coverage, gated at 85%. This document covers how the
 suite is organised, the workflow it is written under, and what each layer is
 responsible for proving.
 
@@ -11,7 +11,7 @@ uv sync --all-groups          # once
 uv run pytest                 # everything, with coverage
 uv run pytest tests/unit      # fast: no database file, no threads, no sockets
 uv run pytest tests/e2e       # replay the sample captures end to end
-uv run pytest tests/performance   # throughput and latency floors
+uv run pytest -m performance  # throughput and latency floors
 ```
 
 Reports land in `reports/` on every run — `coverage.xml` for tooling,
@@ -134,9 +134,14 @@ would have *noticed the line being wrong*, which for a detector is the whole
 question: one that quietly stops detecting still satisfies every assertion
 about the alerts it does raise.
 
-Scoped to `src/network_defender/detectors`, currently killing 447 of 523
-mutants. It is a spot check, not a gate — it takes minutes, and a surviving
-mutant is a question to answer, not a build to fail.
+Scoped to `src/network_defender/detectors`. It is a spot check, not a gate: it
+takes tens of minutes rather than the seconds the test suite takes, and a
+surviving mutant is a question to answer rather than a build to fail.
+
+No pass rate is quoted here on purpose. A figure written down once is a figure
+that is wrong by the next commit and that nobody re-runs for long enough to
+notice — the script prints the current one, and the current one is the only
+useful one.
 
 Read the survivors like this: **a surviving mutant is a change to the source
 that no test objected to.** Sometimes that is fine (mutated text inside a log

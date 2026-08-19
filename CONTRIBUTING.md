@@ -130,9 +130,12 @@ Commits are small and self-contained. Each one should leave the suite green;
 
 1. Branch from `main`.
 2. Make the change, with tests, in commits that each leave the build green.
-3. Run `uv run pytest`, `uv run ruff check` and `uv run mypy` locally. CI runs
-   the same commands from the same configuration, so a green local run means
-   a green CI run.
+3. Run `uv run pytest`, `uv run ruff check` and `uv run mypy` locally, and
+   install the pre-commit hooks so you cannot forget. CI runs the test suite
+   with the same coverage gate from the same `pyproject.toml`, plus a
+   dependency audit and a secrets scan — but **not** ruff or mypy, which are
+   pre-commit only until Milestone 18 adds them. Until then a lint failure
+   reaches review, so run them.
 4. Update the documentation that your change makes wrong. Not "documentation"
    in general — the specific file. Detector behaviour touches
    [docs/DETECTORS.md](docs/DETECTORS.md); configuration touches

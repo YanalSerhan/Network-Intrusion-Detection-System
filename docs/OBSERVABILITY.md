@@ -1,4 +1,4 @@
-# Logging & Observability (Milestone 12)
+# Observability
 
 Structured JSON logs, three separate streams, correlation IDs that survive the
 pipeline's thread hand-offs, and redaction that runs on the handler so no call

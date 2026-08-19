@@ -59,23 +59,27 @@ deleted. `packets_days` and `statistics_days` have no config key at all. This
 is the same defect class as the confidence thresholds fixed earlier in this
 milestone: a value copied into config, believed by operators, ignored by code.
 
-### Documentation currency (Milestone 20)
+### Documentation currency (Milestone 20) — **closed**
 
-- `docs/PLAN.md`'s Level 3 diagram shows every detector subclassing
-  `BaseDetector` directly, which stopped being true in this milestone.
-- `docs/PRD_detection_engine.md` says a new detector is added by dropping it
-  into `detectors/`; the registry scans `detectors/impl/`.
-- `docs/PROMPT_LOG.md` has one entry, for Milestone 0, against 70+ commits.
-- `README.md`'s usage section contains a placeholder rather than a start
-  command.
+- `docs/PLAN.md`'s Level 3 diagram showed every detector subclassing
+  `BaseDetector` directly, which stopped being true in Milestone 15. Redrawn,
+  along with two other diagrams in that file that had never rendered.
+- `docs/PRD_detection_engine.md` said a new detector is added by dropping it
+  into `detectors/`; the registry scans `detectors/impl/`. Corrected.
+- `docs/PROMPT_LOG.md` had one entry, for Milestone 0. Backfilled.
+- `README.md`'s usage section contained a placeholder rather than a start
+  command — because the project had no entry point. A CLI was added and the
+  section now documents it.
 
-### Structure (Milestone 20)
+### Structure (Milestone 20) — **closed**
 
 The checklist names `dashboard/`, `models/` and `utils/` packages that do not
 exist: the dashboard is `frontend/` plus one router, models live per-package,
 and `utils/` is `shared/`. The layering is clean and the deviation is
-reasonable — but it is undocumented, so it reads as drift rather than as a
-decision. Worth a project-structure section in the README.
+reasonable — but it was undocumented, so it read as drift rather than as a
+decision. Now a table in
+[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md#project-structure) mapping each
+checklist name onto where the thing lives, and why.
 
 ## Confirmed as passing
 

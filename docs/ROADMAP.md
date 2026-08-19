@@ -107,10 +107,11 @@ All four are tracked under Milestone 21 in [TODO.md](TODO.md).
 5. **Containers** (Milestone 17): multi-stage build, non-root, `NET_RAW`
    scoped to the sensor only, a Compose file for development and a hardened
    PostgreSQL overlay for production.
-6. **Finish CI** (Milestone 18): lint, types, tests with the coverage gate,
-   dependency audit and secrets scanning already run on every push; what is
-   missing is the Docker build, a matrix across 3.12 and 3.13, and branch
-   protection.
+6. **Finish CI** (Milestone 18). The test suite with its coverage gate, the
+   dependency audit and the secrets scan run on every push. Missing: **ruff
+   and mypy**, which today run only in the pre-commit hooks and so are
+   enforced on whoever installed them; the Docker build; a matrix across 3.12
+   and 3.13; and branch protection.
 
 ### Then — extensibility
 

@@ -1,4 +1,4 @@
-# Configuration Reference (Milestone 13)
+# Configuration
 
 Every runtime setting, where it comes from, and what it does.
 

@@ -11,7 +11,7 @@ For coding standards and the pull request process see
 
 ```bash
 uv sync --all-groups          # runtime, dev and research dependencies
-uv run pytest                 # 1150+ tests, coverage gated at 85%
+uv run pytest                 # 1180+ tests, coverage gated at 85%
 uv run ruff check
 uv run mypy
 uv run network-defender replay tests/data/pcaps/tcp_port_scan.pcap

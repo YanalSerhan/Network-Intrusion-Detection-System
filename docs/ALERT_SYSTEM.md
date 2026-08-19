@@ -1,4 +1,4 @@
-# Alert System (Milestone 7)
+# Alert system
 
 The alert system turns raw detections into triage-ready records. It lives in
 `src/network_defender/services/alerts/` and is reached only through the SDK.

@@ -375,8 +375,8 @@
 
 ## Milestone 18 — CI/CD (GitHub Actions)
 
-- [ ] Create workflow: run Ruff lint on every push/PR
-- [ ] Create workflow: run MyPy type checks
+- [ ] Create workflow: run Ruff lint on every push/PR — today it runs only in the pre-commit hooks, so it is enforced on whoever installed them and a lint failure reaches review
+- [ ] Create workflow: run MyPy type checks — same gap as Ruff above
 - [ ] Create workflow: run full test suite with coverage gate (≥85%)
 - [ ] Create workflow: run security checks (dependency audit, secrets scan)
 - [ ] Create workflow: build Docker image and verify it starts successfully
@@ -410,7 +410,7 @@
 - [x] Write Future Roadmap section (planned features, known limitations)
 - [x] Add architecture diagrams (C4, deployment) to `docs/`
 - [x] Add annotated screenshots of the dashboard
-- [ ] Cross-check README against actual behavior (no stale instructions)
+- [x] Cross-check README against actual behavior (no stale instructions)
 - [x] Fill in the README's usage section — it currently holds a placeholder, not a start command
 - [x] Document the project structure, mapping the checklist's `dashboard/`, `models/` and `utils/` onto where they actually live
 - [x] Redraw the PLAN.md Level 3 diagram — it predates the detector base classes added in Milestone 15
