@@ -17,10 +17,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path
 
+from ...database.column_widths import RULE_NAME_LENGTH
 from ..dependencies import AuthDep, PaginationDep, SdkDep
 from ..errors import NotFoundError
 from ..schemas.common import build_meta
 from ..schemas.resources import RulePage, RuleReloadResult, RuleToggle, RuleView
+
+#: Bounded to the column that stores it. Without a limit the name is
+#: unbounded free text that is reflected back in a 404 message and written to
+#: a log line — neither is an injection, but both are work an unauthenticated
+#: caller should not be able to ask for by the megabyte.
+NameParam = Annotated[str, Path(description="Rule name.", max_length=RULE_NAME_LENGTH)]
 
 router = APIRouter(prefix="/rules", tags=["rules"], dependencies=[AuthDep])
 
@@ -50,7 +57,7 @@ def reload_rules(sdk: SdkDep) -> RuleReloadResult:
 @router.get("/{name}", response_model=RuleView, summary="Get a rule")
 def get_rule(
     sdk: SdkDep,
-    name: Annotated[str, Path(description="Rule name.")],
+    name: NameParam,
 ) -> RuleView:
     """
     Return a single rule by name.
@@ -67,7 +74,7 @@ def get_rule(
 @router.patch("/{name}", response_model=RuleView, summary="Enable or disable a rule")
 def toggle_rule(
     sdk: SdkDep,
-    name: Annotated[str, Path(description="Rule name.")],
+    name: NameParam,
     toggle: RuleToggle,
 ) -> RuleView:
     """

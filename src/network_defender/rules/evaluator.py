@@ -11,21 +11,38 @@ from collections.abc import Callable
 from typing import Any
 
 from network_defender.parser.models import ParsedPacket
-from network_defender.rules.models import RuleCondition
+from network_defender.rules.models import MAX_REGEX_SUBJECT_LENGTH, RuleCondition
 
 
 def _get_field_value(packet: ParsedPacket, field_path: str) -> Any:
-    """Extract a nested field value from a ParsedPacket."""
-    parts = field_path.split(".")
+    """
+    Extract a nested field value from a ParsedPacket.
+
+    Private attributes are refused here as well as at rule-validation time.
+    Belt and braces on purpose: this is the function that turns a string from
+    a file into an attribute lookup, so it should be safe on its own terms
+    rather than only because its caller checked.
+    """
     current: Any = packet
-    for part in parts:
-        if current is None:
+    for part in field_path.split("."):
+        if current is None or part.startswith("_"):
             return None
-        if hasattr(current, part):
-            current = getattr(current, part)
-        else:
+        if not hasattr(current, part):
             return None
+        current = getattr(current, part)
     return current
+
+
+def _search(pattern: Any, subject: Any) -> bool:
+    """
+    Run a regex condition, bounding the subject length.
+
+    Catastrophic backtracking is superlinear in the length of what is being
+    matched, so a cap on the subject caps what one badly-written rule can cost
+    the detection thread. Every field rules match on — hostnames, paths, user
+    agents — is far shorter than the cap.
+    """
+    return bool(re.search(str(pattern), str(subject)[:MAX_REGEX_SUBJECT_LENGTH]))
 
 
 #: Operator name from the YAML schema -> the comparison it performs. A table
@@ -37,7 +54,7 @@ OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
     "not_equals": lambda field, value: bool(field != value),
     "greater_than": lambda field, value: bool(field > value),
     "less_than": lambda field, value: bool(field < value),
-    "regex": lambda field, value: bool(re.search(str(value), str(field))),
+    "regex": lambda field, value: _search(value, field),
 }
 
 

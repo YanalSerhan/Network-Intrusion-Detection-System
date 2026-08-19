@@ -40,6 +40,7 @@ from .routers import (
     rules,
     statistics,
 )
+from .security_headers import SecurityHeadersMiddleware
 
 DESCRIPTION = """
 REST API for **Network Defender**, a modular Python network intrusion
@@ -120,6 +121,7 @@ def create_app(sdk: NetworkDefenderSDK | None = None) -> FastAPI:
     # Added before the routers so every request, including failures handled by
     # the error handlers, runs inside a correlation scope.
     app.add_middleware(CorrelationMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
     register_error_handlers(app)
 
     for router in (alerts, packets, statistics, rules, health, config):
