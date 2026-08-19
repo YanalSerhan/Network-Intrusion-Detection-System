@@ -400,7 +400,7 @@
 
 ## Milestone 20 — Documentation Finalization
 
-- [ ] Write comprehensive `README.md`: overview, features, architecture diagram, folder structure, installation, quick start, screenshots, usage examples
+- [x] Write comprehensive `README.md`: overview, features, architecture diagram, folder structure, installation, quick start, screenshots, usage examples
 - [x] Write "Threat Model" documentation section
 - [x] Write "Example Attacks" walkthrough (how to simulate each detected attack type)
 - [x] Write "How Detections Work" explainer per detector
