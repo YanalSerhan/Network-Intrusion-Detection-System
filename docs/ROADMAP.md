@@ -30,9 +30,9 @@ detector does not currently use, not a better number.
 
 **The shipped `tcp_port_scan.yaml` rule is wrong.** It counts SYN packets
 where the detector counts unique destination ports, so it labels a SYN flood,
-an SSH brute force, a bulk transfer and lateral movement as port scans. And a
-threshold rule fires once per matching packet after its threshold rather than
-once per window, so one behaviour can produce a dozen alerts.
+an SSH brute force, a bulk transfer and lateral movement as port scans — one
+alert each now that firing is edge-triggered, but still four things that are
+not port scans called port scans.
 
 **No baselining, no correlation.** Every threshold is absolute rather than
 learned from the segment, so a quiet office and a datacentre span get the same
@@ -89,9 +89,9 @@ Ordered by what the evidence says matters, not by what is easiest.
    that always declared them.
 2. ~~**Sliding windows instead of tumbling ones.**~~ Done in Milestone 21, and
    with them a burst is one alert rather than one per evaluation.
-3. **Fix the port-scan rule and the once-per-packet firing.** Either give the
-   rule schema a distinct-value threshold or retire a rule the detector
-   already covers correctly.
+3. **Fix the port-scan rule.** Either give the rule schema a distinct-value
+   threshold or retire a rule the detector already covers correctly. The
+   once-per-packet firing beside it is fixed: rules are edge-triggered.
 4. **Give the five unseparable detectors the signal they need** rather than a
    different number: a registered-domain allowlist for DNS tunnelling, a
    destination classification for exfiltration, and destination reputation for

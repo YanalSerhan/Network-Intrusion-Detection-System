@@ -71,8 +71,9 @@ class RuleEngine:
         Return True if the rule should fire for this packet.
 
         Single-packet rules always fire. Aggregation rules record the match and
-        fire only once `threshold` matches fall inside `window` seconds for the
-        same `group_by` value.
+        fire once `threshold` matches fall inside `window` seconds for the same
+        `group_by` value — once per episode, not once per packet past the
+        threshold, which is how one port scan came to raise eleven alerts.
         """
         if not rule.is_aggregated:
             return True
@@ -82,10 +83,10 @@ class RuleEngine:
             # Nothing to aggregate on (e.g. group_by: src_ip on an ARP packet).
             return False
 
-        hits = self.counter.record(
+        return self.counter.fires(
             rule_name=rule.name,
             group_key=str(group_value),
             timestamp=packet.timestamp.timestamp(),
             window_seconds=rule.window,
+            threshold=rule.threshold,
         )
-        return hits >= rule.threshold

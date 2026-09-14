@@ -4,17 +4,20 @@ Time-window aggregation for rules.
 Data Setup:  Bound on tracked series injected via __init__.
 Data Input:  (rule name, group key, timestamp) for each packet whose conditions
              all matched.
-Data Output: The number of matches for that series inside the rule's window.
+Data Output: Whether the rule should fire, and how many matches are in window.
 
 Why this exists
 ---------------
 `Rule.window` is documented in RULE_SCHEMA.md and set on the shipped rules, but
 the engine matched every rule per packet and ignored it. A single SYN packet
 therefore raised a high-severity "SYN Flood". Aggregation rules now only fire
-once `threshold` matches are seen within `window` seconds.
+once `threshold` matches are seen within `window` seconds — and only once per
+episode, which is `Series.should_fire`'s half of the job.
 """
 
-from collections import OrderedDict, deque
+from collections import OrderedDict
+
+from network_defender.rules.series import Series
 
 #: Bound on distinct (rule, group) series tracked at once, to cap memory.
 MAX_TRACKED_SERIES = 10_000
@@ -39,7 +42,7 @@ class WindowedCounter:
             max_series: Maximum distinct (rule, group) series tracked (LRU-evicted).
         """
         self._max_series = max_series
-        self._series: OrderedDict[SeriesKey, deque[float]] = OrderedDict()
+        self._series: OrderedDict[SeriesKey, Series] = OrderedDict()
 
     @property
     def tracked_series(self) -> int:
@@ -61,20 +64,44 @@ class WindowedCounter:
         Returns:
             Count of matches for this series within the window, including this one.
         """
-        key = (rule_name, group_key)
+        return self._touch((rule_name, group_key)).record(timestamp, window_seconds)
+
+    def fires(
+        self,
+        rule_name: str,
+        group_key: str,
+        timestamp: float,
+        window_seconds: int,
+        threshold: int,
+    ) -> bool:
+        """
+        Record a match and return True only on the one that starts an episode.
+
+        Args:
+            rule_name:      Name of the matching rule.
+            group_key:      Value the rule aggregates on (e.g. a source IP).
+            timestamp:      Packet time as a POSIX timestamp.
+            window_seconds: Rule window length in seconds.
+            threshold:      Matches required inside the window.
+
+        Returns:
+            True for the match that takes this series to the threshold, and
+            not again until the count has fallen back below it.
+        """
+        series = self._touch((rule_name, group_key))
+        series.record(timestamp, window_seconds)
+        return series.should_fire(threshold)
+
+    def _touch(self, key: SeriesKey) -> Series:
+        """Return the series for this key, creating it and evicting if needed."""
         series = self._series.get(key)
         if series is None:
-            series = deque()
+            series = Series()
             self._series[key] = series
             self._evict_overflow()
         else:
             self._series.move_to_end(key)
-
-        series.append(timestamp)
-        cutoff = timestamp - window_seconds
-        while series and series[0] < cutoff:
-            series.popleft()
-        return len(series)
+        return series
 
     def reset(self) -> None:
         """Discard all aggregation state."""

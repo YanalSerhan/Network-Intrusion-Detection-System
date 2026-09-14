@@ -184,16 +184,18 @@ and any burst of fifteen connections satisfies the rule.
 This is why the heuristic detector exists and the rule does not replace it.
 Open under Milestone 21.
 
-### One rule match can produce a dozen alerts
+### One rule match used to produce a dozen alerts
 
-`lateral_movement.pcap` raises twelve, eleven of them repeats of that same
-rule. A threshold rule fires once for **every** matching packet after the
-threshold is reached, rather than once per window: `hits >= threshold` stays
-true for the rest of the window. Deduplication hides it only when the source
-*and* destination repeat, and lateral movement is by definition a rotating
-destination.
+`lateral_movement.pcap` raised twelve, eleven of them repeats of that same
+rule: a threshold rule fired once for **every** matching packet after the
+threshold was reached, because `hits >= threshold` stays true for the rest of
+the window. Deduplication hid it only when the source *and* destination
+repeated, and lateral movement is by definition a rotating destination.
 
-Open under Milestone 21.
+Fixed in Milestone 21. Firing is edge-triggered — the match that crosses the
+threshold raises the alert, and the rule re-arms once the matches age out of
+the window. The capture now raises one. The rule is still wrong about *what*
+it detects; that is the section above.
 
 ## Why beaconing used not to fire live
 

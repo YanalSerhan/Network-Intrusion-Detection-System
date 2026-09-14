@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from network_defender.sdk.sdk import NetworkDefenderSDK
+from tests.fixtures.builders import make_detection
 from tests.fixtures.constants import PUBLIC_IP
 
 
@@ -67,16 +68,24 @@ def test_rule_alerts_retain_packet_evidence(
 
 @patch("network_defender.capture.service.AsyncSniffer")
 def test_deduplicated_occurrences_are_persisted(
-    mock_sniffer: MagicMock, sdk: NetworkDefenderSDK, scan_pcap: Path
+    mock_sniffer: MagicMock, sdk: NetworkDefenderSDK
 ) -> None:
     """Regression: dedup mutates in place, which a durable store must be told about."""
     mock_sniffer.return_value = MagicMock()
     sdk.start()
     try:
-        sdk.start_capture_from_pcap(scan_pcap)
+        # Fed to the alert service directly, because nothing upstream produces
+        # a repeat any more: detectors and rules both report an episode once.
+        # Deduplication still has to work -- a re-armed detector, a second
+        # sensor and a reloaded rule all deliver the same finding twice -- and
+        # what it must not do is merge in memory while the database keeps the
+        # unmerged copy.
+        detection = make_detection()
+        assert sdk._alert_service.handle_detection(detection) is not None
+        assert sdk._alert_service.handle_detection(detection) is None
 
-        rule_alerts = [a for a in sdk.list_alerts() if a.source == "rule_engine"]
-        assert len(rule_alerts) == 1
-        assert rule_alerts[0].occurrences > 1
+        stored = [a for a in sdk.list_alerts() if a.source == "detector"]
+        assert len(stored) == 1
+        assert stored[0].occurrences == 2
     finally:
         sdk.stop()

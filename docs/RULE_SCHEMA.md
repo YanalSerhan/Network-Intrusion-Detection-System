@@ -38,6 +38,20 @@ This distinction matters. A rule describing a volume event — a flood, a scan, 
 brute-force attempt — is only meaningful with a threshold: `window` alone does
 nothing, and the rule will fire on the very first matching packet. Set both.
 
+**An aggregation rule fires once per episode, not once per packet past the
+threshold.** `threshold: 15` means the fifteenth match raises an alert and the
+sixteenth does not; the rule re-arms only once enough matches have aged out of
+the window for the count to fall back under the threshold, which is the point
+at which the behaviour has stopped. This is per `group_by` value, so two
+sources scanning at once are two alerts.
+
+The alternative — alerting on every match once the count is high enough — is
+what the engine used to do, and it turned one twenty-five packet behaviour
+into eleven alerts. Deduplication downstream is not a substitute: its window
+is not the rule's window and its key is not the rule's `group_by`, so an
+attacker who crosses a threshold and then rotates destination gets an alert
+per packet.
+
 ```yaml
 # WRONG: fires on every single SYN packet, so ordinary traffic raises a flood alert
 name: "SYN Flood"

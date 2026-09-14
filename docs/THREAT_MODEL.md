@@ -128,14 +128,15 @@ storm buries the one alert that matters.
   cannot stall detection.
 - The gatekeeper sheds callers past its queue depth instead of piling up.
 - **Residual risk:** the analyst's attention. Nothing here solves that.
-- **Known amplifier.** A threshold rule fires once for *every* matching packet
-  after its threshold is reached, not once per window, and deduplication only
-  collapses repeats that share a source *and* a destination. An attacker who
-  crosses a rule threshold and then rotates destinations gets one alert per
-  packet — `lateral_movement.pcap` produces twelve alerts for one behaviour
-  without trying. That turns a cheap action into an alert multiplier, which is
-  precisely the shape this section is about. Open under Milestone 21; see
-  [EXAMPLE_ATTACKS.md](EXAMPLE_ATTACKS.md).
+- **A closed amplifier, worth recording.** A threshold rule used to fire once
+  for *every* matching packet after its threshold was reached, and
+  deduplication only collapses repeats that share a source *and* a
+  destination. An attacker who crossed a rule threshold and then rotated
+  destinations got one alert per packet — `lateral_movement.pcap` produced
+  twelve alerts for one behaviour without trying. Fixed in Milestone 21:
+  rules and detectors both report an episode once and re-arm when it ends, so
+  alert volume is bounded by the number of distinct behaviours rather than by
+  the attacker's packet rate. See [EXAMPLE_ATTACKS.md](EXAMPLE_ATTACKS.md).
 
 ### 4. The REST API
 

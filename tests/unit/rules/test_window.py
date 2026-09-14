@@ -7,37 +7,10 @@ single SYN packet raised a high-severity "SYN Flood".
 
 from datetime import UTC, datetime, timedelta
 
-from network_defender.constants import Protocol, Severity
-from network_defender.parser.models import ParsedPacket, TcpFlags
 from network_defender.rules.engine import RuleEngine
-from network_defender.rules.models import Rule, RuleCondition
 from network_defender.rules.window import WindowedCounter
-
-
-def _syn(src_ip: str = "10.0.0.5", when: datetime | None = None) -> ParsedPacket:
-    return ParsedPacket(
-        timestamp=when or datetime.now(UTC),
-        src_ip=src_ip,
-        dst_ip="10.0.0.9",
-        src_port=4444,
-        dst_port=80,
-        protocol=Protocol.TCP,
-        length=60,
-        tcp_flags=TcpFlags(syn=True),
-        raw_summary="TCP SYN",
-    )
-
-
-def _rule(window: int = 10, threshold: int = 5, group_by: str = "src_ip") -> Rule:
-    return Rule(
-        name="SYN Flood",
-        severity=Severity.HIGH,
-        window=window,
-        threshold=threshold,
-        group_by=group_by,
-        conditions=[RuleCondition(field="tcp_flags.syn", operator="equals", value=True)],
-    )
-
+from tests.fixtures.rules import syn as _syn
+from tests.fixtures.rules import syn_rule as _rule
 
 # --------------------------------------------------------------------------
 # WindowedCounter

@@ -100,7 +100,7 @@ def test_captured_packets_reach_the_detectors_and_raise_alerts(
 
 
 @patch("network_defender.capture.service.AsyncSniffer")
-def test_alert_storm_is_deduplicated_end_to_end(
+def test_a_scan_reaches_the_store_as_one_alert(
     mock_sniffer: MagicMock, sdk: NetworkDefenderSDK, scan_pcap: Path
 ) -> None:
     mock_sniffer.return_value = MagicMock()
@@ -108,10 +108,11 @@ def test_alert_storm_is_deduplicated_end_to_end(
     try:
         sdk.start_capture_from_pcap(scan_pcap)
         sdk._detection_service.evaluate_detectors()
-        # 40 packets matched the rule, but they collapse into one alert record.
+        # 40 packets match the rule's conditions and the rule fires once, so
+        # nothing downstream has to clean up after it.
         rule_alerts = [a for a in sdk.list_alerts() if a.rule_triggered == "TCP Port Scan"]
         assert len(rule_alerts) == 1
-        assert rule_alerts[0].occurrences > 1
+        assert rule_alerts[0].occurrences == 1
     finally:
         sdk.stop()
 
