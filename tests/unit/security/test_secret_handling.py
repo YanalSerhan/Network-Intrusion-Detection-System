@@ -32,6 +32,13 @@ SECRET_GATEWAY = SRC / "network_defender" / "shared" / "secrets.py"
 #: secret's name.
 CONFIG_OVERRIDE_READER = SRC / "network_defender" / "shared" / "config_env.py"
 
+#: Reads one variable, ND_PROJECT_ROOT, which names a directory. It is how an
+#: operator keeps configuration outside an installed wheel, and it holds a
+#: path rather than a credential — but it does decide where `.env` is looked
+#: for, so anyone who can set it can already set DATABASE_URL, and it is
+#: allowed here on that basis rather than because a path is harmless.
+PROJECT_ROOT_READER = SRC / "network_defender" / "shared" / "paths.py"
+
 def _python_sources() -> list[Path]:
     """Every shipped Python file."""
     return sorted(SRC.rglob("*.py"))
@@ -51,7 +58,7 @@ def test_only_the_secrets_module_reads_the_environment_for_credentials() -> None
     offenders = [
         path.relative_to(PROJECT_ROOT)
         for path in _python_sources()
-        if path not in (SECRET_GATEWAY, CONFIG_OVERRIDE_READER)
+        if path not in (SECRET_GATEWAY, CONFIG_OVERRIDE_READER, PROJECT_ROOT_READER)
         and re.search(r"os\.(getenv|environ)", path.read_text())
     ]
 

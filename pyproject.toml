@@ -1,13 +1,44 @@
 [project]
 name = "network-defender"
-version = "0.1.0"
-description = "A production-quality, modular Network Intrusion Detection System (IDS) in Python."
+version = "1.00"
+description = "A modular network intrusion detection system: passive capture, heuristic detectors, YAML signature rules, threat intel and a REST API."
 authors = [
     { name = "Network Defender Contributors" }
 ]
-license = { text = "MIT" }
+# PEP 639: an SPDX expression plus the file, rather than the deprecated
+# `{ text = "MIT" }` table, which puts the licence in a free-text field no
+# tool can check.
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.12"
+keywords = [
+    "ids",
+    "intrusion-detection",
+    "network-security",
+    "packet-capture",
+    "scapy",
+    "threat-intelligence",
+    "blue-team",
+]
+# Trove classifiers are the only machine-readable statement of what this runs
+# on and who it is for; an index has nothing else to filter or warn on. The
+# Python versions listed are the ones CI actually exercises — claiming one it
+# does not would be worse than claiming none.
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Information Technology",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Security",
+    "Topic :: System :: Networking :: Monitoring",
+    "Typing :: Typed",
+]
 dependencies = [
     "scapy>=2.5.0",
     "fastapi>=0.111.0",
@@ -34,6 +65,12 @@ dependencies = [
 [project.scripts]
 network-defender = "network_defender.cli.main:main"
 
+[project.urls]
+Homepage = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System"
+Repository = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System"
+Documentation = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System/tree/main/docs"
+Issues = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System/issues"
+
 [dependency-groups]
 dev = [
     "pytest>=8.2.2",
@@ -43,6 +80,10 @@ dev = [
     "respx>=0.21.1",
     "types-PyYAML>=6.0.12",
     "mutmut>=3.7.0",
+    # Present transitively through half the toolchain, declared because the
+    # packaging-metadata suite imports it directly: a test that depends on
+    # someone else's dependency breaks when they drop it.
+    "packaging>=24.0",
 ]
 research = [
     "jupyterlab>=4.6.3",
@@ -167,4 +208,37 @@ packages = ["src/network_defender"]
 # PEP 561 marker: without it, consumers (and mypy runs that do not name src/
 # explicitly) silently fall back to treating this package as untyped.
 artifacts = ["src/network_defender/py.typed"]
+
+# The package reads config/, rules/ and migrations/ at startup, and a wheel
+# that ships only the Python cannot find them: `pip install network-defender`
+# then `network-defender replay` looked for config in the interpreter's lib
+# directory, warned that it would use defaults, and then died running
+# migrations from a directory that did not exist either. Bundling them inside
+# the package is what makes the installed command work; shared/paths.py
+# prefers a checkout and an explicit ND_PROJECT_ROOT over these.
+[tool.hatch.build.targets.wheel.force-include]
+"config" = "network_defender/_bundled/config"
+"rules" = "network_defender/_bundled/rules"
+"migrations" = "network_defender/_bundled/migrations"
+"alembic.ini" = "network_defender/_bundled/alembic.ini"
+
+# An sdist is what a distribution packager builds from, and hatchling's default
+# is to ship the whole working tree. That would put the research CSVs, the
+# rendered figures, the coverage reports and the notebook into every download.
+# Named explicitly so adding a directory does not silently add it to the
+# tarball: config/ and rules/ are here because the package reads them at
+# startup, and tests/ because a packager who cannot run the suite cannot
+# verify the build.
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/config",
+    "/rules",
+    "/migrations",
+    "/alembic.ini",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
 

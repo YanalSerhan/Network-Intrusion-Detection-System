@@ -1733,7 +1733,7 @@ wheels = [
 
 [[package]]
 name = "network-defender"
-version = "0.1.0"
+version = "1.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
@@ -1753,6 +1753,7 @@ dependencies = [
 dev = [
     { name = "mutmut" },
     { name = "mypy" },
+    { name = "packaging" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "respx" },
@@ -1787,6 +1788,7 @@ requires-dist = [
 dev = [
     { name = "mutmut", specifier = ">=3.7.0" },
     { name = "mypy", specifier = ">=1.10.0" },
+    { name = "packaging", specifier = ">=24.0" },
     { name = "pytest", specifier = ">=8.2.2" },
     { name = "pytest-cov", specifier = ">=5.0.0" },
     { name = "respx", specifier = ">=0.21.1" },

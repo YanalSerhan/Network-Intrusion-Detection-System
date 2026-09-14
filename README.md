@@ -60,17 +60,33 @@ uv run network-defender replay tests/data/pcaps/tcp_port_scan.pcap
 ```
 3 alert(s) from tcp_port_scan.pcap:
 
-  high     TcpPortScanDetector        confidence 0.75  45.155.205.233
-           TCP Port Scan detected: 40 unique ports scanned.
-  high     SynScanDetector            confidence 0.83  45.155.205.233
-           SYN Scan detected: 40 unique ports targeted.
   medium   TCP Port Scan              confidence 0.85  45.155.205.233
            Rule 'TCP Port Scan' matched: 3 condition(s) satisfied.
+  high     SynScanDetector            confidence 0.83  45.155.205.233
+           SYN Scan detected: 40 unique ports targeted.
+  high     TcpPortScanDetector        confidence 0.75  45.155.205.233
+           TCP Port Scan detected: 40 unique ports scanned.
 ```
 
 No privileges, no interface, nothing to configure. Thirteen sample captures
 ship in `tests/data/pcaps/`, one per attack —
 [docs/EXAMPLE_ATTACKS.md](docs/EXAMPLE_ATTACKS.md) walks through all of them.
+
+### Installing it instead
+
+`uv build` produces a wheel that carries `config/`, `rules/` and the
+migrations with it, so the installed command works with nothing else present:
+
+```bash
+uv build && uv pip install dist/network_defender-*.whl
+network-defender replay path/to/capture.pcap
+```
+
+To keep configuration somewhere of your own — `/etc/network-defender`, a
+mounted volume, a config-management checkout — point `ND_PROJECT_ROOT` at a
+directory holding `config/` and `rules/`. Running from a checkout ignores both
+and uses the checkout, so editing a rule always does what it looks like it
+does.
 
 ## Usage
 
