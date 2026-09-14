@@ -14,12 +14,12 @@ uv run network-defender replay tests/data/pcaps/tcp_port_scan.pcap
 ```
 3 alert(s) from tcp_port_scan.pcap:
 
-  high     TcpPortScanDetector        confidence 0.75  45.155.205.233
-           TCP Port Scan detected: 40 unique ports scanned.
-  high     SynScanDetector            confidence 0.83  45.155.205.233
-           SYN Scan detected: 40 unique ports targeted.
   medium   TCP Port Scan              confidence 0.85  45.155.205.233
            Rule 'TCP Port Scan' matched: 3 condition(s) satisfied.
+  high     SynScanDetector            confidence 0.83  45.155.205.233
+           SYN Scan detected: 40 unique ports targeted.
+  high     TcpPortScanDetector        confidence 0.75  45.155.205.233
+           TCP Port Scan detected: 40 unique ports scanned.
 ```
 
 Three alerts from one capture, which is correct and worth understanding. A
@@ -88,15 +88,28 @@ uv run network-defender replay tests/data/pcaps/syn_flood.pcap
 ```
 
 ```
-  critical SynFloodDetector           confidence 0.73  -
+  high     SYN Flood                  confidence 0.90  45.155.205.233
+           Rule 'SYN Flood' matched: 3 condition(s) satisfied.
+  critical SynFloodDetector           confidence 0.86  -
            SYN Flood detected: 150 SYN packets to destination.
 ```
 
-The source column is empty on purpose. Flood detectors key on the
-**destination**, because a flood is usually distributed and the victim is what
-every packet has in common. The UDP and ICMP captures behave the same way at
-HIGH and MEDIUM severity — a SYN consumes a connection-table entry, a datagram
-consumes bandwidth, and an echo request is mostly noise.
+Two mechanisms, one behaviour: the YAML signature rule and the heuristic
+detector. The detector's source column is empty on purpose — flood detectors
+key on the **destination**, because a flood is usually distributed and the
+victim is what every packet has in common. The rule names the source because
+the packet that crossed its threshold came from there.
+
+The UDP and ICMP captures behave the same way at HIGH and MEDIUM severity — a
+SYN consumes a connection-table entry, a datagram consumes bandwidth, and an
+echo request is mostly noise:
+
+```
+  high     UdpFloodDetector           confidence 0.79  -
+           UDP Flood detected: 250 packets.
+  medium   IcmpFloodDetector          confidence 0.72  -
+           ICMP Flood detected: 60 packets.
+```
 
 ### Credential access — brute force and ARP poisoning
 
@@ -107,7 +120,7 @@ uv run network-defender replay tests/data/pcaps/arp_spoofing.pcap
 ```
 
 ```
-  high     SshBruteForceDetector      confidence 0.68  45.155.205.233
+  high     SshBruteForceDetector      confidence 0.67  45.155.205.233
            Possible SSH Brute Force: 15 connection attempts.
   medium   HttpBruteForceDetector     confidence 0.61  45.155.205.233
            Possible HTTP Brute Force: 25 login endpoint requests.
@@ -155,16 +168,16 @@ uv run network-defender replay tests/data/pcaps/lateral_movement.pcap
 Fan-out is the signal, not volume. Both endpoints must be private, which is
 what separates this from a scan arriving from outside.
 
-## Three things that look wrong, and are
+## Three things that looked wrong, and were
 
-A walkthrough that only shows the tidy cases is a demo. These are real, they
-are reproducible with the commands above, and each is filed.
+A walkthrough that only shows the tidy cases is a demo. These were real and
+reproducible with the commands above. Two are fixed; the first is a property
+of the fixture and is documented rather than hidden.
 
-### `data_exfiltration.pcap` raises no exfiltration alert
+### `data_exfiltration.pcap` raises no alert at all
 
 ```
-  medium   TCP Port Scan              confidence 0.85  192.168.1.50
-           Rule 'TCP Port Scan' matched: 3 condition(s) satisfied.
+0 alert(s) from data_exfiltration.pcap:
 ```
 
 The shipped threshold is 50 MB, and a 50 MB fixture in a git repository is not
@@ -173,16 +186,22 @@ to one external address — and the end-to-end test lowers the threshold rather
 than the fixture growing to meet it. This is the one capture whose name
 promises more than it delivers on its own.
 
-### The "TCP Port Scan" rule fires on four captures that are not port scans
+Until Milestone 21 it did raise something: a "TCP Port Scan", which it is not.
 
-It appears above under `ssh_brute_force`, `syn_flood`, `data_exfiltration` and
-`lateral_movement`. The rule counts **SYN packets** — 15 from one source in 60
-seconds — while `TcpPortScanDetector` counts **unique destination ports**. Its
-own comment claims the two thresholds match; they measure different things,
-and any burst of fifteen connections satisfies the rule.
+### The "TCP Port Scan" rule used to fire on four captures that are not scans
 
-This is why the heuristic detector exists and the rule does not replace it.
-Open under Milestone 21.
+It appeared under `ssh_brute_force`, `syn_flood`, `data_exfiltration` and
+`lateral_movement`. The rule counted **SYN packets** — 15 from one source in
+60 seconds — while `TcpPortScanDetector` counts **unique destination ports**.
+Its own comment claimed the two thresholds matched; they measured different
+things, so any burst of fifteen connections satisfied it.
+
+Fixed in Milestone 21 by giving the rule schema what it was missing rather
+than by retiring the rule. `distinct_field: dst_port` makes the threshold
+count distinct values instead of matches, which is the difference between
+breadth and volume — and the difference a signature language needs to be able
+to express at all if it is going to describe reconnaissance. Each shipped rule
+now fires on its own capture and on no other.
 
 ### One rule match used to produce a dozen alerts
 

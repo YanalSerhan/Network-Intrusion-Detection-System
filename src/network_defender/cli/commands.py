@@ -22,6 +22,7 @@ from types import FrameType
 from ..constants import PROJECT_VERSION
 from ..sdk.sdk import NetworkDefenderSDK
 from ..shared.config import load_app_config
+from .collector import ReplayCollector
 
 #: How long a replay waits after the last packet before reporting. The
 #: detectors decide on a timer, so a replay that exits immediately reads an
@@ -109,14 +110,17 @@ def run_replay(path: Path, settle: float) -> int:
         print(f"No such capture: {path}")
         return 1
 
+    collector = ReplayCollector()
     sdk = NetworkDefenderSDK.create()
     sdk.start_offline()
     try:
+        # What this replay raised, not what the database happens to hold; see
+        # the module docstring on ReplayCollector.
+        sdk.register_notification_hook(collector)
         sdk.start_capture_from_pcap(path)
         time.sleep(settle)
-        alerts = sdk.list_alerts(limit=100)
-        print(f"\n{len(alerts)} alert(s) from {path.name}:\n")
-        for alert in alerts:
+        print(f"\n{len(collector.alerts)} alert(s) from {path.name}:\n")
+        for alert in collector.alerts:
             print(
                 f"  {alert.severity:<8} {alert.rule_triggered:<26} "
                 f"confidence {alert.confidence:.2f}  {alert.src_ip or '-'}"

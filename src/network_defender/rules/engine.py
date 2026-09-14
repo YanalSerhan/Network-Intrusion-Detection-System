@@ -7,15 +7,17 @@ Data Output: List of Rules that matched the packet.
 
 Matching has two modes:
   - Single-packet rules (`window: 0` or `threshold: 1`) fire immediately.
-  - Aggregation rules fire only once `threshold` matches occur for the same
-    `group_by` value within `window` seconds.
+  - Aggregation rules fire once `threshold` matches occur for the same
+    `group_by` value within `window` seconds, and once per episode rather than
+    once per packet past the threshold. A rule with a `distinct_field` counts
+    distinct values of it instead of counting matches.
 """
 
 import logging
 from typing import Any
 
 from network_defender.parser.models import ParsedPacket
-from network_defender.rules.evaluator import evaluate_condition
+from network_defender.rules.evaluator import evaluate_condition, get_field_value
 from network_defender.rules.loader import RuleLoader
 from network_defender.rules.models import Rule
 from network_defender.rules.window import WindowedCounter
@@ -78,15 +80,23 @@ class RuleEngine:
         if not rule.is_aggregated:
             return True
 
-        group_value: Any = getattr(packet, rule.group_by, None)
+        group_value: Any = get_field_value(packet, rule.group_by)
         if group_value is None:
             # Nothing to aggregate on (e.g. group_by: src_ip on an ARP packet).
             return False
 
+        counted = ""
+        if rule.distinct_field is not None:
+            distinct_value = get_field_value(packet, rule.distinct_field)
+            if distinct_value is None:
+                # The rule counts something this packet does not carry, so the
+                # packet contributes nothing — not even a match.
+                return False
+            counted = str(distinct_value)
+
         return self.counter.fires(
-            rule_name=rule.name,
+            rule=rule,
             group_key=str(group_value),
             timestamp=packet.timestamp.timestamp(),
-            window_seconds=rule.window,
-            threshold=rule.threshold,
+            value=counted,
         )

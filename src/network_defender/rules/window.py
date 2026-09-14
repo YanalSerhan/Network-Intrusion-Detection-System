@@ -2,21 +2,26 @@
 Time-window aggregation for rules.
 
 Data Setup:  Bound on tracked series injected via __init__.
-Data Input:  (rule name, group key, timestamp) for each packet whose conditions
-             all matched.
-Data Output: Whether the rule should fire, and how many matches are in window.
+Data Input:  A rule, a group key, a timestamp and the value being counted, for
+             each packet whose conditions all matched.
+Data Output: Whether the rule should fire for this packet.
 
 Why this exists
 ---------------
 `Rule.window` is documented in RULE_SCHEMA.md and set on the shipped rules, but
 the engine matched every rule per packet and ignored it. A single SYN packet
-therefore raised a high-severity "SYN Flood". Aggregation rules now only fire
+therefore raised a high-severity "SYN Flood". Aggregation rules now fire only
 once `threshold` matches are seen within `window` seconds — and only once per
 episode, which is `Series.should_fire`'s half of the job.
+
+This class owns the bound on how many series are held at once. `Series` owns
+what a window means. Keeping them apart is what lets the eviction policy
+change without touching the counting, and vice versa.
 """
 
 from collections import OrderedDict
 
+from network_defender.rules.models import Rule
 from network_defender.rules.series import Series
 
 #: Bound on distinct (rule, group) series tracked at once, to cap memory.
@@ -27,11 +32,12 @@ SeriesKey = tuple[str, str]
 
 class WindowedCounter:
     """
-    Counts rule matches per group inside a sliding time window.
+    Tracks rule matches per group inside a sliding time window.
 
     Usage:
         counter = WindowedCounter()
-        hits = counter.record("SYN Flood", "10.0.0.5", ts, window_seconds=10)
+        if counter.fires(rule, "10.0.0.5", packet_time, value="443"):
+            ...
     """
 
     def __init__(self, max_series: int = MAX_TRACKED_SERIES) -> None:
@@ -49,48 +55,28 @@ class WindowedCounter:
         """Number of (rule, group) series currently held in state."""
         return len(self._series)
 
-    def record(
-        self, rule_name: str, group_key: str, timestamp: float, window_seconds: int
-    ) -> int:
-        """
-        Record a match and return how many fall inside the window.
-
-        Args:
-            rule_name:      Name of the matching rule.
-            group_key:      Value the rule aggregates on (e.g. a source IP).
-            timestamp:      Packet time as a POSIX timestamp.
-            window_seconds: Rule window length in seconds.
-
-        Returns:
-            Count of matches for this series within the window, including this one.
-        """
-        return self._touch((rule_name, group_key)).record(timestamp, window_seconds)
-
-    def fires(
-        self,
-        rule_name: str,
-        group_key: str,
-        timestamp: float,
-        window_seconds: int,
-        threshold: int,
-    ) -> bool:
+    def fires(self, rule: Rule, group_key: str, timestamp: float, value: str) -> bool:
         """
         Record a match and return True only on the one that starts an episode.
 
         Args:
-            rule_name:      Name of the matching rule.
-            group_key:      Value the rule aggregates on (e.g. a source IP).
-            timestamp:      Packet time as a POSIX timestamp.
-            window_seconds: Rule window length in seconds.
-            threshold:      Matches required inside the window.
+            rule:      The rule whose window, threshold and counting mode apply.
+            group_key: Value the rule aggregates on (e.g. a source IP).
+            timestamp: Packet time as a POSIX timestamp.
+            value:     What this match contributes when the rule counts
+                       distinct values; ignored otherwise.
 
         Returns:
             True for the match that takes this series to the threshold, and
             not again until the count has fallen back below it.
         """
-        series = self._touch((rule_name, group_key))
-        series.record(timestamp, window_seconds)
-        return series.should_fire(threshold)
+        series = self._touch((rule.name, group_key))
+        series.record(timestamp, value, rule.window)
+        return series.should_fire(rule.threshold, distinct=rule.counts_distinct)
+
+    def reset(self) -> None:
+        """Discard all aggregation state."""
+        self._series.clear()
 
     def _touch(self, key: SeriesKey) -> Series:
         """Return the series for this key, creating it and evicting if needed."""
@@ -102,10 +88,6 @@ class WindowedCounter:
         else:
             self._series.move_to_end(key)
         return series
-
-    def reset(self) -> None:
-        """Discard all aggregation state."""
-        self._series.clear()
 
     def _evict_overflow(self) -> None:
         """Drop the least-recently-used series once the bound is exceeded."""

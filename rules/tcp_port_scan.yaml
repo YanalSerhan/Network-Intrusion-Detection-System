@@ -1,11 +1,18 @@
 name: TCP Port Scan
 severity: medium
 enabled: true
-# Scanning is a repetition event: fire only after 15 SYNs from the same source
-# within 60 seconds, matching the TcpPortScanDetector threshold.
+# A scan is breadth, not volume. Fire when one source touches 15 *distinct*
+# destination ports within 60 seconds, matching what TcpPortScanDetector
+# measures.
+#
+# This rule counted SYN packets until Milestone 21, and its own comment
+# claimed the two thresholds matched. They measured different things: any
+# fifteen connections satisfied it, so a SYN flood, an SSH brute force, a bulk
+# transfer and lateral movement were all labelled port scans.
 window: 60
 threshold: 15
 group_by: src_ip
+distinct_field: dst_port
 conditions:
   - field: protocol
     operator: equals

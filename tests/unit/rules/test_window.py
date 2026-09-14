@@ -13,40 +13,30 @@ from tests.fixtures.rules import syn as _syn
 from tests.fixtures.rules import syn_rule as _rule
 
 # --------------------------------------------------------------------------
-# WindowedCounter
+# WindowedCounter — the bound on how many series are held, and nothing else.
+# What a window means belongs to Series; see test_series.py.
 # --------------------------------------------------------------------------
-
-
-def test_counter_accumulates_within_the_window() -> None:
-    counter = WindowedCounter()
-    base = 1000.0
-    counts = [counter.record("R", "10.0.0.5", base + i, window_seconds=10) for i in range(5)]
-    assert counts == [1, 2, 3, 4, 5]
-
-
-def test_counter_drops_events_outside_the_window() -> None:
-    counter = WindowedCounter()
-    counter.record("R", "10.0.0.5", 1000.0, window_seconds=10)
-    counter.record("R", "10.0.0.5", 1005.0, window_seconds=10)
-    assert counter.record("R", "10.0.0.5", 1020.0, window_seconds=10) == 1
-
-
-def test_counter_separates_rules_and_groups() -> None:
-    counter = WindowedCounter()
-    counter.record("R1", "10.0.0.5", 1000.0, window_seconds=10)
-    assert counter.record("R2", "10.0.0.5", 1000.0, window_seconds=10) == 1
-    assert counter.record("R1", "10.0.0.6", 1000.0, window_seconds=10) == 1
-    assert counter.tracked_series == 3
 
 
 def test_counter_state_is_bounded_and_resettable() -> None:
     counter = WindowedCounter(max_series=4)
+    rule = _rule(window=10, threshold=99)
     for i in range(50):
-        counter.record("R", f"10.0.0.{i}", 1000.0, window_seconds=10)
+        counter.fires(rule, f"10.0.0.{i}", 1000.0, value="")
     assert counter.tracked_series == 4
 
     counter.reset()
     assert counter.tracked_series == 0
+
+
+def test_counter_separates_rules_and_groups() -> None:
+    counter = WindowedCounter()
+    one, two = _rule(threshold=99), _rule(window=10, threshold=99)
+    two = two.model_copy(update={"name": "Other"})
+    counter.fires(one, "10.0.0.5", 1000.0, value="")
+    counter.fires(two, "10.0.0.5", 1000.0, value="")
+    counter.fires(one, "10.0.0.6", 1000.0, value="")
+    assert counter.tracked_series == 3
 
 
 # --------------------------------------------------------------------------

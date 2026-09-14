@@ -25,6 +25,34 @@ MAX_PATTERN_LENGTH = 512
 MAX_REGEX_SUBJECT_LENGTH = 4096
 
 
+def public_field_path(value: str) -> str:
+    """
+    Return the field path unchanged, or refuse it for reaching a private name.
+
+    Every path in a rule file is resolved with getattr, so without this a rule
+    naming `__class__.__init__.__globals__` walks out of the packet and into
+    the interpreter. Rule files are exactly the kind of thing someone copies
+    from a blog post, so this is a real path in — and it applies to `group_by`
+    and `distinct_field` as much as to a condition's `field`, which is why it
+    lives here rather than on one model.
+
+    Args:
+        value: A dotted ParsedPacket field path.
+
+    Returns:
+        The same value.
+
+    Raises:
+        ValueError: If any segment starts with an underscore.
+    """
+    if any(part.startswith("_") for part in value.split(".")):
+        raise ValueError(
+            f"Field path '{value}' reaches a private attribute. Rules may only "
+            f"name public fields of ParsedPacket."
+        )
+    return value
+
+
 class RuleCondition(BaseModel):
     """A single condition to evaluate against a parsed packet."""
 
@@ -39,20 +67,8 @@ class RuleCondition(BaseModel):
     @field_validator("field")
     @classmethod
     def _reject_private_attributes(cls, value: str) -> str:
-        """
-        Refuse field paths that reach into an object's internals.
-
-        The evaluator resolves a dotted path with getattr, so without this a
-        rule naming `__class__.__init__.__globals__` walks out of the packet
-        and into the interpreter. Rule files are exactly the kind of thing
-        someone copies from a blog post, so this is a real path in.
-        """
-        if any(part.startswith("_") for part in value.split(".")):
-            raise ValueError(
-                f"Field path '{value}' reaches a private attribute. Rules may only "
-                f"name public fields of ParsedPacket."
-            )
-        return value
+        """Refuse field paths that reach into an object's internals."""
+        return public_field_path(value)
 
     @field_validator("value")
     @classmethod
@@ -98,11 +114,30 @@ class Rule(BaseModel):
         default="src_ip",
         description="ParsedPacket field the window aggregates on (e.g. 'src_ip', 'dst_ip').",
     )
+    distinct_field: str | None = Field(
+        default=None,
+        description=(
+            "Count distinct values of this ParsedPacket field inside the window "
+            "instead of counting matches. Breadth rather than volume: a port "
+            "scan is fifteen different ports, not fifteen packets."
+        ),
+    )
     conditions: list[RuleCondition] = Field(
         min_length=1, description="List of conditions that must ALL be true (AND logic)."
     )
+
+    @field_validator("group_by", "distinct_field")
+    @classmethod
+    def _reject_private_paths(cls, value: str | None) -> str | None:
+        """Hold `group_by` and `distinct_field` to the same rule as conditions."""
+        return public_field_path(value) if value is not None else None
 
     @property
     def is_aggregated(self) -> bool:
         """True if this rule only fires after repeated matches inside a window."""
         return self.window > 0 and self.threshold > 1
+
+    @property
+    def counts_distinct(self) -> bool:
+        """True if the threshold counts distinct field values rather than matches."""
+        return self.distinct_field is not None

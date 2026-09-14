@@ -43,3 +43,17 @@ def test_replaying_benign_traffic_reports_nothing(capsys: pytest.CaptureFixture[
 
 def test_a_missing_capture_is_reported_rather_than_raised(tmp_path: Path) -> None:
     assert main(["replay", str(tmp_path / "nope.pcap")]) == 1
+
+
+def test_a_second_replay_reports_only_its_own_findings(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Regression: the summary read the whole database, which persists between runs."""
+    main(["replay", str(sample_pcap("syn_flood")), "--settle", "6"])
+    capsys.readouterr()
+
+    main(["replay", str(sample_pcap("benign")), "--settle", "6"])
+    output = capsys.readouterr().out
+
+    assert "0 alert(s)" in output
+    assert "SynFloodDetector" not in output

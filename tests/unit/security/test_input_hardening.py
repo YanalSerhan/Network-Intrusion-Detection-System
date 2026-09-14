@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from network_defender.api.security_headers import SECURITY_HEADERS
 from network_defender.parser.models import ParsedPacket
-from network_defender.rules.evaluator import _get_field_value
+from network_defender.rules.evaluator import get_field_value
 from network_defender.rules.models import MAX_PATTERN_LENGTH, RuleCondition
 from tests.fixtures.builders import make_packet
 
@@ -42,8 +42,8 @@ def test_the_evaluator_refuses_private_attributes_on_its_own_terms() -> None:
     """
     packet: ParsedPacket = make_packet()
 
-    assert _get_field_value(packet, "__class__") is None
-    assert _get_field_value(packet, "src_ip") is not None
+    assert get_field_value(packet, "__class__") is None
+    assert get_field_value(packet, "src_ip") is not None
 
 
 def test_a_broken_regex_fails_when_the_rule_loads_not_when_a_packet_arrives() -> None:

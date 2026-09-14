@@ -27,6 +27,7 @@ conditions:
 | `window` | integer | No | `0` | Time window in seconds for aggregation-based rules (0 means single-packet match). |
 | `threshold` | integer | No | `1` | Matches required within `window` before the rule fires. `1` means every matching packet fires immediately. |
 | `group_by` | string | No | `src_ip` | The `ParsedPacket` field the window aggregates on (e.g. `src_ip`, `dst_ip`). |
+| `distinct_field` | string | No | - | Count *distinct* values of this `ParsedPacket` field inside the window instead of counting matches. |
 | `conditions` | list | Yes | - | A list of conditions. ALL conditions must be met (logical AND) to trigger. |
 
 ### Single-packet vs aggregation rules
@@ -37,6 +38,26 @@ Anything else is a single-packet rule that fires on every match.
 This distinction matters. A rule describing a volume event — a flood, a scan, a
 brute-force attempt — is only meaningful with a threshold: `window` alone does
 nothing, and the rule will fire on the very first matching packet. Set both.
+
+### Volume or breadth
+
+`threshold` counts matches by default. With `distinct_field` set it counts
+distinct values of that field instead, which is the difference between a flood
+and a scan:
+
+- `SYN Flood` groups by `dst_ip` and counts matches. A hundred SYNs to one
+  host is a flood however many ports they went to.
+- `TCP Port Scan` groups by `src_ip` and counts distinct `dst_port`. Fifteen
+  SYNs to one port is a client retrying; the same fifteen across fifteen ports
+  is reconnaissance.
+
+Without this the two rules are the same rule with different numbers, which is
+what the shipped `tcp_port_scan.yaml` was until Milestone 21 — it labelled a
+SYN flood, an SSH brute force, a bulk transfer and lateral movement as port
+scans, because each of them is fifteen connections.
+
+A packet that does not carry the `distinct_field` contributes nothing, not
+even a match.
 
 **An aggregation rule fires once per episode, not once per packet past the
 threshold.** `threshold: 15` means the fifteenth match raises an alert and the
@@ -129,6 +150,7 @@ enabled: true
 window: 60
 threshold: 15
 group_by: "src_ip"
+distinct_field: "dst_port"
 conditions:
   - field: "protocol"
     operator: "equals"

@@ -3,7 +3,9 @@ Condition evaluation logic.
 
 Data Setup:  No external dependencies.
 Data Input:  ParsedPacket and RuleCondition.
-Data Output: Boolean indicating if the packet matches the condition.
+Data Output: Boolean indicating if the packet matches the condition, and the
+             field resolver the engine shares for `group_by` and
+             `distinct_field`.
 """
 
 import re
@@ -14,7 +16,7 @@ from network_defender.parser.models import ParsedPacket
 from network_defender.rules.models import MAX_REGEX_SUBJECT_LENGTH, RuleCondition
 
 
-def _get_field_value(packet: ParsedPacket, field_path: str) -> Any:
+def get_field_value(packet: ParsedPacket, field_path: str) -> Any:
     """
     Extract a nested field value from a ParsedPacket.
 
@@ -60,7 +62,7 @@ OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
 
 def evaluate_condition(packet: ParsedPacket, condition: RuleCondition) -> bool:
     """Evaluate a single condition against a packet."""
-    packet_value = _get_field_value(packet, condition.field)
+    packet_value = get_field_value(packet, condition.field)
 
     if packet_value is None:
         # Field missing or null (e.g., tcp_flags on a UDP packet)
