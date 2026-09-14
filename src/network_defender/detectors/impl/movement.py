@@ -10,16 +10,15 @@ Data Output: Alerts for large outbound volume and internal-to-internal fan-out.
 """
 
 import ipaddress
-from collections import defaultdict
 
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Severity
-from network_defender.detectors.base import BaseDetector
-from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
 
 from .breadth import BreadthDetector
+from .counting_endpoints import SourceCountingDetector
 
 
 class DataExfiltrationConfig(DetectorConfig):
@@ -28,7 +27,7 @@ class DataExfiltrationConfig(DetectorConfig):
     time_window_seconds: int = Field(default=60)
     bytes_out_threshold: int = Field(default=50_000_000)
 
-class DataExfiltrationDetector(BaseDetector[DataExfiltrationConfig]):
+class DataExfiltrationDetector(SourceCountingDetector[DataExfiltrationConfig]):
     """
     Detects one host pushing an unusual volume of data outbound.
 
@@ -37,39 +36,39 @@ class DataExfiltrationDetector(BaseDetector[DataExfiltrationConfig]):
     and deciding between them needs context a sensor does not have. The
     threshold is high on purpose — this is a detector that earns its place by
     rarely firing, and the alert it does raise is worth a human's time.
+
+    A counting detector whose `amount` is bytes rather than one. It kept its
+    own copy of the tally-and-threshold loop until Milestone 21, which is the
+    same duplication `counting` was extracted to remove — it was missed
+    because counting packets and counting bytes did not look like the same
+    thing until the window needed fixing in both.
     """
 
-    def __init__(self, config: DataExfiltrationConfig) -> None:
-        """Initialise with the validated outbound-byte threshold."""
-        super().__init__(config)
-        self._src_bytes: defaultdict[str, int] = defaultdict(int)
+    evidence_key = "bytes_out"
+    severity = Severity.CRITICAL
+    tactic = MitreTactic.EXFILTRATION
 
     @property
     def name(self) -> str:
         """Detector name used in alerts and configuration."""
         return "DataExfiltrationDetector"
 
-    def ingest(self, packet: ParsedPacket) -> None:
-        """Add this packet's length to its source's running total."""
-        if packet.src_ip:
-            self._src_bytes[packet.src_ip] += packet.length
+    @property
+    def threshold(self) -> int:
+        """Bytes per window at or above which to report."""
+        return self.config.bytes_out_threshold
 
-    def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per over-sending source, then clear the window."""
-        alerts = []
-        for src_ip, bytes_out in self._src_bytes.items():
-            if bytes_out >= self.config.bytes_out_threshold:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.CRITICAL,
-                        tactic=MitreTactic.EXFILTRATION,
-                        src_ip=src_ip,
-                        description=f"Large Data Exfiltration: {bytes_out} bytes sent.",
-                        evidence={"bytes_out": bytes_out}
-                    )
-                )
-        self._src_bytes.clear()
-        return alerts
+    def counts(self, packet: ParsedPacket) -> bool:
+        """Return True for anything with a source to attribute the bytes to."""
+        return bool(packet.src_ip)
+
+    def amount(self, packet: ParsedPacket) -> int:
+        """Bytes, not arrivals: the measurement is volume."""
+        return packet.length
+
+    def describe(self, count: int) -> str:
+        """Describe the transfer for the analyst reading the alert."""
+        return f"Large Data Exfiltration: {count} bytes sent."
 
 
 class LateralMovementConfig(DetectorConfig):

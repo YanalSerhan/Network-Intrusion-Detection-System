@@ -11,14 +11,12 @@ a file-by-file inventory here would go stale on the next split, as this one
 already had.
 """
 
-from collections import defaultdict
-from typing import Any
-
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.window_counts import SlidingCounter
 from network_defender.parser.models import ParsedPacket
 
 from .counting_endpoints import SourceCountingDetector
@@ -84,12 +82,18 @@ class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
     subdomains that CDNs and malware sandboxes generate legitimately.
     """
 
+    #: A source must have more high-entropy queries than ordinary ones before
+    #: the finding is raised. Volume alone flags a busy resolver.
+    MAJORITY = 0.5
+
     def __init__(self, config: DnsTunnelingConfig) -> None:
         """Initialise with the validated query-count and entropy thresholds."""
         super().__init__(config)
-        self._src_stats: defaultdict[str, dict[str, Any]] = defaultdict(
-            lambda: {"count": 0, "high_entropy": 0}
-        )
+        # Two counters over one window rather than one counter of pairs: they
+        # advance on the same packets, so their clocks stay in step, and the
+        # ratio is read from the same instant in both.
+        self._queries = SlidingCounter(self.window_seconds)
+        self._encoded = SlidingCounter(self.window_seconds)
 
     @property
     def name(self) -> str:
@@ -98,35 +102,40 @@ class DnsTunnelingDetector(BaseDetector[DnsTunnelingConfig]):
 
     def ingest(self, packet: ParsedPacket) -> None:
         """Tally the query against its source, and whether it looks encoded."""
-        if (
+        if not (
             packet.protocol == Protocol.DNS
             and packet.dns
             and packet.dns.query_name
             and packet.src_ip
         ):
-            entropy = shannon_entropy(packet.dns.query_name)
-            stats = self._src_stats[packet.src_ip]
-            stats["count"] += 1
-            if entropy > self.config.entropy_threshold:
-                stats["high_entropy"] += 1
+            return
+        at = packet.timestamp.timestamp()
+        self._queries.record(packet.src_ip, at)
+        if shannon_entropy(packet.dns.query_name) > self.config.entropy_threshold:
+            self._encoded.record(packet.src_ip, at)
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per tunnelling source, then clear the window."""
+        """Report each source newly resolving mostly encoded names, in volume."""
         alerts = []
-        for src_ip, stats in self._src_stats.items():
-            mostly_high_entropy = stats["high_entropy"] > (stats["count"] * 0.5)
-            if stats["count"] >= self.config.query_count_threshold and mostly_high_entropy:
-                alerts.append(
-                    self.emit_alert(
-                        severity=Severity.HIGH,
-                        tactic=MitreTactic.COMMAND_AND_CONTROL,
-                        src_ip=src_ip,
-                        description=(
-                            "Possible DNS Tunneling: high frequency of "
-                            "high-entropy DNS queries."
-                        ),
-                        evidence=stats
-                    )
+        live: set[str] = set()
+        for src_ip, count in self._queries.totals():
+            live.add(src_ip)
+            encoded = self._encoded.total(src_ip)
+            tunnelling = (
+                count >= self.config.query_count_threshold and encoded > count * self.MAJORITY
+            )
+            if not self.report_once(src_ip, tunnelling):
+                continue
+            alerts.append(
+                self.emit_alert(
+                    severity=Severity.HIGH,
+                    tactic=MitreTactic.COMMAND_AND_CONTROL,
+                    src_ip=src_ip,
+                    description=(
+                        "Possible DNS Tunneling: high frequency of high-entropy DNS queries."
+                    ),
+                    evidence={"count": count, "high_entropy": encoded},
                 )
-        self._src_stats.clear()
+            )
+        self.forget_absent(live)
         return alerts

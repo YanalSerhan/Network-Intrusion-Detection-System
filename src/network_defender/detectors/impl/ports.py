@@ -16,7 +16,12 @@ from pydantic import Field
 from network_defender.constants import MitreTactic, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.window_peers import SlidingPeers
 from network_defender.parser.models import ParsedPacket
+
+#: Joins a destination and port into one peer identifier. Neither part can
+#: contain it, so the pair is recoverable without a second mapping.
+ENDPOINT = "|"
 
 
 class SuspiciousPortConfig(DetectorConfig):
@@ -37,9 +42,11 @@ class SuspiciousPortDetector(BaseDetector[SuspiciousPortConfig]):
         """
         super().__init__(config)
         self._suspicious_ports = set(config.suspicious_ports)
-        # A set, not a counter: repeated packets on one connection are one
-        # finding, and dedup downstream should not have to undo the noise.
-        self._seen: set[tuple[str, str, int]] = set()
+        # Distinct endpoints, not a count: repeated packets on one connection
+        # are one finding, and dedup downstream should not have to undo the
+        # noise. They expire like every other window, so a connection made an
+        # hour ago stops being reported as current.
+        self._seen = SlidingPeers(self.window_seconds)
 
     @property
     def name(self) -> str:
@@ -54,20 +61,32 @@ class SuspiciousPortDetector(BaseDetector[SuspiciousPortConfig]):
             and packet.src_ip
             and packet.dst_ip
         ):
-            self._seen.add((packet.src_ip, packet.dst_ip, packet.dst_port))
+            self._seen.record(
+                packet.src_ip,
+                f"{packet.dst_ip}{ENDPOINT}{packet.dst_port}",
+                packet.timestamp.timestamp(),
+            )
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Emit one alert per distinct connection, then clear the window."""
-        alerts = [
-            self.emit_alert(
-                severity=Severity.MEDIUM,
-                tactic=MitreTactic.COMMAND_AND_CONTROL,
-                src_ip=src_ip,
-                dst_ip=dst_ip,
-                description=f"Connection to suspicious port: {port}",
-                evidence={"dst_port": port},
-            )
-            for src_ip, dst_ip, port in self._seen
-        ]
-        self._seen.clear()
+        """Report each connection to a flagged port, once."""
+        alerts = []
+        live: set[str] = set()
+        for src_ip, endpoints in self._seen.entries():
+            for endpoint in endpoints:
+                key = f"{src_ip}{ENDPOINT}{endpoint}"
+                live.add(key)
+                if not self.report_once(key, over_threshold=True):
+                    continue
+                dst_ip, port = endpoint.split(ENDPOINT, 1)
+                alerts.append(
+                    self.emit_alert(
+                        severity=Severity.MEDIUM,
+                        tactic=MitreTactic.COMMAND_AND_CONTROL,
+                        src_ip=src_ip,
+                        dst_ip=dst_ip,
+                        description=f"Connection to suspicious port: {port}",
+                        evidence={"dst_port": int(port)},
+                    )
+                )
+        self.forget_absent(live)
         return alerts

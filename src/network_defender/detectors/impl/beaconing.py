@@ -10,14 +10,18 @@ between connections is the signal; ordinary human-driven traffic is bursty.
 """
 
 import math
-from collections import defaultdict
 
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.window_timestamps import SlidingTimestamps
 from network_defender.parser.models import ParsedPacket
+
+#: Joins a source and destination into one key. Neither can contain it, so the
+#: pair is recoverable and no second mapping has to be kept in step.
+CONVERSATION = "|"
 
 
 class BeaconingConfig(DetectorConfig):
@@ -45,7 +49,7 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
     def __init__(self, config: BeaconingConfig) -> None:
         """Initialise with the validated connection count and tolerance."""
         super().__init__(config)
-        self._src_dst_timestamps: defaultdict[tuple[str, str], list[float]] = defaultdict(list)
+        self._conversations = SlidingTimestamps(self.window_seconds)
 
     @property
     def name(self) -> str:
@@ -56,40 +60,53 @@ class BeaconingDetector(BaseDetector[BeaconingConfig]):
         """Record when this source last reached this destination."""
         beaconable = (Protocol.TCP, Protocol.HTTP, Protocol.TLS)
         if packet.protocol in beaconable and packet.src_ip and packet.dst_ip:
-            key = (packet.src_ip, packet.dst_ip)
-            self._src_dst_timestamps[key].append(packet.timestamp.timestamp())
+            self._conversations.record(
+                f"{packet.src_ip}{CONVERSATION}{packet.dst_ip}", packet.timestamp.timestamp()
+            )
+
+    def _mean_interval(self, times: tuple[float, ...]) -> float | None:
+        """
+        Return the mean gap between connections, if it reads as a timer.
+
+        Args:
+            times: Ascending capture times for one conversation.
+
+        Returns:
+            The mean interval when its coefficient of variation is inside the
+            configured tolerance, else None.
+        """
+        if len(times) < self.config.connection_count_threshold:
+            return None
+        intervals = [later - earlier for earlier, later in zip(times, times[1:], strict=False)]
+        mean = sum(intervals) / len(intervals) if intervals else 0.0
+        if mean <= 0:
+            return None
+        variance = sum((gap - mean) ** 2 for gap in intervals) / len(intervals)
+        if math.sqrt(variance) / mean > self.config.interval_variance_tolerance:
+            return None
+        return mean
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Emit an alert per regular conversation, then clear the window."""
+        """Report each conversation that has newly started running on a timer."""
         alerts = []
-        for (src_ip, dst_ip), timestamps in self._src_dst_timestamps.items():
-            if len(timestamps) >= self.config.connection_count_threshold:
-                # Sort first: out-of-order arrivals produce negative intervals,
-                # which inflate the standard deviation and mask real beacons.
-                ordered = sorted(timestamps)
-                intervals = [ordered[i] - ordered[i - 1] for i in range(1, len(ordered))]
-                if len(intervals) > 0:
-                    mean_interval = sum(intervals) / len(intervals)
-                    if mean_interval > 0:
-                        variance = sum((x - mean_interval)**2 for x in intervals) / len(intervals)
-                        std_dev = math.sqrt(variance)
-
-                        if (std_dev / mean_interval) <= self.config.interval_variance_tolerance:
-                            alerts.append(
-                                self.emit_alert(
-                                    severity=Severity.HIGH,
-                                    tactic=MitreTactic.COMMAND_AND_CONTROL,
-                                    src_ip=src_ip,
-                                    dst_ip=dst_ip,
-                                    description=(
-                                        "Possible Beaconing detected: regular "
-                                        "connections to same destination."
-                                    ),
-                                    evidence={
-                                        "mean_interval": mean_interval,
-                                        "connection_count": len(timestamps),
-                                    },
-                                )
-                            )
-        self._src_dst_timestamps.clear()
+        live: set[str] = set()
+        for key, times in self._conversations.entries():
+            live.add(key)
+            mean = self._mean_interval(times)
+            if not self.report_once(key, mean is not None) or mean is None:
+                continue
+            src_ip, dst_ip = key.split(CONVERSATION, 1)
+            alerts.append(
+                self.emit_alert(
+                    severity=Severity.HIGH,
+                    tactic=MitreTactic.COMMAND_AND_CONTROL,
+                    src_ip=src_ip,
+                    dst_ip=dst_ip,
+                    description=(
+                        "Possible Beaconing detected: regular connections to same destination."
+                    ),
+                    evidence={"mean_interval": mean, "connection_count": len(times)},
+                )
+            )
+        self.forget_absent(live)
         return alerts

@@ -49,6 +49,29 @@ class SlidingPeers:
         self.clock.advance(at)
         self._peers[key][peer] = at
 
+    def live(self, key: str) -> tuple[str, ...]:
+        """
+        Return the peers a key still holds, expiring the rest.
+
+        Args:
+            key: The key to read.
+
+        Returns:
+            The unexpired peers. Detectors that alert per peer rather than on
+            the count — a connection to a flagged port is a finding on its own
+            — need the identities, not the total.
+        """
+        peers = self._peers.get(key)
+        if peers is None:
+            return ()
+        cutoff = self.clock.cutoff
+        for peer in [peer for peer, seen in peers.items() if seen <= cutoff]:
+            del peers[peer]
+        if not peers:
+            del self._peers[key]
+            return ()
+        return tuple(peers)
+
     def count(self, key: str) -> int:
         """
         Return how many distinct peers a key reached, expiring the rest.
@@ -59,16 +82,19 @@ class SlidingPeers:
         Returns:
             Distinct unexpired peers.
         """
-        peers = self._peers.get(key)
-        if peers is None:
-            return 0
-        cutoff = self.clock.cutoff
-        for peer in [peer for peer, seen in peers.items() if seen <= cutoff]:
-            del peers[peer]
-        if not peers:
-            del self._peers[key]
-            return 0
-        return len(peers)
+        return len(self.live(key))
+
+    def entries(self) -> Iterator[tuple[str, tuple[str, ...]]]:
+        """
+        Yield every key still reaching at least one peer, expiring the rest.
+
+        Returns:
+            (key, unexpired peers) pairs.
+        """
+        for key in list(self._peers):
+            peers = self.live(key)
+            if peers:
+                yield key, peers
 
     def counts(self) -> Iterator[tuple[str, int]]:
         """
@@ -77,7 +103,5 @@ class SlidingPeers:
         Returns:
             (key, distinct peer count) pairs.
         """
-        for key in list(self._peers):
-            count = self.count(key)
-            if count:
-                yield key, count
+        for key, peers in self.entries():
+            yield key, len(peers)
