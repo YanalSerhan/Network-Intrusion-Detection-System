@@ -109,10 +109,12 @@ All four are tracked under Milestone 21 in [TODO.md](TODO.md).
 
 ### Then — extensibility
 
-7. **A documented plugin interface** for detectors and providers, so an
-   extension does not require a fork. The discovery mechanism already
-   supports it — the registry imports whatever is in `detectors/impl/` — but
-   the packaging story and the lifecycle hooks are not defined.
+7. ~~**A documented plugin interface** for detectors and providers.~~ Done in
+   Milestone 21. The claim that the discovery mechanism "already supported
+   it" was wrong: importing `detectors/impl/` meant the only way in was to
+   put a file inside the installed package, which is a fork with extra steps.
+   Extensions now arrive by entry point or configured module path, and
+   [EXTENDING.md](EXTENDING.md) is the guide.
 
 ### Later — detection quality
 

@@ -426,7 +426,7 @@
 - [x] Verify all imports are relative/package-qualified (no absolute path imports) — settled on absolute, enforced by ruff TID252, and documented in `docs/CONVENTIONS.md`
 - [x] Start global version at `1.00`; bump on meaningful changes; keep code, config, and rate-limit versions in sync
 - [x] Add a plugin/extension architecture for detectors and threat intel providers (documented extension points, lifecycle hooks)
-- [ ] Document how to extend Network Defender without modifying core code
+- [x] Document how to extend Network Defender without modifying core code
 - [ ] Verify components are reusable, decoupled, and independently testable (building-block review)
 - [x] Make `time_window_seconds` real: each detector expires its own state on its own window rather than every detector sharing `detection.evaluation_interval_seconds`
 - [x] Replace the tumbling evaluation window with a sliding one, so a detection no longer depends on where a burst falls relative to a boundary fixed at process start
