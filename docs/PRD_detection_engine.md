@@ -24,11 +24,14 @@ and what it misses.
 ## Edge Cases
 - State accumulation (e.g., tracking open connections) leading to OOM. We must implement time-based expiration (windowing) for stateful trackers.
 
-**Status:** partially met, and the gap is measured. Every detector clears its
-state in `evaluate()`, so state cannot grow without bound — but the window is
-whenever `PeriodicEvaluator` fires, taken from
-`detection.evaluation_interval_seconds`, and the per-detector
-`time_window_seconds` this PRD implies is declared in configuration and read
-by nothing. [DETECTION_TUNING.md](DETECTION_TUNING.md) quantifies what that
-costs: five detectors have a recall of 0.00 as shipped. It is open under
-Milestone 21.
+**Status:** met as of Milestone 21. Each detector slides its own
+`time_window_seconds` over capture time and drops what falls out of it, so
+state is bounded by the window rather than by how often `PeriodicEvaluator`
+happens to fire. Per-key counters are bucketed, so memory is bounded by the
+number of live keys regardless of packet rate.
+
+Before that it was only half met: state was cleared in `evaluate()`, which did
+bound it, but made the real window the shared
+`detection.evaluation_interval_seconds` and left the per-detector field this
+PRD implies read by nothing. [DETECTION_TUNING.md](DETECTION_TUNING.md)
+quantifies what that cost — five detectors with a recall of 0.00.

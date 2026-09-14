@@ -24,12 +24,13 @@ import pandas as pd
 # interactive backend fails rather than degrading.
 matplotlib.use("Agg")
 
-from sensitivity.analysis import SHIPPED_WINDOW, best_operating_points, load_metrics
+from sensitivity.analysis import load_metrics, shipped_windows
 from sensitivity.detectors import shipped_value
 from sensitivity.grid import THRESHOLDS, WINDOWS
 from sensitivity.plots_curves import precision_recall_grid, roc_grid
 from sensitivity.plots_heatmaps import f1_heatmaps
 from sensitivity.plots_timeline import alert_volume
+from sensitivity.recommendation import best_f1_points
 from sensitivity.scenario import DURATION, attack_spans
 from sensitivity.style import FIGURE_DIR, apply_style, save
 
@@ -46,15 +47,15 @@ def draw_curves(output_dir: Path) -> None:
         output_dir: Where the PNGs are written.
     """
     metrics = load_metrics()
-    best = best_operating_points(metrics)
+    best = best_f1_points(metrics)
 
     save(
         precision_recall_grid(
             metrics,
-            dict.fromkeys(THRESHOLDS, SHIPPED_WINDOW),
-            "Precision and recall against threshold, at the 5-second window production uses",
+            shipped_windows(),
+            "Precision and recall against threshold, at each detector's configured window",
         ),
-        str(output_dir / "precision_recall_shipped_window.png"),
+        str(output_dir / "precision_recall_configured_window.png"),
     )
     save(
         precision_recall_grid(

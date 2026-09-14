@@ -23,17 +23,21 @@ decision, clears the window and returns alerts, and it runs on a timer. That
 is why ingest measures around 95 000 packets a second while the expensive part
 runs a few times a minute.
 
-**Clearing the window in `evaluate` is mandatory.** A detector that does not
-clear grows without bound and, worse, re-alerts forever on traffic already
-reported.
+**`evaluate` must not clear the window.** State expires by age, not by
+evaluation: each detector slides its `time_window_seconds` over capture time,
+so a burst is counted once wherever it falls rather than once per bucket it
+lands in. A detector that cleared its state on evaluation would make the
+window tumbling again, and whether an attack was detected would depend on when
+the sensor happened to start. Deduplication is separate and explicit —
+`EdgeTriggeredMixin.report_once` reports a given key once per episode and
+re-arms when the condition clears.
 
-> **The window is not what the configuration says.** Each detector declares a
-> `time_window_seconds`; no code reads it. The real window is
-> `detection.evaluation_interval_seconds` from `config/setup.json`, shared by
-> all of them, and it ships at 5 seconds. Every "measured" figure below is at
-> that shipped configuration, which is why several of them are 0.00.
-> [DETECTION_TUNING.md](DETECTION_TUNING.md) has the full account; it is open
-> under Milestone 21.
+> **The window was not what the configuration said, until Milestone 21.** Each
+> detector declared a `time_window_seconds` that no code read; the real window
+> was the shared `detection.evaluation_interval_seconds`, 5 seconds. Five
+> detectors had a measured recall of 0.00 as a result. Every figure below is
+> measured at the current configuration, where the declared window is the one
+> that runs. [DETECTION_TUNING.md](DETECTION_TUNING.md) has the full account.
 
 ## Reconnaissance
 
@@ -51,8 +55,9 @@ fans out — at the cost of also seeing a load balancer.
 **Confuses with** a monitoring agent taking a service inventory (14 ports) and
 a load balancer health-checking a backend (10 ports). Both sit just below the
 threshold, which is where 15 came from.
-**Measured recall as shipped: 0.25** — it catches only the loudest of the four
-scan cases, because five seconds is not long enough to accumulate a slow one.
+**Measured recall as shipped: 0.75** — it catches three of the four scan
+cases and misses the stealthy twelve-port one, which spreads its ports over
+two minutes against a ten-second window.
 
 ### SynScanDetector
 
@@ -71,7 +76,7 @@ handshakes".
 
 **Confuses with** the same two cases as above, both of which reach exactly 10.
 The corpus supports raising this to 12.
-**Measured recall as shipped: 0.67.**
+**Measured recall as shipped: 0.67** — the same stealthy case is missed.
 
 ## Impact — volumetric floods
 
@@ -83,7 +88,7 @@ a busy server is shaped like a victim.
 ### SynFloodDetector
 
 **Measures** bare SYNs per destination. **Threshold** `syn_count_threshold:
-100`. **Severity** CRITICAL — each one consumes a connection-table entry.
+40`. **Severity** CRITICAL — each one consumes a connection-table entry.
 
 Counts bare SYNs only: a SYN-ACK is a server answering and established traffic
 carries ACK, so counting either would make every busy server look attacked.
@@ -96,7 +101,7 @@ at a longer one.
 ### UdpFloodDetector
 
 **Measures** UDP datagrams per destination. **Threshold**
-`udp_count_threshold: 200`. **Severity** HIGH.
+`udp_count_threshold: 75`. **Severity** HIGH.
 
 The highest threshold of the three, because normal UDP is the chattiest
 traffic on a network: DNS, NTP and every discovery protocol run over it.
@@ -108,7 +113,7 @@ SYN flood.
 ### IcmpFloodDetector
 
 **Measures** ICMP packets per destination. **Threshold**
-`icmp_count_threshold: 50`. **Severity** MEDIUM — usually noise.
+`icmp_count_threshold: 20`. **Severity** MEDIUM — usually noise.
 
 The lowest threshold of the three: sustained ICMP at any real rate is already
 abnormal, because nothing legitimate pings in bulk.
@@ -133,7 +138,7 @@ someone guessing from someone who mistyped their password.
 ### SshBruteForceDetector
 
 **Measures** new connections to the SSH port, per source. **Threshold**
-`connection_count_threshold: 10`, `ssh_port: 22`. **Severity** HIGH.
+`connection_count_threshold: 12`, `ssh_port: 22`. **Severity** HIGH.
 
 Counts connection *openings* — bare SYNs — not packets. An established SSH
 session carries thousands of packets, so counting those would report every
@@ -161,7 +166,8 @@ attacker than a shell.
 **Confuses with** an office behind one NAT address signing in to a portal —
 the textbook cause of this false positive, and no packet field separates it
 from one attacker with a word list.
-**Measured recall as shipped: 0.00.**
+**Measured recall as shipped: 0.50** — the sixty-attempt case, not the
+twelve-attempt one, which sits below the threshold a NAT'd office sets.
 
 ### ArpSpoofingDetector
 
@@ -178,7 +184,9 @@ well-timed reply, which is the quiet part.
 reaches 8 packets against a light poisoner's 6. The ranges genuinely overlap;
 no threshold separates them, and the fix is the mapping surveillance the
 detector simplified away.
-**Measured recall as shipped: 0.50.**
+**Measured recall as shipped: 1.00**, at a deliberate cost of one false
+positive on duplicate-address detection. See
+[DETECTION_TUNING.md](DETECTION_TUNING.md) §4.
 
 ## Command and control
 
@@ -201,7 +209,8 @@ is correctly ignored, and so are hexadecimal CDN cache keys.
 **Confuses with** an endpoint agent doing encoded reputation lookups, which is
 byte for byte the shape of a tunnel. Not separable by volume or entropy; needs
 a registered-domain allowlist.
-**Measured recall as shipped: 0.00.**
+**Measured recall as shipped: 0.50** — the 120-query tunnel, not the
+30-query one, which is quieter than an endpoint agent's reputation lookups.
 
 ### BeaconingDetector
 
@@ -222,8 +231,9 @@ which is why the configuration asks for an hour.
 
 **Confuses with** telemetry agents and health checks, which are exactly as
 regular and differ only in destination — which this detector does not look at.
-**Measured recall as shipped: 0.00.** At the hour-long window it declares, all
-three beacon cases are caught.
+**Measured recall as shipped: 1.00** — all three beacon cases, at the
+hour-long window it declares and now runs. It also fires on two benign
+schedulers, which is the overlap no threshold closes.
 
 ### SuspiciousPortDetector
 
@@ -253,7 +263,8 @@ threshold is high on purpose: this detector earns its place by rarely firing.
 **Confuses with** exactly that backup — 50 MB against a staged archive's 30
 MB. The ranges overlap and no threshold separates them; it needs destination
 classification.
-**Measured recall as shipped: 0.00.**
+**Measured recall as shipped: 0.50** — the 120 MB transfer, not the 30 MB
+staged archive, which is smaller than a nightly backup.
 
 ### LateralMovementDetector
 
@@ -269,7 +280,8 @@ input, misread `172.5.0.1`, and ignored IPv6 unique-local space entirely.
 
 **Confuses with** a monitoring server polling 18 devices, and with
 configuration management reaching 14 hosts. Fan-out is their job.
-**Measured recall as shipped: 0.00.**
+**Measured recall as shipped: 0.50** — the forty-host sweep, not the
+fifteen-host one, which is below a monitoring server's fan-out.
 
 ## What every detector shares by omission
 
@@ -280,6 +292,8 @@ configuration management reaching 14 hosts. Fan-out is their job.
   on the [roadmap](ROADMAP.md).
 - **No baselining.** Every threshold is absolute, not learned from the
   segment. A quiet office network and a datacentre span get the same numbers.
-- **Tumbling windows anchored to process start.** Whether a burst falls inside
-  one window or astride two depends on when the sensor started, which means
-  identical traffic can detect or not. Measured, and open under Milestone 21.
+- **No memory beyond the window.** Each detector's window slides over capture
+  time, so a burst is counted once wherever it falls — but an attacker who
+  paces below the threshold for longer than the window is invisible to it, and
+  nothing accumulates evidence across windows. The thresholds are
+  configuration precisely so a defender can trade that margin away.

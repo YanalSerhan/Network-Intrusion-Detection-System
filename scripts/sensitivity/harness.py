@@ -1,15 +1,19 @@
 """
-Replaying one case through one detector at one window length.
+Replaying one case through one detector.
 
 Data Setup:  Nothing; the parser is constructed per call to parse a case.
-Data Input:  A case, a detector, and a window length in seconds.
+Data Input:  A case, a detector, and how often to evaluate it.
 Data Output: The alerts the detector raised.
 
-The window is applied here rather than inside the detectors because that is
-where production applies it: no detector reads its own `time_window_seconds`,
-and `PeriodicEvaluator` flushes every detector on one shared timer. Replaying
-against capture time instead of wall time is the only difference, and it is
-the one that makes a result reproducible.
+What this parameter means changed in Milestone 21, and the change is the point
+of that milestone. It used to be the *window*: no detector read its own
+`time_window_seconds`, so the harness had to impose one by choosing when to
+flush. Now each detector expires its own state against capture time, and this
+is only the evaluation cadence — how often the detector is asked, which
+production takes from `detection.evaluation_interval_seconds`.
+
+So the sweep's second axis moved from here into the detector's configuration,
+where an operator can actually set it.
 """
 
 from typing import Any
@@ -44,21 +48,26 @@ def parse_case(case: Case) -> list[ParsedPacket]:
 
 
 def replay_timeline(
-    detector: BaseDetector[Any], packets: list[ParsedPacket], window_seconds: float
+    detector: BaseDetector[Any], packets: list[ParsedPacket], interval_seconds: float
 ) -> list[tuple[float, DetectionAlert]]:
     """
     Feed packets to a detector, recording when each alert would have surfaced.
 
     An alert's own timestamp is wall-clock at construction, not capture time,
     so it cannot say when in the replay it was raised. What can say is the
-    window boundary that produced it — which is also the honest answer
+    evaluation that produced it — which is also the honest answer
     operationally: an alert does not exist until the evaluation that emits it,
     however long ago the packets arrived.
 
+    Every elapsed interval is evaluated, including the quiet ones. Skipping
+    them was a safe shortcut while state was cleared on every flush; now that
+    windows slide, a detector re-arms by being asked while the condition is
+    clear, so an evaluation nobody performed is a re-arm that never happens.
+
     Args:
-        detector:       A freshly built detector with empty state.
-        packets:        Parsed packets in capture order.
-        window_seconds: Seconds of capture time between evaluations.
+        detector:         A freshly built detector with empty state.
+        packets:          Parsed packets in capture order.
+        interval_seconds: Seconds of capture time between evaluations.
 
     Returns:
         (seconds since the first packet, alert) pairs, in evaluation order.
@@ -68,39 +77,36 @@ def replay_timeline(
 
     raised: list[tuple[float, DetectionAlert]] = []
     start = packets[0].timestamp.timestamp()
-    current_window = 0
+    evaluated = 0
 
-    def flush() -> None:
-        raised.extend(
-            ((current_window + 1) * window_seconds, alert) for alert in detector.evaluate()
-        )
+    def flush(through: int) -> None:
+        nonlocal evaluated
+        while evaluated < through:
+            evaluated += 1
+            at = evaluated * interval_seconds
+            raised.extend((at, alert) for alert in detector.evaluate())
 
     for packet in packets:
-        window = int((packet.timestamp.timestamp() - start) // window_seconds)
-        if window > current_window:
-            # Windows in between held no packets, so one flush is equivalent
-            # to one flush per empty window and avoids iterating an hour of
-            # silence a packet at a time.
-            flush()
-            current_window = window
+        elapsed = int((packet.timestamp.timestamp() - start) // interval_seconds)
+        flush(elapsed)
         detector.ingest(packet)
 
-    flush()
+    flush(evaluated + 1)
     return raised
 
 
 def replay(
-    detector: BaseDetector[Any], packets: list[ParsedPacket], window_seconds: float
+    detector: BaseDetector[Any], packets: list[ParsedPacket], interval_seconds: float
 ) -> list[DetectionAlert]:
     """
-    Feed packets to a detector, evaluating it once per window.
+    Feed packets to a detector, evaluating it on a cadence.
 
     Args:
-        detector:       A freshly built detector with empty state.
-        packets:        Parsed packets in capture order.
-        window_seconds: Seconds of capture time between evaluations.
+        detector:         A freshly built detector with empty state.
+        packets:          Parsed packets in capture order.
+        interval_seconds: Seconds of capture time between evaluations.
 
     Returns:
-        Every alert raised across every window.
+        Every alert raised across the replay.
     """
-    return [alert for _, alert in replay_timeline(detector, packets, window_seconds)]
+    return [alert for _, alert in replay_timeline(detector, packets, interval_seconds)]

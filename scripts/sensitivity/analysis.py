@@ -21,9 +21,27 @@ from .grid import THRESHOLDS
 
 RESULTS_DIR = PROJECT_ROOT / "research"
 
-#: The evaluation interval in config/setup.json — the window production
-#: actually runs with, whatever the per-detector configuration says.
-SHIPPED_WINDOW = 5.0
+#: The evaluation interval in config/setup.json. Since Milestone 21 this is
+#: how often a detector is asked, not how much it considers, so it no longer
+#: appears on any axis — it is kept because the timeline reports alert times
+#: in multiples of it.
+EVALUATION_INTERVAL = 5.0
+
+
+def shipped_windows() -> dict[str, float]:
+    """
+    Return each detector's configured window.
+
+    Returns:
+        Detector -> `time_window_seconds` from config/detectors.json. Before
+        Milestone 21 this function could not have existed: the field was
+        declared, validated and read by nothing, so every detector's real
+        window was the shared evaluation interval.
+    """
+    return {
+        detector: float(shipped_value(detector, "time_window_seconds"))
+        for detector in THRESHOLDS
+    }
 
 
 def load_metrics(results_dir: Path = RESULTS_DIR) -> pd.DataFrame:
@@ -56,8 +74,9 @@ def shipped_operating_points(metrics: pd.DataFrame) -> pd.DataFrame:
     """
     Return each detector's row at the configuration it actually ships with.
 
-    That is the configured threshold at the *evaluation interval*, not at the
-    per-detector `time_window_seconds`, because no detector reads that field.
+    The configured threshold at the configured window — which is only a
+    meaningful pair since Milestone 21, when detectors started reading the
+    window their own configuration declares.
 
     Args:
         metrics: The grid metrics.
@@ -65,41 +84,17 @@ def shipped_operating_points(metrics: pd.DataFrame) -> pd.DataFrame:
     Returns:
         One row per swept detector, indexed by detector name.
     """
-    wanted = {
-        detector: shipped_value(detector, parameter)
-        for detector, (parameter, _) in THRESHOLDS.items()
-    }
-    at_window = metrics[metrics["window_seconds"] == SHIPPED_WINDOW]
+    windows = shipped_windows()
     rows = [
-        at_window[
-            (at_window["detector"] == detector) & (at_window["threshold"] == threshold)
+        metrics[
+            (metrics["detector"] == detector)
+            & (metrics["window_seconds"] == windows[detector])
+            & (metrics["threshold"] == shipped_value(detector, parameter))
         ]
-        for detector, threshold in wanted.items()
+        for detector, (parameter, _) in THRESHOLDS.items()
     ]
     combined: pd.DataFrame = pd.concat(rows)
     return combined.set_index("detector").sort_index()
-
-
-def best_operating_points(metrics: pd.DataFrame) -> pd.DataFrame:
-    """
-    Return the highest-F1 grid point for each detector.
-
-    Ties are broken toward the *higher* threshold and then the *shorter*
-    window: among configurations that score the same, the one that alerts less
-    and decides sooner is the one an operator should prefer.
-
-    Args:
-        metrics: The grid metrics.
-
-    Returns:
-        One row per detector that scored at all, indexed by detector name.
-    """
-    scored = metrics.dropna(subset=["f1"])
-    ordered = scored.sort_values(
-        ["detector", "f1", "threshold", "window_seconds"],
-        ascending=[True, False, False, True],
-    )
-    return ordered.groupby("detector", as_index=True).first()
 
 
 def window_sensitivity(metrics: pd.DataFrame) -> pd.DataFrame:

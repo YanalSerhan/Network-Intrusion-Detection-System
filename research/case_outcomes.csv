@@ -23,9 +23,9 @@ ArpSpoofingDetector,1.0,http_brute_fast_60,credentials,0,
 ArpSpoofingDetector,1.0,config_mgmt_ssh_14,credentials,0,
 ArpSpoofingDetector,1.0,ci_runner_ssh_6,credentials,0,
 ArpSpoofingDetector,1.0,sso_portal_18,credentials,0,
-ArpSpoofingDetector,1.0,arp_spoof_light_6,arp,1,
-ArpSpoofingDetector,1.0,arp_spoof_heavy_30,arp,1,6
-ArpSpoofingDetector,1.0,arp_housekeeping_9,arp,0,2
+ArpSpoofingDetector,1.0,arp_spoof_light_6,arp,1,2
+ArpSpoofingDetector,1.0,arp_spoof_heavy_30,arp,1,4
+ArpSpoofingDetector,1.0,arp_housekeeping_9,arp,0,3
 ArpSpoofingDetector,1.0,beacon_5s_30,beaconing,0,
 ArpSpoofingDetector,1.0,beacon_30s_18_jittered,beaconing,0,
 ArpSpoofingDetector,1.0,beacon_60s_20,beaconing,0,
@@ -72,7 +72,7 @@ ArpSpoofingDetector,5.0,http_brute_fast_60,credentials,0,
 ArpSpoofingDetector,5.0,config_mgmt_ssh_14,credentials,0,
 ArpSpoofingDetector,5.0,ci_runner_ssh_6,credentials,0,
 ArpSpoofingDetector,5.0,sso_portal_18,credentials,0,
-ArpSpoofingDetector,5.0,arp_spoof_light_6,arp,1,2
+ArpSpoofingDetector,5.0,arp_spoof_light_6,arp,1,3
 ArpSpoofingDetector,5.0,arp_spoof_heavy_30,arp,1,15
 ArpSpoofingDetector,5.0,arp_housekeeping_9,arp,0,4
 ArpSpoofingDetector,5.0,beacon_5s_30,beaconing,0,
@@ -121,9 +121,9 @@ ArpSpoofingDetector,10.0,http_brute_fast_60,credentials,0,
 ArpSpoofingDetector,10.0,config_mgmt_ssh_14,credentials,0,
 ArpSpoofingDetector,10.0,ci_runner_ssh_6,credentials,0,
 ArpSpoofingDetector,10.0,sso_portal_18,credentials,0,
-ArpSpoofingDetector,10.0,arp_spoof_light_6,arp,1,4
+ArpSpoofingDetector,10.0,arp_spoof_light_6,arp,1,5
 ArpSpoofingDetector,10.0,arp_spoof_heavy_30,arp,1,25
-ArpSpoofingDetector,10.0,arp_housekeeping_9,arp,0,5
+ArpSpoofingDetector,10.0,arp_housekeeping_9,arp,0,6
 ArpSpoofingDetector,10.0,beacon_5s_30,beaconing,0,
 ArpSpoofingDetector,10.0,beacon_30s_18_jittered,beaconing,0,
 ArpSpoofingDetector,10.0,beacon_60s_20,beaconing,0,
@@ -1160,7 +1160,7 @@ DnsTunnelingDetector,10.0,telemetry_agent_60s_20,beaconing,0,
 DnsTunnelingDetector,10.0,healthcheck_poll_10s_40,beaconing,0,
 DnsTunnelingDetector,10.0,human_browsing_burst,beaconing,0,
 DnsTunnelingDetector,10.0,dns_tunnel_30q,dns,1,
-DnsTunnelingDetector,10.0,dns_tunnel_120q,dns,1,20
+DnsTunnelingDetector,10.0,dns_tunnel_120q,dns,1,30
 DnsTunnelingDetector,10.0,cdn_cache_keys_60q,dns,0,
 DnsTunnelingDetector,10.0,reputation_lookups_80q,dns,0,10
 DnsTunnelingDetector,10.0,resolver_busy_300q,dns,0,
@@ -1208,8 +1208,8 @@ DnsTunnelingDetector,30.0,beacon_60s_20,beaconing,0,
 DnsTunnelingDetector,30.0,telemetry_agent_60s_20,beaconing,0,
 DnsTunnelingDetector,30.0,healthcheck_poll_10s_40,beaconing,0,
 DnsTunnelingDetector,30.0,human_browsing_burst,beaconing,0,
-DnsTunnelingDetector,30.0,dns_tunnel_30q,dns,1,10
-DnsTunnelingDetector,30.0,dns_tunnel_120q,dns,1,50
+DnsTunnelingDetector,30.0,dns_tunnel_30q,dns,1,20
+DnsTunnelingDetector,30.0,dns_tunnel_120q,dns,1,75
 DnsTunnelingDetector,30.0,cdn_cache_keys_60q,dns,0,
 DnsTunnelingDetector,30.0,reputation_lookups_80q,dns,0,40
 DnsTunnelingDetector,30.0,resolver_busy_300q,dns,0,
@@ -1257,7 +1257,7 @@ DnsTunnelingDetector,60.0,beacon_60s_20,beaconing,0,
 DnsTunnelingDetector,60.0,telemetry_agent_60s_20,beaconing,0,
 DnsTunnelingDetector,60.0,healthcheck_poll_10s_40,beaconing,0,
 DnsTunnelingDetector,60.0,human_browsing_burst,beaconing,0,
-DnsTunnelingDetector,60.0,dns_tunnel_30q,dns,1,20
+DnsTunnelingDetector,60.0,dns_tunnel_30q,dns,1,30
 DnsTunnelingDetector,60.0,dns_tunnel_120q,dns,1,100
 DnsTunnelingDetector,60.0,cdn_cache_keys_60q,dns,0,
 DnsTunnelingDetector,60.0,reputation_lookups_80q,dns,0,75
@@ -1391,7 +1391,7 @@ HttpBruteForceDetector,1.0,traceroute_burst_30,flood,0,
 HttpBruteForceDetector,1.0,ssh_brute_slow_8,credentials,0,
 HttpBruteForceDetector,1.0,ssh_brute_fast_40,credentials,0,
 HttpBruteForceDetector,1.0,http_brute_slow_12,credentials,1,
-HttpBruteForceDetector,1.0,http_brute_fast_60,credentials,1,
+HttpBruteForceDetector,1.0,http_brute_fast_60,credentials,1,5
 HttpBruteForceDetector,1.0,config_mgmt_ssh_14,credentials,0,
 HttpBruteForceDetector,1.0,ci_runner_ssh_6,credentials,0,
 HttpBruteForceDetector,1.0,sso_portal_18,credentials,0,
@@ -1440,7 +1440,7 @@ HttpBruteForceDetector,5.0,traceroute_burst_30,flood,0,
 HttpBruteForceDetector,5.0,ssh_brute_slow_8,credentials,0,
 HttpBruteForceDetector,5.0,ssh_brute_fast_40,credentials,0,
 HttpBruteForceDetector,5.0,http_brute_slow_12,credentials,1,
-HttpBruteForceDetector,5.0,http_brute_fast_60,credentials,1,12
+HttpBruteForceDetector,5.0,http_brute_fast_60,credentials,1,15
 HttpBruteForceDetector,5.0,config_mgmt_ssh_14,credentials,0,
 HttpBruteForceDetector,5.0,ci_runner_ssh_6,credentials,0,
 HttpBruteForceDetector,5.0,sso_portal_18,credentials,0,
@@ -1778,7 +1778,7 @@ IcmpFloodDetector,5.0,icmp_flood_moderate,flood,1,50
 IcmpFloodDetector,5.0,icmp_flood_heavy,flood,1,250
 IcmpFloodDetector,5.0,busy_web_server_300,flood,0,
 IcmpFloodDetector,5.0,voip_stream_400,flood,0,
-IcmpFloodDetector,5.0,availability_ping_90,flood,0,
+IcmpFloodDetector,5.0,availability_ping_90,flood,0,10
 IcmpFloodDetector,5.0,traceroute_burst_30,flood,0,30
 IcmpFloodDetector,5.0,ssh_brute_slow_8,credentials,0,
 IcmpFloodDetector,5.0,ssh_brute_fast_40,credentials,0,
@@ -1925,7 +1925,7 @@ IcmpFloodDetector,60.0,icmp_flood_moderate,flood,1,50
 IcmpFloodDetector,60.0,icmp_flood_heavy,flood,1,250
 IcmpFloodDetector,60.0,busy_web_server_300,flood,0,
 IcmpFloodDetector,60.0,voip_stream_400,flood,0,
-IcmpFloodDetector,60.0,availability_ping_90,flood,0,40
+IcmpFloodDetector,60.0,availability_ping_90,flood,0,50
 IcmpFloodDetector,60.0,traceroute_burst_30,flood,0,30
 IcmpFloodDetector,60.0,ssh_brute_slow_8,credentials,0,
 IcmpFloodDetector,60.0,ssh_brute_fast_40,credentials,0,
@@ -2225,7 +2225,7 @@ LateralMovementDetector,30.0,ssh_brute_slow_8,credentials,0,
 LateralMovementDetector,30.0,ssh_brute_fast_40,credentials,0,
 LateralMovementDetector,30.0,http_brute_slow_12,credentials,0,
 LateralMovementDetector,30.0,http_brute_fast_60,credentials,0,
-LateralMovementDetector,30.0,config_mgmt_ssh_14,credentials,0,5
+LateralMovementDetector,30.0,config_mgmt_ssh_14,credentials,0,8
 LateralMovementDetector,30.0,ci_runner_ssh_6,credentials,0,
 LateralMovementDetector,30.0,sso_portal_18,credentials,0,
 LateralMovementDetector,30.0,arp_spoof_light_6,arp,0,
@@ -2418,7 +2418,7 @@ SshBruteForceDetector,1.0,voip_stream_400,flood,0,
 SshBruteForceDetector,1.0,availability_ping_90,flood,0,
 SshBruteForceDetector,1.0,traceroute_burst_30,flood,0,
 SshBruteForceDetector,1.0,ssh_brute_slow_8,credentials,1,
-SshBruteForceDetector,1.0,ssh_brute_fast_40,credentials,1,3
+SshBruteForceDetector,1.0,ssh_brute_fast_40,credentials,1,5
 SshBruteForceDetector,1.0,http_brute_slow_12,credentials,0,
 SshBruteForceDetector,1.0,http_brute_fast_60,credentials,0,
 SshBruteForceDetector,1.0,config_mgmt_ssh_14,credentials,0,
@@ -2466,7 +2466,7 @@ SshBruteForceDetector,5.0,busy_web_server_300,flood,0,
 SshBruteForceDetector,5.0,voip_stream_400,flood,0,
 SshBruteForceDetector,5.0,availability_ping_90,flood,0,
 SshBruteForceDetector,5.0,traceroute_burst_30,flood,0,
-SshBruteForceDetector,5.0,ssh_brute_slow_8,credentials,1,
+SshBruteForceDetector,5.0,ssh_brute_slow_8,credentials,1,3
 SshBruteForceDetector,5.0,ssh_brute_fast_40,credentials,1,12
 SshBruteForceDetector,5.0,http_brute_slow_12,credentials,0,
 SshBruteForceDetector,5.0,http_brute_fast_60,credentials,0,
@@ -2520,7 +2520,7 @@ SshBruteForceDetector,10.0,ssh_brute_fast_40,credentials,1,20
 SshBruteForceDetector,10.0,http_brute_slow_12,credentials,0,
 SshBruteForceDetector,10.0,http_brute_fast_60,credentials,0,
 SshBruteForceDetector,10.0,config_mgmt_ssh_14,credentials,0,3
-SshBruteForceDetector,10.0,ci_runner_ssh_6,credentials,0,
+SshBruteForceDetector,10.0,ci_runner_ssh_6,credentials,0,3
 SshBruteForceDetector,10.0,sso_portal_18,credentials,0,
 SshBruteForceDetector,10.0,arp_spoof_light_6,arp,0,
 SshBruteForceDetector,10.0,arp_spoof_heavy_30,arp,0,
@@ -2568,8 +2568,8 @@ SshBruteForceDetector,30.0,ssh_brute_slow_8,credentials,1,3
 SshBruteForceDetector,30.0,ssh_brute_fast_40,credentials,1,30
 SshBruteForceDetector,30.0,http_brute_slow_12,credentials,0,
 SshBruteForceDetector,30.0,http_brute_fast_60,credentials,0,
-SshBruteForceDetector,30.0,config_mgmt_ssh_14,credentials,0,5
-SshBruteForceDetector,30.0,ci_runner_ssh_6,credentials,0,3
+SshBruteForceDetector,30.0,config_mgmt_ssh_14,credentials,0,8
+SshBruteForceDetector,30.0,ci_runner_ssh_6,credentials,0,5
 SshBruteForceDetector,30.0,sso_portal_18,credentials,0,
 SshBruteForceDetector,30.0,arp_spoof_light_6,arp,0,
 SshBruteForceDetector,30.0,arp_spoof_heavy_30,arp,0,
@@ -2613,7 +2613,7 @@ SshBruteForceDetector,60.0,busy_web_server_300,flood,0,
 SshBruteForceDetector,60.0,voip_stream_400,flood,0,
 SshBruteForceDetector,60.0,availability_ping_90,flood,0,
 SshBruteForceDetector,60.0,traceroute_burst_30,flood,0,
-SshBruteForceDetector,60.0,ssh_brute_slow_8,credentials,1,3
+SshBruteForceDetector,60.0,ssh_brute_slow_8,credentials,1,5
 SshBruteForceDetector,60.0,ssh_brute_fast_40,credentials,1,30
 SshBruteForceDetector,60.0,http_brute_slow_12,credentials,0,
 SshBruteForceDetector,60.0,http_brute_fast_60,credentials,0,
@@ -3185,7 +3185,7 @@ SynScanDetector,5.0,backdoor_port_4444,baseline,0,
 SynScanDetector,5.0,irc_client_6667,baseline,0,
 SynScanDetector,5.0,ordinary_traffic,baseline,0,
 SynScanDetector,10.0,scan_stealth_12ports,recon,1,
-SynScanDetector,10.0,scan_moderate_25ports,recon,1,12
+SynScanDetector,10.0,scan_moderate_25ports,recon,1,15
 SynScanDetector,10.0,scan_aggressive_60ports,recon,1,60
 SynScanDetector,10.0,scan_ack_25ports,recon,0,
 SynScanDetector,10.0,lb_backend_probe_10ports,recon,0,5
@@ -3238,7 +3238,7 @@ SynScanDetector,30.0,scan_moderate_25ports,recon,1,25
 SynScanDetector,30.0,scan_aggressive_60ports,recon,1,60
 SynScanDetector,30.0,scan_ack_25ports,recon,0,
 SynScanDetector,30.0,lb_backend_probe_10ports,recon,0,8
-SynScanDetector,30.0,service_inventory_14ports,recon,0,5
+SynScanDetector,30.0,service_inventory_14ports,recon,0,8
 SynScanDetector,30.0,browser_session_4ports,recon,0,
 SynScanDetector,30.0,syn_flood_moderate,flood,0,
 SynScanDetector,30.0,syn_flood_heavy,flood,0,
@@ -3528,9 +3528,9 @@ TcpPortScanDetector,5.0,backdoor_port_4444,baseline,0,
 TcpPortScanDetector,5.0,irc_client_6667,baseline,0,
 TcpPortScanDetector,5.0,ordinary_traffic,baseline,0,
 TcpPortScanDetector,10.0,scan_stealth_12ports,recon,1,
-TcpPortScanDetector,10.0,scan_moderate_25ports,recon,1,12
+TcpPortScanDetector,10.0,scan_moderate_25ports,recon,1,15
 TcpPortScanDetector,10.0,scan_aggressive_60ports,recon,1,60
-TcpPortScanDetector,10.0,scan_ack_25ports,recon,1,12
+TcpPortScanDetector,10.0,scan_ack_25ports,recon,1,15
 TcpPortScanDetector,10.0,lb_backend_probe_10ports,recon,0,5
 TcpPortScanDetector,10.0,service_inventory_14ports,recon,0,
 TcpPortScanDetector,10.0,browser_session_4ports,recon,0,
@@ -3581,7 +3581,7 @@ TcpPortScanDetector,30.0,scan_moderate_25ports,recon,1,25
 TcpPortScanDetector,30.0,scan_aggressive_60ports,recon,1,60
 TcpPortScanDetector,30.0,scan_ack_25ports,recon,1,25
 TcpPortScanDetector,30.0,lb_backend_probe_10ports,recon,0,8
-TcpPortScanDetector,30.0,service_inventory_14ports,recon,0,5
+TcpPortScanDetector,30.0,service_inventory_14ports,recon,0,8
 TcpPortScanDetector,30.0,browser_session_4ports,recon,0,
 TcpPortScanDetector,30.0,syn_flood_moderate,flood,0,
 TcpPortScanDetector,30.0,syn_flood_heavy,flood,0,
@@ -3781,7 +3781,7 @@ UdpFloodDetector,1.0,service_inventory_14ports,recon,0,
 UdpFloodDetector,1.0,browser_session_4ports,recon,0,
 UdpFloodDetector,1.0,syn_flood_moderate,flood,0,
 UdpFloodDetector,1.0,syn_flood_heavy,flood,0,
-UdpFloodDetector,1.0,udp_flood_moderate,flood,1,50
+UdpFloodDetector,1.0,udp_flood_moderate,flood,1,75
 UdpFloodDetector,1.0,udp_flood_heavy,flood,1,400
 UdpFloodDetector,1.0,icmp_flood_moderate,flood,0,
 UdpFloodDetector,1.0,icmp_flood_heavy,flood,0,

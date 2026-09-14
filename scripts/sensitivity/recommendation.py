@@ -1,124 +1,110 @@
 """
-Turning the sweep into one configuration a sensor could actually run.
+Turning the sweep into a configuration a sensor could actually run.
 
 Data Setup:  Nothing; derived from the committed metrics.
 Data Input:  The metrics DataFrame.
-Data Output: One evaluation interval, and one threshold per detector.
+Data Output: A window and a threshold per detector.
 
-The sweep gives every detector its own best window, and that is not a
-configuration: `PeriodicEvaluator` runs one timer for all of them, so there is
-exactly one interval to choose. Picking it per detector and reporting the
-result as a recommendation would be recommending something the code cannot
-do — the same class of mistake as a `time_window_seconds` nobody reads.
+Until Milestone 21 there was one knob to recommend and it had to serve every
+detector at once: no detector read its own `time_window_seconds`, so the only
+live control was the shared evaluation interval. Picking it per detector and
+reporting that as a recommendation would have been recommending something the
+code could not do.
 
-A detector that never fires scores no F1. Here that is treated as 0.0 rather
-than dropped, because when the question is which single interval to run, a
-detector going silent is the worst outcome available and averaging it away
-would hide it.
+Now the window is per detector and the interval is only how often each is
+asked, so a recommendation is a pair per detector — which is both more useful
+and, finally, implementable.
+
+A detector that never fires scores no F1. Where that has to be averaged it is
+treated as 0.0 rather than dropped, because a detector going silent is the
+worst outcome available and averaging it away would hide it.
 """
 
 import pandas as pd
 
-from .grid import THRESHOLDS
 
-
-def window_scores(metrics: pd.DataFrame) -> pd.Series:
+def best_f1_points(metrics: pd.DataFrame) -> pd.DataFrame:
     """
-    Return the mean best-F1 across detectors, for each candidate interval.
+    Return the highest-F1 (window, threshold) for each detector.
+
+    Ties break toward the higher threshold and then the shorter window: among
+    configurations that score the same, prefer the one that alerts less and
+    decides sooner.
 
     Args:
         metrics: The grid metrics.
 
     Returns:
-        Interval in seconds -> mean F1, undefined counted as zero.
+        One row per detector that scored at all, indexed by detector name.
     """
-    best_per_detector = (
-        metrics.pivot_table(
-            index="detector", columns="window_seconds", values="f1", aggfunc="max"
-        )
-        .reindex(sorted(THRESHOLDS))
-        .fillna(0.0)
+    scored = metrics.dropna(subset=["f1"])
+    ordered = scored.sort_values(
+        ["detector", "f1", "threshold", "window_seconds"],
+        ascending=[True, False, False, True],
     )
-    return best_per_detector.mean(axis=0)
+    return ordered.groupby("detector", as_index=True).first()
 
 
-def best_common_window(metrics: pd.DataFrame) -> float:
-    """
-    Return the single evaluation interval that serves every detector best.
-
-    Ties break toward the shorter interval: the interval is also the detection
-    latency, so two configurations that score the same are not equally good to
-    run.
-
-    Args:
-        metrics: The grid metrics.
-
-    Returns:
-        The interval in seconds.
-    """
-    scores = window_scores(metrics)
-    top = scores.max()
-    # The index is the window in seconds; pandas types it as Hashable, so the
-    # cast says what the column already guarantees.
-    winners = [float(str(window)) for window, score in scores.items() if score == top]
-    return min(winners)
-
-
-def recommended_thresholds(metrics: pd.DataFrame, window: float) -> dict[str, int]:
-    """
-    Return the best threshold for each detector at one shared interval.
-
-    Ties break toward the *higher* threshold: among configurations that score
-    the same, the one that alerts less is the one an analyst should be given.
-
-    Args:
-        metrics: The grid metrics.
-        window:  The evaluation interval to tune against.
-
-    Returns:
-        Detector name -> recommended threshold.
-    """
-    at_window = metrics[metrics["window_seconds"] == window].dropna(subset=["f1"])
-    ordered = at_window.sort_values(
-        ["detector", "f1", "threshold"], ascending=[True, False, False]
-    )
-    chosen = ordered.groupby("detector")["threshold"].first()
-    return {str(detector): int(value) for detector, value in chosen.items()}
-
-
-def precision_first_thresholds(metrics: pd.DataFrame, window: float) -> dict[str, int]:
+def clean_points(metrics: pd.DataFrame, windows: dict[str, float]) -> pd.DataFrame:
     """
     Return the most sensitive threshold that alerts on no benign case.
 
-    The F1 optimum above maximises a score computed on a corpus that is half
-    attacks. Production is not, so that score systematically favours a lowered
-    threshold: it prices a false positive against twenty-three negative cases
-    when a real segment offers millions. This picks the other end — the most
-    recall available while the detector stays silent on every benign case in
-    the corpus — which is the operating point an analyst's attention budget
-    argues for.
+    Evaluated at each detector's *own* window rather than across the grid.
+    Searching both axes at once finds operating points that are clean only
+    because the window is too short for anything to accumulate, which is a
+    way of scoring well by not looking.
+
+    The F1 optimum is the other end and is no better on its own: it maximises
+    a score computed on a corpus that is half attacks, so it systematically
+    prices a false positive against twenty-three negative cases when a real
+    segment offers millions.
 
     "No false positive here" is a necessary condition, not a sufficient one.
     Twenty-three benign cases cannot certify a detector against real traffic.
 
     Args:
         metrics: The grid metrics.
-        window:  The evaluation interval to tune against.
+        windows: Detector -> the window to evaluate it at.
 
     Returns:
-        Detector -> threshold. Detectors that cannot both fire and stay clean
-        at this window are absent.
+        One row per detector that can both fire and stay clean at its window.
     """
-    clean = metrics[
-        (metrics["window_seconds"] == window)
-        & (metrics["false_positives"] == 0)
-        & (metrics["true_positives"] > 0)
+    rows = [
+        metrics[
+            (metrics["detector"] == detector)
+            & (metrics["window_seconds"] == window)
+            & (metrics["false_positives"] == 0)
+            & (metrics["true_positives"] > 0)
+        ]
+        for detector, window in windows.items()
     ]
-    # Recall first, then the *lowest* threshold that achieves it. Several
-    # thresholds usually tie at the same clean recall, and among them the
-    # lowest is the most sensitive at no measured cost — the opposite
-    # tie-break from `recommended_thresholds`, where the alternatives differ
-    # in how much they alert.
-    ordered = clean.sort_values(["detector", "recall", "threshold"], ascending=[True, False, True])
-    chosen = ordered.groupby("detector")["threshold"].first()
-    return {str(detector): int(value) for detector, value in chosen.items()}
+    candidates = pd.concat(rows)
+    ordered = candidates.sort_values(
+        ["detector", "recall", "threshold"], ascending=[True, False, True]
+    )
+    return ordered.groupby("detector", as_index=True).first()
+
+
+def benign_ceiling(outcomes: pd.DataFrame, windows: dict[str, float]) -> pd.Series:
+    """
+    Return the largest magnitude any benign case reaches, per detector.
+
+    This is what a threshold needs headroom over, and quoting the margin is
+    the difference between a recommendation and a number fitted to one
+    fixture's volume.
+
+    Args:
+        outcomes: The per-case outcomes.
+        windows:  Detector -> the window to read it at.
+
+    Returns:
+        Detector -> the highest threshold a benign case still fires at.
+    """
+    benign = outcomes[
+        (outcomes["expected"] == 0) & outcomes["highest_firing_threshold"].notna()
+    ]
+    at_window = benign[
+        benign.apply(lambda row: windows.get(row["detector"]) == row["window_seconds"], axis=1)
+    ]
+    ceilings: pd.Series = at_window.groupby("detector")["highest_firing_threshold"].max()
+    return ceilings

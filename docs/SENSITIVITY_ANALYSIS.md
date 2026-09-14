@@ -86,19 +86,32 @@ over about ten values centred on the shipped default and stretched far enough
 either side that the curve reaches both ends of its behaviour.
 
 **Window.** The seconds of traffic a detector accumulates before it decides:
-1, 5, 10, 30, 60, 300 and 3600.
+1, 5, 10, 30, 60, 300 and 3600. This is the per-detector
+`time_window_seconds`, set on each detector's own configuration.
 
-The window axis is the *evaluation interval*, not the per-detector
-`time_window_seconds`, and the reason matters more than the sweep does. Twelve
-detector configurations declare a `time_window_seconds`, it is validated, it
-is in `config/detectors.json` — and no detector reads it. Detector state is
-cleared by `evaluate()`, and `evaluate()` is called by `PeriodicEvaluator` on
-one shared timer taken from `detection.evaluation_interval_seconds` in
-`config/setup.json`, which ships at 5.0 seconds. So the effective window for
-every detector is five seconds, and a configuration reading "100 SYNs in 1
-second" or "10 login attempts in 60 seconds" describes behaviour the code does
-not implement. Sweeping the declared field would have produced twelve flat
-lines; sweeping the interval measures the parameter that is actually live.
+That is a change, and the reason matters more than the sweep does. Until
+Milestone 21 no detector read `time_window_seconds`: state was cleared by
+`evaluate()`, and `PeriodicEvaluator` called that on one shared timer taken
+from `detection.evaluation_interval_seconds`. Sweeping the declared field
+would have produced twelve flat lines, so the first version of this analysis
+swept the interval instead — the only parameter that was actually live — and
+reported that as the finding.
+
+Now the two are separate. The window is how much traffic a detector considers
+and is per detector; the interval is only how often each is asked, and is
+held fixed at the shipped 5.0 seconds throughout. Nothing here varies it,
+because varying it would only vary how late an alert appeared.
+
+The consequence for the recommendation is that it is now a pair per detector
+rather than one number for all twelve. A single shared interval had to serve
+a flood detector wanting one second and a beaconing detector wanting an hour;
+a window does not.
+
+Threshold grids are centred on each detector's shipped value. One of them —
+`UdpFloodDetector` — was widened after the first run, because its original
+step went 50 then 100 and at a one-second window the entire decision sits
+between those two points. A grid that steps over the answer reports that no
+answer exists.
 
 `SuspiciousPortDetector` is not swept. Its operating point is a port list, not
 a number. It is still measured at its shipped configuration.
@@ -110,9 +123,16 @@ once, and sorted into capture order; every grid point then replays that same
 list through a *freshly constructed* detector — detectors are stateful, and
 reusing one would carry a window's counters into the next configuration.
 
-`replay` calls `evaluate()` once per elapsed window of capture time, which is
-what `PeriodicEvaluator` does against wall time. Using capture time is the
-only difference, and it is the one that makes a result reproducible.
+`replay` calls `evaluate()` once per elapsed *interval* of capture time, which
+is what `PeriodicEvaluator` does against wall time. Using capture time is the
+only difference, and it is the one that makes a result reproducible — the
+detectors' own sliding windows read the same clock, from packet timestamps.
+
+Quiet intervals are evaluated too. An earlier version skipped any interval
+with no packets in it as an optimisation; with sliding windows that is wrong,
+because an evaluation finding nothing is how a detector re-arms after an
+episode ends. Skipping them would have made a burst that stopped and started
+again look like one continuous burst.
 
 Firing is monotone in every threshold here: raising it can only silence a
 detector. `sweep._summarise` checks that rather than assuming it, and raises
@@ -147,11 +167,14 @@ out to matter more than any single threshold.
 
 `scripts/sensitivity/timeline.py` lays the same cases end to end on one clock:
 half an hour with benign traffic running throughout and five attacks placed
-inside it, replayed at the shipped configuration and at the recommended one
-over identical packets. Each alert is recorded with the window boundary that
-produced it — an alert does not exist until the evaluation that emits it — and
-with whether an attack the detector is responsible for was running inside that
-window.
+inside it, replayed over identical packets at three configurations: the
+thresholds that shipped before this pass, the sweep's highest-F1 point, and
+the recommendation. Each alert is recorded with the evaluation that emitted it
+— an alert does not exist until then — and with whether an attack the detector
+is responsible for was running within reach of it. "Within reach" is
+`max(the detector's window, the evaluation interval)`: a one-second flood
+detector alerting at the next five-second evaluation is still about the flood,
+and scoring it against a one-second lookback would call it a false positive.
 
 This is where the corpus's composition stops being a convenience. Half of it
 is attacks; a real segment is not, so every false-positive rate measured

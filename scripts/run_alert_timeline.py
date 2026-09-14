@@ -14,16 +14,22 @@ today, the point the sweep scores highest, and the one this analysis actually
 proposes. The middle one is included because it is the obvious reading of the
 sweep and it is wrong — seeing its alert volume is the argument.
 
+All three run at the same evaluation interval. Since Milestone 21 that is not
+a detection parameter, so varying it here would only vary how late each alert
+appeared.
+
 See docs/SENSITIVITY_ANALYSIS.md for the method.
 """
 
 import argparse
 import csv
 from pathlib import Path
+from typing import Any
 
-from sensitivity.analysis import SHIPPED_WINDOW, load_metrics
-from sensitivity.proposal import PROPOSED_INTERVAL, PROPOSED_THRESHOLDS
-from sensitivity.recommendation import best_common_window, recommended_thresholds
+from sensitivity.analysis import load_metrics
+from sensitivity.grid import THRESHOLDS
+from sensitivity.proposal import PREVIOUS_THRESHOLDS, PROPOSED_INTERVAL
+from sensitivity.recommendation import best_f1_points
 from sensitivity.scenario import DURATION, compose
 from sensitivity.timeline import run
 
@@ -49,17 +55,24 @@ def main() -> None:
     ]
     print(f"timeline: {len(parsed):,} packets over {DURATION:g}s")
 
-    metrics = load_metrics()
-    window = best_common_window(metrics)
-    rows = run(parsed, SHIPPED_WINDOW, {}, f"shipped — {SHIPPED_WINDOW:g}s interval")
-    rows += run(
-        parsed, window, recommended_thresholds(metrics, window),
-        f"highest F1 — {window:g}s interval",
-    )
-    rows += run(
-        parsed, PROPOSED_INTERVAL, PROPOSED_THRESHOLDS,
-        f"proposed — {PROPOSED_INTERVAL:g}s interval",
-    )
+    best = best_f1_points(load_metrics())
+    highest_f1 = {
+        str(detector): {
+            THRESHOLDS[str(detector)][0]: int(row["threshold"]),
+            "time_window_seconds": int(row["window_seconds"]),
+        }
+        for detector, row in best.iterrows()
+        if str(detector) in THRESHOLDS
+    }
+    def by_threshold(values: dict[str, int]) -> dict[str, dict[str, Any]]:
+        return {name: {THRESHOLDS[name][0]: value} for name, value in values.items()}
+
+    # The recommendation is already in config/detectors.json, so "recommended"
+    # is the empty override and the *previous* thresholds are the ones that
+    # have to be named explicitly.
+    rows = run(parsed, PROPOSED_INTERVAL, by_threshold(PREVIOUS_THRESHOLDS), "previous thresholds")
+    rows += run(parsed, PROPOSED_INTERVAL, highest_f1, "highest F1")
+    rows += run(parsed, PROPOSED_INTERVAL, {}, "recommended")
 
     path = output_dir / "alert_timeline.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:

@@ -10,28 +10,23 @@ Everything here is either measured or scoped. Nothing is aspirational.
 
 ### Detection
 
-**Five detectors have a measured recall of 0.00 as shipped.** Beaconing, DNS
-tunnelling, HTTP brute force, data exfiltration and lateral movement detect
-none of their own attacks on live traffic; TCP port scan catches one case in
-four; ARP spoofing and SSH brute force catch the loud half of theirs. One
-cause: every detector runs on a five-second evaluation interval while nine of
-them are configured for sixty seconds or more, because the per-detector
-`time_window_seconds` is declared, validated, reported by `GET /config` — and
-read by nothing. Measured across 777 grid points in
-[DETECTION_TUNING.md](DETECTION_TUNING.md).
-
-**Windows are tumbling and anchored to process start.** Whether a burst falls
-inside one window or astride two depends on when the sensor was started. On
-the composed timeline a once-a-second ping lands astride a boundary in six of
-nine appearances, and a 120-query DNS tunnel splits 97/24 — taking a detection
-that needed 100 down to 97. Identical traffic, different verdict.
+**Mean recall is 0.74, and half the detectors still miss the quiet half of
+their own attack.** Data exfiltration, DNS tunnelling, HTTP brute force, SSH
+brute force and lateral movement each catch the loud case and miss the subtle
+one; SYN scan catches two cases in three. Measured across 791 grid points in
+[DETECTION_TUNING.md](DETECTION_TUNING.md). Until Milestone 21 the figure was
+0.41 with five detectors at 0.00, because no detector read the
+`time_window_seconds` its own configuration declared — every one of them ran
+on the shared five-second evaluation interval. That is fixed; what is left is
+the part a window cannot fix.
 
 **Some benign traffic is not separable from an attack by any threshold.** The
-corpus shows five detectors whose benign and malicious ranges overlap:
-encoded reputation lookups against a DNS tunnel, a nightly backup against a
-staged archive, duplicate-address detection against a light ARP poisoner, and
-both long-window flood detectors against a busy server. Each needs a signal
-the detector does not currently use, not a better number.
+corpus shows five detectors whose benign and malicious ranges overlap at their
+own window: a ten-second health check against a beacon, encoded reputation
+lookups against a DNS tunnel, a nightly backup against a staged archive,
+duplicate-address detection against a light ARP poisoner, and a monitoring
+server's fan-out against a contained lateral sweep. Each needs a signal the
+detector does not currently use, not a better number.
 
 **The shipped `tcp_port_scan.yaml` rule is wrong.** It counts SYN packets
 where the detector counts unique destination ports, so it labels a SYN flood,
@@ -87,18 +82,20 @@ Ordered by what the evidence says matters, not by what is easiest.
 
 ### Next — correctness of what already exists
 
-1. **Make `time_window_seconds` real.** Each detector expires its own state on
-   its own window. The corpus shows three distinct regimes — one second for
-   floods, sixty for breadth and count detectors, an hour for beaconing — and
-   no single interval serves all three. This is the highest-value change in
-   the project.
-2. **Sliding windows instead of tumbling ones**, so detection stops depending
-   on when the process started.
+1. ~~**Make `time_window_seconds` real.**~~ Done in Milestone 21. Each
+   detector now slides its own window over capture time, and the corpus's
+   three regimes — one second for floods, ten to sixty for breadth and count
+   detectors, an hour for beaconing — are each served by the configuration
+   that always declared them.
+2. ~~**Sliding windows instead of tumbling ones.**~~ Done in Milestone 21, and
+   with them a burst is one alert rather than one per evaluation.
 3. **Fix the port-scan rule and the once-per-packet firing.** Either give the
    rule schema a distinct-value threshold or retire a rule the detector
    already covers correctly.
-4. **Apply the recommended defaults** in [DETECTION_TUNING.md](DETECTION_TUNING.md)
-   §2 once the window work lands.
+4. **Give the five unseparable detectors the signal they need** rather than a
+   different number: a registered-domain allowlist for DNS tunnelling, a
+   destination classification for exfiltration, and destination reputation for
+   beaconing. [DETECTION_TUNING.md](DETECTION_TUNING.md) §4 names each.
 
 All four are tracked under Milestone 21 in [TODO.md](TODO.md).
 

@@ -33,9 +33,16 @@ class RecordingDetector(BaseDetector[DetectorConfig]):
         self._pending += 1
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Record the batch size, clear the window, and optionally alert."""
-        if self._pending or self._always_alert:
-            self.batches.append(self._pending)
+        """
+        Record the batch size, start a new batch, and optionally alert.
+
+        Every evaluation is recorded, empty ones included. That is the harness
+        contract this substitutes for: a detector re-arms by being asked while
+        the condition is clear, so an interval nobody evaluated is a re-arm
+        that never happens, and a recorder that silently dropped quiet
+        evaluations could not tell the two apart.
+        """
+        self.batches.append(self._pending)
         self._pending = 0
         if not self._always_alert:
             return []

@@ -39,17 +39,17 @@ worse than one they know they lack.
   jittered beacon, exfiltration paced below the byte limit — evades it. The
   thresholds are configuration precisely so a defender can trade false
   positives for that margin.
-- **In the shipped configuration, considerably more than that.** Milestone 19
-  measured it: five of the twelve tunable detectors have a recall of **0.00**
-  on live traffic as shipped, and three more sit at or below 0.5. An attacker
-  does not need to stay under the beaconing, DNS-tunnelling, HTTP-brute-force,
-  exfiltration or lateral-movement thresholds, because none of those detectors
-  can reach its threshold at all. The cause is a single defect — every
-  detector runs on a five-second window while nine are configured for sixty
-  seconds or more — and it is quantified in
-  [DETECTION_TUNING.md](DETECTION_TUNING.md) and open under Milestone 21.
-  Until it is fixed, treat this system's coverage as the four detectors in
-  that document with a non-zero measured recall.
+- **The quiet half of most attacks.** Milestone 19 measured coverage and
+  Milestone 21 fixed the largest cause of the gap; mean recall across the
+  twelve tunable detectors is now **0.74**, up from 0.41 when no detector read
+  the window its configuration declared. What remains is not a bug: five
+  detectors catch the loud version of their attack and miss the subtle one —
+  a low-and-slow SSH brute force, a 30 MB staged archive, a twelve-host
+  lateral sweep. An attacker who stays below those thresholds is not detected,
+  and for five detectors no threshold exists that would separate them from
+  benign traffic without reporting a legitimate host.
+  [DETECTION_TUNING.md](DETECTION_TUNING.md) §4 names each and the signal it
+  would actually need.
 - **Availability of the monitored network.** It reports floods; it does not
   stop them. There is no blocking, no RST injection, no firewall integration.
 

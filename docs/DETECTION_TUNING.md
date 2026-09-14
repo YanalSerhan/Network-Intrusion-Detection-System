@@ -1,7 +1,7 @@
 # Detection tuning — findings and recommended defaults
 
 What the sensitivity analysis measured, what it changed my mind about, and
-what the defaults should be. The method is in
+what the defaults are. The method is in
 [SENSITIVITY_ANALYSIS.md](SENSITIVITY_ANALYSIS.md), the working in
 `notebooks/detection_analysis.ipynb`, and the raw numbers in `research/`.
 
@@ -11,107 +11,118 @@ a synthetic one, and the last section says what follows from that.
 
 ## The short version
 
-**The thresholds are mostly right. The window is wrong.**
+**The thresholds were mostly right. The window was not implemented.**
 
-Three shipped thresholds already sit exactly on the point where the detector
-stops firing on every benign case in the corpus, and most of the rest are
-within one grid step of it. Meanwhile five of the twelve tunable detectors
-have a recall of **0.00** as shipped, and three more sit at or below 0.5 —
-because every detector is being run with a five-second window, and nine of
-them are configured for windows between sixty seconds and an hour.
+Twelve detector configurations declared a `time_window_seconds`. No detector
+read it. Every detector ran with whatever `detection.evaluation_interval_seconds`
+happened to be — five seconds — so nine detectors configured to watch between
+a minute and an hour watched five seconds, and three configured to watch one
+second watched five.
 
-Changing one number in `config/setup.json`, plus three thresholds, takes the
-composed half-hour scenario from three of five attacks detected to five of
-five, with no false alarms in either case.
+Giving each detector the window it already declared raises mean recall across
+the twelve tunable detectors from **0.41 to 0.62 with no threshold change at
+all**, and takes the number of detectors that never fire from five to zero.
+Four thresholds then move, and retuning takes the mean to **0.74**.
 
-## 1. `time_window_seconds` is not read by anything
+On half an hour of composed traffic containing five attacks, that is the
+difference between ten alerts of which five were about nothing and four
+attacks found, and seven alerts of which one was about nothing and all five
+found.
 
-Twelve detector configurations declare a `time_window_seconds`. It is
-validated by the config model, it is in `config/detectors.json`, it is
-reported by `GET /config` — and no detector reads it.
+## 1. `time_window_seconds` was not read by anything
 
-Detector state is cleared by `evaluate()`, and `evaluate()` is called by
-`PeriodicEvaluator` on one shared timer taken from
-`detection.evaluation_interval_seconds` in `config/setup.json`, which ships at
-**5.0 seconds**. So the effective window for every detector is five seconds,
-and a configuration reading "100 SYNs in 1 second" or "10 login attempts in 60
-seconds" describes behaviour the code does not implement.
+It was validated by the config model, it was in `config/detectors.json`, it
+was reported by `GET /config` — and no detector read it. Detector state was
+cleared by `evaluate()`, and `PeriodicEvaluator` called that on one shared
+timer. A configuration reading "100 SYNs in 1 second" or "10 login attempts in
+60 seconds" described behaviour the code did not implement.
 
 This is the same defect class as the confidence thresholds fixed in Milestone
 15 and `retention_days` fixed in Milestone 16: a value copied into
 configuration, believed by operators, ignored by code. It is the largest one
-found so far, because unlike those two it silently costs detections.
+found, because unlike those two it silently cost detections.
 
-What it costs, at the shipped thresholds:
+What it cost, at the thresholds that shipped before this pass:
 
-| Detector | recall @ 5s (shipped) | recall @ 60s | declares |
+| Detector | declares | recall, window ignored | recall, window honoured |
 |---|---|---|---|
-| BeaconingDetector | 0.00 | 0.33 | 3600s |
-| DataExfiltrationDetector | 0.00 | 0.50 | 60s |
-| DnsTunnelingDetector | 0.00 | 0.50 | 60s |
-| HttpBruteForceDetector | 0.00 | 0.50 | 60s |
-| LateralMovementDetector | 0.00 | 0.50 | 60s |
-| TcpPortScanDetector | 0.25 | 0.75 | 10s |
-| ArpSpoofingDetector | 0.50 | 1.00 | 60s |
-| SshBruteForceDetector | 0.50 | 0.50 | 60s |
-| SynScanDetector | 0.67 | 0.67 | 10s |
-| IcmpFloodDetector | 1.00 | 1.00 | 1s |
-| SynFloodDetector | 1.00 | 1.00 | 1s |
-| UdpFloodDetector | 1.00 | 1.00 | 1s |
+| BeaconingDetector | 3600s | 0.00 | 1.00 |
+| DataExfiltrationDetector | 60s | 0.00 | 0.50 |
+| DnsTunnelingDetector | 60s | 0.00 | 0.50 |
+| HttpBruteForceDetector | 60s | 0.00 | 0.50 |
+| LateralMovementDetector | 60s | 0.00 | 0.50 |
+| TcpPortScanDetector | 10s | 0.25 | 0.75 |
+| ArpSpoofingDetector | 60s | 0.50 | 1.00 |
+| SshBruteForceDetector | 60s | 0.50 | 0.50 |
+| SynScanDetector | 10s | 0.67 | 0.67 |
+| IcmpFloodDetector | 1s | 1.00 | 0.50 |
+| SynFloodDetector | 1s | 1.00 | 0.50 |
+| UdpFloodDetector | 1s | 1.00 | 0.50 |
+| **mean** | | **0.41** | **0.62** |
 
-Mean recall rises from 0.41 to 0.69. The three detectors that lose nothing are
-the three whose declared window is short enough that the implementation
-happens to match it.
+The three floods are the interesting rows. They *lose* recall when given the
+window they asked for, and they are the reason the fix comes with threshold
+changes rather than without: a flood is defined by rate, and a count threshold
+set for a five-second window is five times too strict for a one-second one.
+Their thresholds had been fitted to the broken behaviour. Section 2 unfits
+them, and all three go to 1.00.
 
-The same thing seen as curves — at the window production runs, five detectors
-are flat on zero recall across their whole threshold range, so no setting of
-the number an operator is offered moves them:
+Seen as curves — each detector at its configured window, every panel showing
+the trade-off a threshold is supposed to express, recall falling as precision
+climbs and a crossover between them, which is the tuning decision:
 
-![Precision and recall at the shipped window](images/precision_recall_shipped_window.png)
+![Precision and recall at each detector's configured window](images/precision_recall_configured_window.png)
 
-Given the window each configuration asks for, every panel shows the trade-off
-a threshold is supposed to express — recall falling, precision climbing, and a
-crossover between them, which is the tuning decision:
+Before the fix, five of these panels were flat on zero recall across the whole
+threshold range: no setting of the number an operator was offered moved them.
 
-![Precision and recall at each detector's best window](images/precision_recall_best_window.png)
-
-Varying both parameters at once says the same thing in one picture. In nine of
-the twelve panels the gradient runs left to right — along the window — and the
-outlined row, the threshold that ships, crosses grey cells at the left edge
-where production sits:
+Searching the window axis as well says the window is the dominant parameter
+and the threshold the fine adjustment. In most panels the gradient runs left
+to right, along the window, rather than up and down along the threshold:
 
 ![F1 over threshold and window](images/f1_threshold_window_heatmaps.png)
 
-**Recommendation: make the field real.** Give each detector the window it
-already declares. That is not cosmetic — the corpus shows three genuinely
-different regimes, and no single interval serves them:
+The corpus shows three genuinely different regimes, and this is why one shared
+interval could never have served them:
 
-- The **flood detectors want one second**, where they score a perfect F1 and
-  where a flood is separable from a busy server *by rate*. Stretched to a
-  minute they are volume detectors, and a web server taking 300 connections a
-  minute looks exactly like a moderate SYN flood.
-- The **breadth and count detectors want sixty seconds.** A twelve-port scan
-  over two minutes has nothing to accumulate in five.
-- **Beaconing wants an hour**, which is what its configuration says. At sixty
-  seconds it catches one beacon of three; at 3600 it catches all three.
+- The **flood detectors want one second**, where a flood is separable from a
+  busy server *by rate*. Stretched to a minute they are volume detectors, and
+  a web server taking 300 connections a minute looks exactly like a moderate
+  SYN flood.
+- The **breadth and count detectors want ten to sixty seconds.** A twelve-port
+  scan over two minutes has nothing to accumulate in five.
+- **Beaconing wants an hour**, which is what its configuration always said. At
+  sixty seconds it catches one beacon of three; at 3600 it catches all three.
 
-## 2. Recommended defaults
+## 2. The defaults
 
-Until per-detector windows exist, one interval has to be chosen. **Sixty
-seconds** is where mean recall peaks with the detectors still clean on the
-benign corpus. Three thresholds change with it:
+The evaluation interval **stays at 5.0 seconds**. It is no longer a detection
+parameter: it decides how soon an alert can surface, not whether it is found.
+A shorter interval is now strictly better, because it only costs CPU. An
+earlier draft of this document recommended raising it to sixty; that was an
+interim measure for a broken window, and the trade is gone.
 
-| Setting | Now | Recommended | Why |
+Four thresholds change. Everything else keeps the value it shipped with, which
+is the part of this result that was not expected.
+
+| Setting | Was | Now | Why |
 |---|---|---|---|
-| `detection.evaluation_interval_seconds` | 5.0 | **60.0** | Section 1. |
-| `SynScanDetector.unique_ports_threshold` | 10 | **12** | Benign port fanout tops out at 10 — a load balancer probing ten service ports, a monitoring agent taking a fourteen-port inventory. Ten is exactly the shipped value, so both alert today. |
-| `SshBruteForceDetector.connection_count_threshold` | 10 | **12** | Configuration management reaches ten SSH sessions from one host, again exactly the shipped value. The forty-attempt attack registers thirty and is unaffected. |
-| `IcmpFloodDetector.icmp_count_threshold` | 50 | **100** | *Only while the interval is 60s.* Fifty ICMP packets per second is a flood; fifty per minute is a host pinged once a second. Revert to 50 when the detector gets its declared one-second window. |
+| `SynFloodDetector.syn_count_threshold` | 100 | **40** | At the one-second window the busiest benign second is twenty SYNs to one destination — a web server taking 300 connections over ten seconds, and an aggressive port scan. Forty leaves a 2.0x margin and takes recall from 0.5 to 1.0: a moderate flood runs at fifty a second, which a hundred never saw. |
+| `UdpFloodDetector.udp_count_threshold` | 200 | **75** | No benign case reaches even fifty datagrams in a second; the busiest is a VoIP stream at forty. Seventy-five leaves a 1.9x margin and takes recall from 0.5 to 1.0 — a moderate flood runs at eighty-three a second. |
+| `IcmpFloodDetector.icmp_count_threshold` | 50 | **20** | The busiest benign second is ten echo requests, from a traceroute. Twenty leaves a 2.0x margin and takes recall from 0.5 to 1.0. |
+| `SshBruteForceDetector.connection_count_threshold` | 10 | **12** | Configuration management opening one SSH session per managed host reaches exactly ten, the shipped value, so it alerted today. Twelve clears it. Recall is unchanged: the low-and-slow attack is below both. |
 
-Everything else keeps its shipped value. That is the unexpected part of this
-result: `HttpBruteForceDetector` at 20, `LateralMovementDetector` at 20 and
-`IcmpFloodDetector` at 50 sit *exactly* on the zero-false-positive point at a
-sixty-second window, and `TcpPortScanDetector` at 15 is one step above it.
+The rule for moving one: it must buy recall, and it must leave visible
+headroom over the busiest benign case in the corpus. The margin is quoted for
+each, because a threshold fitted to one fixture's volume is not a
+recommendation, it is a coincidence.
+
+The UDP threshold is the one number here the original sweep could not have
+produced. Its grid stepped 50 then 100, and the entire decision — a VoIP
+stream at forty a second against a moderate flood at eighty-three — lives
+between those two points. The grid was widened for that detector and the sweep
+re-run. A parameter search that steps over the answer reports that no answer
+exists, which is indistinguishable from there being none.
 
 ### What that configuration does
 
@@ -120,72 +131,88 @@ Replayed over half an hour of traffic with five attacks in it
 
 | Configuration | Attacks detected | Alerts raised | Of those, about nothing |
 |---|---|---|---|
-| Shipped — 5s interval | 3 of 5 | 4 | 0 |
-| Highest F1 — 300s interval | 5 of 5 | 23 | 16 |
-| **Proposed — 60s interval** | **5 of 5** | **6** | **0** |
+| Thresholds as they shipped before this pass | 4 of 5 | 10 | 5 |
+| The sweep's highest-F1 point | 5 of 5 | 14 | 8 |
+| **Recommended, and now shipped** | **5 of 5** | **7** | **1** |
 
 ![Alert volume over half an hour](images/alert_volume_timeline.png)
 
 ## 3. Why the highest-F1 configuration is not the recommendation
 
-The sweep's own optimum is a 300-second interval with most thresholds lowered:
-it reaches the highest mean F1 available at any single interval, 0.808.
-Replayed over the timeline it raises **sixteen false alarms in half an hour** — about
-thirty-two an hour on a segment this quiet — and an analyst stops reading a
-console at that rate.
+The sweep's own optimum finds all five attacks and raises eight false alarms
+in half an hour — sixteen an hour on a segment this quiet — and an analyst
+stops reading a console at that rate.
 
 F1 is misleading here for a specific, structural reason: **the corpus is half
 attacks and production is not.** A false-positive rate is measured against 23
 negative cases; a real segment offers millions of opportunities. Any score
-that balances precision against recall on a balanced corpus will systematically
-favour a lowered threshold, and the more imbalanced the real world is relative
-to the corpus, the more it over-favours it.
+that balances precision against recall on a balanced corpus will
+systematically favour a lowered threshold, and the more imbalanced the real
+world is relative to the corpus, the more it over-favours it.
 
-The second cost is latency, which no F1 score prices at all. A 300-second
-interval means the port scan at t=300 is reported at t=600. The window that
-buys recall is also the delay before anyone hears about it.
+It also buys its recall with window length. Five detectors score highest at
+300 seconds rather than the ten or sixty they ask for. That is not free even
+when the alert arrives at the same moment: the evidence behind it is five
+minutes of traffic rather than ten seconds of it, and someone has to read all
+of it to decide. Nothing in an F1 score prices that.
 
 So the recommendation is taken from a different operating point: **the most
 sensitive threshold at which the detector stays silent on every benign case in
-the corpus.** `recommendation.precision_first_thresholds` computes it. It is a
-necessary condition, not a sufficient one — 23 benign cases cannot certify a
-detector against real traffic — but it does not have F1's bias.
+the corpus, at its own window.** `recommendation.clean_points` computes it and
+`recommendation.benign_ceiling` quotes the margin. It is a necessary
+condition, not a sufficient one — 23 benign cases cannot certify a detector
+against real traffic — but it does not have F1's bias.
+
+Searching both axes at once for a clean point does have its own failure mode,
+which is why `clean_points` is evaluated at each detector's own window: over
+the whole grid it finds operating points that are clean only because the
+window is too short for anything to accumulate, which is a way of scoring well
+by not looking.
 
 ## 4. Detectors no threshold can fix
 
-For five detectors the benign and malicious ranges *overlap*: the largest
-benign case scores above the smallest attack, so every threshold either misses
-an attack or reports a legitimate host. These are recorded so a future tuning
-pass does not rediscover them by fitting a threshold to one benign case's
-volume, which is what the first draft of this document did.
+For five detectors the benign and malicious ranges *overlap* at the detector's
+own window: the largest benign case scores above the smallest attack, so every
+threshold either misses an attack or reports a legitimate host. These are
+recorded — in prose here and in `sensitivity.proposal.UNSEPARABLE_BY_THRESHOLD`
+in code — so a future tuning pass does not rediscover them by fitting a
+threshold to one benign case's volume, which is what the first draft of this
+document did.
 
 | Detector | The overlap | The signal that would separate them |
 |---|---|---|
-| `DnsTunnelingDetector` | Encoded reputation lookups reach 75 queries; the tunnel reaches 100 — and 100 is *exactly* the tunnel's count, so a window boundary splitting it loses the detection. | A registered-domain allowlist. Entropy and volume are both already used and neither distinguishes an endpoint agent's encoded lookups from a tunnel. |
+| `BeaconingDetector` | A health check every ten seconds is as regular as a beacon and reaches the same count. | Destination reputation, or a known-good list. Not a different count. |
+| `DnsTunnelingDetector` | Encoded reputation lookups reach 75 queries a minute; the tunnel reaches 100. | A registered-domain allowlist. Entropy and volume are both already used and neither distinguishes an endpoint agent's encoded lookups from a tunnel. |
 | `DataExfiltrationDetector` | A nightly backup moves 50 MB; a staged archive moves 30 MB. | The destination — internal, known-good, or neither. The detector's docstring is explicit that it does not look, and this is what that costs. |
-| `ArpSpoofingDetector` | Duplicate-address detection after a lease renewal reaches 8 packets; a light poisoner sends 6. | MAC-to-IP mapping surveillance, which the detector's own docstring names as the thing it simplified away. |
-| `SynFloodDetector` | At a minute-long window a busy web server reaches 300 new connections and a moderate flood 150. | Rate. Separable at the one-second window the configuration already declares. |
-| `UdpFloodDetector` | An RTP stream reaches 400 datagrams a minute; a moderate flood 250. | Rate, same as above. |
+| `ArpSpoofingDetector` | Duplicate-address detection after a lease renewal reaches 8 packets; a light poisoner sends 6. | MAC-to-IP mapping surveillance, which the detector's own docstring names as the thing it simplified away. The shipped threshold of 5 alerts on both and is kept: ARP poisoning is worth a false positive that one allowlist entry removes. |
+| `LateralMovementDetector` | A monitoring server polls 15 hosts; a contained lateral sweep reaches 12. | Which hosts are supposed to fan out. The shipped threshold of 20 is clean but misses the smaller sweep. |
 
-The last two are not really detector defects. They are section 1 again.
+Four of the five are addressed in Milestone 21 by giving the detectors the
+missing signal rather than a different number; the fifth, ARP, keeps its
+deliberate false positive.
 
-## 5. Windows are tumbling, and anchored to process start
+## 5. Windows slide, and each episode is one alert
 
-`evaluate()` clears state, so a window is a tumbling bucket whose boundaries
-are fixed by when the sensor started rather than by when traffic arrives. The
-composed timeline caught two consequences the isolated sweep could not:
+Two behaviours that the composed timeline caught and the isolated sweep could
+not, both now fixed rather than merely reported:
 
-- The once-a-second availability ping lands astride a boundary in six of its
-  nine appearances and inside a single window in three. Identical traffic,
-  different verdict, decided by phase.
-- The DNS tunnel's 120 queries split **97 / 24** across a boundary, taking a
-  detection that needs 100 down to 97.
+- **Windows were tumbling and anchored to process start.** `evaluate()`
+  cleared state, so a window's boundaries were fixed by when the sensor
+  started rather than by when traffic arrived. The once-a-second availability
+  ping landed astride a boundary in six of its nine appearances; the DNS
+  tunnel's 120 queries split 97 / 24 across one, taking a detection that needs
+  100 down to 97. Identical traffic, different verdict, decided by phase.
+  Windows now slide over *capture* time — the clock comes from packet
+  timestamps, so a replay of the same PCAP gives the same answer every time.
+- **A sustained attack was one alert per evaluation.** A flood lasting a
+  minute produced twelve alerts at a five-second interval, which is the same
+  finding twelve times. Each detector now reports a given key once per
+  episode, and re-arms when the condition clears.
 
-Two things follow. First, a sliding window — or overlapping windows, or a
-decayed counter — would make detection independent of when the process
-started, and is worth doing. Second, **the per-case numbers in the sweep are
-optimistic by however much alignment luck each case got**, since each case is
-replayed with the window anchored to its own first packet.
+The second one interacts with the first: because the window slides, a burst is
+counted once wherever it falls, so the alert that survives deduplication is
+about the whole burst rather than about the fraction of it that happened to
+land inside a bucket.
 
 ## 6. What these numbers are not
 

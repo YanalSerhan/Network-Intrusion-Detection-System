@@ -16,6 +16,10 @@ detector, never wake it — so each (detector, window, case) is summarised by
 the highest threshold at which it still fires. `_summarise` checks that
 monotonicity rather than assuming it: a detector whose behaviour is not
 monotone would make every curve below meaningless, and it should say so.
+
+The window is now set on the detector rather than imposed by the harness, so
+each grid point configures a real detector the way an operator would and the
+evaluation interval is held at its production value throughout.
 """
 
 from typing import Any
@@ -25,7 +29,7 @@ from network_defender.parser.models import ParsedPacket
 from .case import Case
 from .corpus import CORPUS
 from .detectors import build
-from .grid import THRESHOLDS, WINDOWS
+from .grid import EVALUATION_INTERVAL, THRESHOLDS, WINDOWS
 from .harness import parse_case, replay
 from .metrics import Confusion
 
@@ -48,8 +52,8 @@ def parse_corpus(cases: list[Case]) -> dict[str, list[ParsedPacket]]:
 def _fires(detector_name: str, parameter: str, value: int, window: float,
            packets: list[ParsedPacket]) -> bool:
     """Return True if a freshly configured detector alerts on these packets."""
-    detector = build(detector_name, **{parameter: value})
-    return bool(replay(detector, packets, window))
+    detector = build(detector_name, **{parameter: value, "time_window_seconds": int(window)})
+    return bool(replay(detector, packets, EVALUATION_INTERVAL))
 
 
 def _summarise(firing: dict[int, bool], thresholds: tuple[int, ...]) -> int | None:

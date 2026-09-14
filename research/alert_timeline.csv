@@ -1,34 +1,32 @@
 config,raised_at,detector,attributable
-shipped — 5s interval,635.0,SshBruteForceDetector,1
-shipped — 5s interval,905.0,SynFloodDetector,1
-shipped — 5s interval,305.0,SynScanDetector,1
-shipped — 5s interval,305.0,TcpPortScanDetector,1
-highest F1 — 300s interval,300.0,BeaconingDetector,0
-highest F1 — 300s interval,600.0,BeaconingDetector,0
-highest F1 — 300s interval,900.0,BeaconingDetector,0
-highest F1 — 300s interval,1200.0,BeaconingDetector,0
-highest F1 — 300s interval,1200.0,DnsTunnelingDetector,1
-highest F1 — 300s interval,600.0,HttpBruteForceDetector,0
-highest F1 — 300s interval,1200.0,HttpBruteForceDetector,0
-highest F1 — 300s interval,1800.0,HttpBruteForceDetector,0
-highest F1 — 300s interval,300.0,IcmpFloodDetector,0
-highest F1 — 300s interval,600.0,IcmpFloodDetector,0
-highest F1 — 300s interval,900.0,IcmpFloodDetector,0
-highest F1 — 300s interval,1200.0,IcmpFloodDetector,0
-highest F1 — 300s interval,1500.0,IcmpFloodDetector,0
-highest F1 — 300s interval,1800.0,IcmpFloodDetector,0
-highest F1 — 300s interval,600.0,LateralMovementDetector,0
-highest F1 — 300s interval,1500.0,LateralMovementDetector,1
-highest F1 — 300s interval,1500.0,LateralMovementDetector,1
-highest F1 — 300s interval,300.0,SshBruteForceDetector,0
-highest F1 — 300s interval,900.0,SshBruteForceDetector,1
-highest F1 — 300s interval,1200.0,SshBruteForceDetector,0
-highest F1 — 300s interval,1200.0,SynFloodDetector,1
-highest F1 — 300s interval,600.0,SynScanDetector,1
-highest F1 — 300s interval,600.0,TcpPortScanDetector,1
-proposed — 60s interval,1200.0,DnsTunnelingDetector,1
-proposed — 60s interval,1500.0,LateralMovementDetector,1
-proposed — 60s interval,660.0,SshBruteForceDetector,1
-proposed — 60s interval,960.0,SynFloodDetector,1
-proposed — 60s interval,360.0,SynScanDetector,1
-proposed — 60s interval,360.0,TcpPortScanDetector,1
+previous thresholds,545.0,BeaconingDetector,0
+previous thresholds,1185.0,DnsTunnelingDetector,1
+previous thresholds,1470.0,LateralMovementDetector,1
+previous thresholds,260.0,SshBruteForceDetector,0
+previous thresholds,290.0,SshBruteForceDetector,0
+previous thresholds,630.0,SshBruteForceDetector,1
+previous thresholds,1060.0,SshBruteForceDetector,0
+previous thresholds,1090.0,SshBruteForceDetector,0
+previous thresholds,305.0,SynScanDetector,1
+previous thresholds,305.0,TcpPortScanDetector,1
+highest F1,845.0,BeaconingDetector,0
+highest F1,1170.0,DnsTunnelingDetector,1
+highest F1,550.0,HttpBruteForceDetector,0
+highest F1,1150.0,HttpBruteForceDetector,0
+highest F1,1750.0,HttpBruteForceDetector,0
+highest F1,405.0,LateralMovementDetector,0
+highest F1,1305.0,LateralMovementDetector,0
+highest F1,1465.0,LateralMovementDetector,1
+highest F1,245.0,SshBruteForceDetector,0
+highest F1,625.0,SshBruteForceDetector,1
+highest F1,1045.0,SshBruteForceDetector,0
+highest F1,905.0,SynFloodDetector,1
+highest F1,305.0,SynScanDetector,1
+highest F1,305.0,TcpPortScanDetector,1
+recommended,545.0,BeaconingDetector,0
+recommended,1185.0,DnsTunnelingDetector,1
+recommended,1470.0,LateralMovementDetector,1
+recommended,630.0,SshBruteForceDetector,1
+recommended,905.0,SynFloodDetector,1
+recommended,305.0,SynScanDetector,1
+recommended,305.0,TcpPortScanDetector,1

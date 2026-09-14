@@ -118,7 +118,7 @@ The URL is a credential (a PostgreSQL DSN embeds a password), so it comes from
 
 | Key | Default | Description |
 |---|---|---|
-| `evaluation_interval_seconds` | `5.0` | How often stateful detectors are evaluated and their windows flushed. Nothing alerts without this. |
+| `evaluation_interval_seconds` | `5.0` | How often stateful detectors are asked whether their window is over threshold. Not a detection parameter: each detector's window is its own `time_window_seconds`, so this decides only how soon an alert can surface. Nothing alerts without it. |
 | `evaluate_rules` | `true` | Evaluate YAML signature rules per packet. |
 
 ### `threat_intel`

@@ -195,18 +195,18 @@ destination.
 
 Open under Milestone 21.
 
-## Why beaconing does not fire live
+## Why beaconing used not to fire live
 
-Every detector declares a `time_window_seconds` and no code reads it. The real
-window is `detection.evaluation_interval_seconds`, shared by every detector
-and shipping at 5 seconds, so a beacon with a 60-second interval never
-accumulates two samples, let alone ten.
+It does now. Until Milestone 21 every detector declared a
+`time_window_seconds` that no code read: the real window was
+`detection.evaluation_interval_seconds`, shared by all of them and shipping at
+5 seconds, so a beacon with a 60-second interval never accumulated two
+samples, let alone ten. `beaconing.pcap` fired here anyway because a replay
+flushed once at the end — a property of replay, not of the sensor.
 
-A replay flushes once at the end, which is why `beaconing.pcap` fires here.
-That is a property of replay, not of the sensor. Five detectors have a recall
-of 0.00 on live traffic as shipped;
-[DETECTION_TUNING.md](DETECTION_TUNING.md) measures all of it, and it is open
-under Milestone 21.
+Each detector now slides the window its own configuration declares, and
+beaconing's is an hour. The live path and the replay path agree.
+[DETECTION_TUNING.md](DETECTION_TUNING.md) measures what that changed.
 
 ## Building your own
 

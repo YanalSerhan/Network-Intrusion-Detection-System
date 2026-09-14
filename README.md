@@ -31,18 +31,18 @@ through a REST API and a live dashboard.
 
 ## Before you rely on it
 
-This is a working system with a known, measured problem. Every detector runs
-on a five-second evaluation window while nine of them are configured for sixty
-seconds or more, because the per-detector `time_window_seconds` is declared,
-validated, reported by `GET /config` — and read by no code. Measured across
-777 grid points:
+This is a working system whose coverage is measured rather than asserted.
+Across 791 grid points on a 49-case labelled corpus:
 
-> **Five of the twelve tunable detectors have a recall of 0.00 on live traffic
-> as shipped**, and three more sit at or below 0.5.
+> **Mean recall is 0.74.** Five of the twelve tunable detectors catch the loud
+> version of their own attack and miss the quiet one, and for five of them no
+> threshold separates the attack from benign traffic that looks like it.
 
-[docs/DETECTION_TUNING.md](docs/DETECTION_TUNING.md) has the numbers, the
-one-line configuration change that recovers most of it, and the fix that
-removes the cause. It is the first item on the [roadmap](docs/ROADMAP.md).
+Until Milestone 21 that figure was 0.41 with five detectors at 0.00, because
+no detector read the `time_window_seconds` its own configuration declared —
+every one ran on the shared five-second evaluation interval.
+[docs/DETECTION_TUNING.md](docs/DETECTION_TUNING.md) has the numbers, what the
+fix bought, and what is left that a threshold cannot buy.
 
 Saying so here rather than shipping quietly is the point: a control someone
 believes in and does not have is worse than one they know they lack.
