@@ -32,6 +32,15 @@ class DetectionConfig(BaseModel):
     evaluate_rules: bool = Field(
         default=True, description="Evaluate YAML signature rules on every packet."
     )
+    detector_modules: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Dotted paths of modules holding extra BaseDetector subclasses, on "
+            "top of any declared through the network_defender.detectors entry "
+            "point. For a detector that lives beside the sensor and is not "
+            "packaged; see docs/EXTENDING.md."
+        ),
+    )
 
 
 class ThreatIntelConfig(BaseModel):
@@ -50,6 +59,15 @@ class ThreatIntelConfig(BaseModel):
         default_factory=lambda: ["abuseipdb", "ip_api_geo", "ip_api_asn", "whois"],
         description="Provider names to enable, in priority order. Unlisted providers "
         "are not constructed.",
+    )
+    provider_modules: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Dotted paths of modules holding extra ThreatIntelProvider "
+            "subclasses, on top of any declared through the "
+            "network_defender.providers entry point. A provider still needs a "
+            "bucket in rate_limits.json or it is skipped (ADR 3)."
+        ),
     )
     cache_ttl_seconds: float = Field(
         default=86_400.0,

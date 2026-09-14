@@ -2,25 +2,37 @@
 Detector discovery and instantiation.
 
 Data Setup:  A config directory holding detectors.json.
-Data Input:  A package to scan for BaseDetector subclasses.
+Data Input:  A package to scan, plus any plugin modules declared elsewhere.
 Data Output: Instantiated, configured detectors.
 
 Every failure here is contained to one detector: a malformed config section, a
 missing threshold, a plugin whose constructor raises. A sensor that refuses to
 start because one detector is misconfigured is worse than a sensor running
 twelve of thirteen detectors and saying so in the log.
+
+Built-ins are found by scanning `detectors/impl/`; third-party detectors are
+found by `plugins.discovery`, and are otherwise identical — same base class,
+same config section in detectors.json, same containment. The only difference
+the registry makes between them is that a plugin may not take a built-in's
+name, because `detectors.json` is keyed by class name and the collision would
+silently give one detector the other's thresholds.
 """
 
-import importlib
 import inspect
 import json
 import logging
 from pathlib import Path
-from typing import Any, TypeVar, get_origin
+from types import ModuleType
+from typing import Any
 
 from network_defender.constants import CONFIG_FILE_DETECTORS
 from network_defender.detectors.base import BaseDetector
-from network_defender.detectors.models import DetectorConfig
+from network_defender.detectors.registry_config import build_config
+from network_defender.plugins.discovery import (
+    DETECTOR_GROUP,
+    discover_modules,
+    import_package_modules,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,92 +64,70 @@ class DetectorRegistry:
         else:
             logger.warning(f"Detectors config not found at {config_path}. Using defaults.")
 
-    def load_detectors(self, package_name: str = "network_defender.detectors.impl") -> None:
+    def load_detectors(
+        self,
+        package_name: str = "network_defender.detectors.impl",
+        plugin_modules: list[str] | None = None,
+    ) -> None:
         """
-        Import every module in a package and register the detectors in it.
+        Register every detector in the built-in package and in any plugins.
 
         Args:
-            package_name: Dotted path of the package to scan.
+            package_name:   Dotted path of the built-in package to scan.
+            plugin_modules: Extra dotted module paths from configuration, on
+                            top of whatever installed distributions declare
+                            through the entry-point group.
         """
         self.detectors.clear()
 
-        try:
-            package = importlib.import_module(package_name)
-            if package.__file__ is None:
-                raise ImportError(f"Package {package_name} has no __file__")
-            pkg_path = Path(package.__file__).parent
-        except ImportError as e:
-            logger.error(f"Failed to import detector package {package_name}: {e}")
-            return
+        for module in import_package_modules(package_name):
+            self._register_module(module)
+        builtins = {detector.name for detector in self.detectors}
 
-        for child in pkg_path.glob("*.py"):
-            if child.name == "__init__.py":
+        for module in discover_modules(DETECTOR_GROUP, plugin_modules):
+            self._register_module(module, reserved=builtins)
+
+        logger.info(
+            f"Loaded {len(self.detectors)} heuristic detectors "
+            f"({len(self.detectors) - len(builtins)} from plugins)."
+        )
+
+    def _register_module(self, module: ModuleType, reserved: set[str] | None = None) -> None:
+        """
+        Register every concrete detector class defined in one module.
+
+        Args:
+            module:   An imported module to scan.
+            reserved: Names a plugin may not take. detectors.json is keyed by
+                      class name, so a plugin shadowing a built-in would be
+                      handed thresholds meant for something else.
+        """
+        for _name, obj in inspect.getmembers(module, inspect.isclass):
+            if not (
+                issubclass(obj, BaseDetector)
+                and obj is not BaseDetector
+                and not inspect.isabstract(obj)
+            ):
                 continue
-
-            module_name = f"{package_name}.{child.stem}"
-            try:
-                module = importlib.import_module(module_name)
-            except Exception as e:
-                logger.error(f"Failed to load detector module {module_name}: {e}")
+            if reserved and obj.__name__ in reserved:
+                logger.error(
+                    f"Plugin detector {obj.__name__} from {module.__name__} shadows a "
+                    f"built-in of the same name and was not loaded."
+                )
                 continue
-
-            for _name, obj in inspect.getmembers(module, inspect.isclass):
-                if (
-                    issubclass(obj, BaseDetector)
-                    and obj is not BaseDetector
-                    and not inspect.isabstract(obj)
-                ):
-                    self._register_detector_class(obj)
-
-        logger.info(f"Loaded {len(self.detectors)} heuristic detectors.")
+            self._register_detector_class(obj)
 
     def _register_detector_class(self, detector_cls: type[BaseDetector[Any]]) -> None:
-        """Instantiate and register a detector class."""
-        detector_name = detector_cls.__name__
+        """
+        Instantiate and register one detector class.
 
-        init_signature = inspect.signature(detector_cls.__init__)
-        config_param = init_signature.parameters.get("config")
-        if not config_param or config_param.annotation == inspect.Parameter.empty:
-            logger.error(
-                f"Detector {detector_name} has no typed 'config' parameter in __init__."
-            )
+        Args:
+            detector_cls: A concrete BaseDetector subclass, built-in or plugin.
+        """
+        config = build_config(detector_cls, self.config_data.get(detector_cls.__name__, {}))
+        if config is None:
             return
-
-        config_cls = config_param.annotation
-
-        # The annotation is not always the config class itself. It is a string
-        # under `from __future__ import annotations`, a generic alias when the
-        # parameter is parameterised, and a TypeVar when the detector inherits
-        # its __init__ from a generic base — which is what a detector family
-        # sharing an implementation looks like. In all three cases the class is
-        # resolved by name instead.
-        if isinstance(config_cls, str | TypeVar) or get_origin(config_cls) is not None:
-            # Assume the config class shares the detector's name but ends in
-            # "Config"; otherwise look it up in the defining module.
-            module = importlib.import_module(detector_cls.__module__)
-            config_cls_name = f"{detector_name.replace('Detector', '')}Config"
-            config_cls = getattr(module, config_cls_name, DetectorConfig)
-
-        if not (isinstance(config_cls, type) and issubclass(config_cls, DetectorConfig)):
-            logger.error(
-                f"Config {config_cls} for {detector_name} is not a DetectorConfig subclass."
-            )
-            return
-
-        config_dict = self.config_data.get(detector_name, {})
-
         try:
-            config_instance = config_cls(**config_dict)
-        except Exception as e:
-            logger.error(f"Failed to instantiate config for {detector_name}: {e}")
-            return
-
-        if not config_instance.enabled:
-            logger.info(f"Detector {detector_name} is disabled via config.")
-            return
-
-        try:
-            detector_instance = detector_cls(config=config_instance)
-            self.detectors.append(detector_instance)
-        except Exception as e:
-            logger.error(f"Failed to instantiate detector {detector_name}: {e}")
+            self.detectors.append(detector_cls(config=config))
+        except Exception as exc:  # noqa: BLE001 - one bad detector must not stop the sensor
+            logger.error(f"Failed to instantiate detector {detector_cls.__name__}: {exc}")

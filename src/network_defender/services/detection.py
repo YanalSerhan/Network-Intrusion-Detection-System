@@ -86,7 +86,7 @@ class DetectionService(BaseService):
 
     def _do_start(self) -> None:
         """Load detectors and rules, then start the periodic evaluation loop."""
-        self.registry.load_detectors()
+        self.registry.load_detectors(plugin_modules=self.config.detector_modules)
         if self.rules is not None:
             self.rules.start()
         self._evaluator.start()

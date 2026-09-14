@@ -9,12 +9,19 @@ A provider is only constructed when its rate-limit bucket exists in
 config/rate_limits.json. That keeps the gatekeeper mandatory by construction:
 there is no code path that produces a provider without one, so ADR 3 cannot be
 violated by forgetting to wire it up.
+
+Third-party providers arrive the same way and through the same gate. A plugin
+declares its class and the bucket it wants — `rate_limit_bucket` on the class —
+and if an operator has not given that bucket a budget in rate_limits.json the
+provider is skipped with a log line saying so. A plugin cannot opt out of the
+gatekeeper, because the gatekeeper is what the factory constructs it with.
 """
 
 from network_defender.constants import ENV_ABUSEIPDB_API_KEY
 from network_defender.services.threat_intel.base import ThreatIntelProvider
 from network_defender.services.threat_intel.cache import ThreatIntelCache
 from network_defender.services.threat_intel.circuit_breaker import CircuitBreaker
+from network_defender.services.threat_intel.provider_plugins import discovered_providers
 from network_defender.services.threat_intel.providers import (
     AbuseIpDbProvider,
     IpApiAsnProvider,
@@ -65,7 +72,10 @@ def build_providers(
     }
     providers: list[ThreatIntelProvider] = []
 
-    for provider_cls, name, bucket in PROVIDER_BUCKETS:
+    for provider_cls, name, bucket in [
+        *PROVIDER_BUCKETS,
+        *discovered_providers(settings.provider_modules, PROVIDER_BUCKETS),
+    ]:
         gatekeeper = gatekeepers.get(bucket)
         if gatekeeper is None or name not in settings.providers:
             continue

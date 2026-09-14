@@ -30,6 +30,18 @@ class ThreatIntelProvider(LoggableMixin, ABC):
     #: Set True by providers that cannot function without a configured key.
     requires_api_key: bool = False
 
+    #: Which bucket in config/rate_limits.json funds this provider's calls.
+    #: Required on a third-party provider and the only way one is accepted:
+    #: the factory looks the bucket up and constructs the provider with the
+    #: gatekeeper it finds, so there is no path to an unlimited provider.
+    #: Providers sharing an upstream host should share a bucket — being
+    #: limited twice over is being limited not at all.
+    rate_limit_bucket: str = ""
+
+    #: The name an operator lists in `threat_intel.providers` to enable this.
+    #: Defaults to the class name when a plugin does not set it.
+    config_name: str = ""
+
     def __init__(
         self,
         gatekeeper: ApiGatekeeper,
