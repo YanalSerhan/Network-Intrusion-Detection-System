@@ -7,11 +7,17 @@ they live here or in configuration.
 
 from enum import StrEnum
 
+from network_defender.shared.version import __version__
+
 # ---------------------------------------------------------------------------
 # Project metadata
 # ---------------------------------------------------------------------------
 PROJECT_NAME = "Network Defender"
-PROJECT_VERSION = "1.00"
+
+#: What /health, the OpenAPI document and `network-defender --version` report.
+#: Derived rather than declared: this was a second literal that happened to
+#: read the same as shared/version.py, which is a coincidence and not a fact.
+PROJECT_VERSION = __version__
 
 # ---------------------------------------------------------------------------
 # Config file names (relative to config/ directory)

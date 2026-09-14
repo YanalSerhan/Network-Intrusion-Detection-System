@@ -30,9 +30,12 @@ which is how a renamed member becomes a silent behaviour change downstream.
 channel for alerts to leave by. `DetectionAlert` is what a detector emits and
 `ParsedPacket` is what it is given. See docs/EXTENDING.md.
 
-`__version__` is the one in `pyproject.toml`; note that PEP 440 normalises the
-project's `1.00` to `1.0` in installed distribution metadata, so compare
-parsed versions rather than strings if the two ever have to agree.
+`__version__` is declared once, in `shared/version.py`, and everything that
+reports a version derives it from there. `pyproject.toml` is the exception — a
+build backend reads it before this package exists — so it carries its own copy
+and a test fails if the two drift. Compare parsed versions rather than strings
+when they have to agree: PEP 440 normalises the project's version string in
+installed distribution metadata.
 """
 
 from network_defender.constants import AlertSource, AlertStatus, MitreTactic, Protocol, Severity

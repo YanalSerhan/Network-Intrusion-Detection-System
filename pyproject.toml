@@ -69,6 +69,7 @@ network-defender = "network_defender.cli.main:main"
 Homepage = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System"
 Repository = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System"
 Documentation = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System/tree/main/docs"
+Changelog = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System/blob/main/CHANGELOG.md"
 Issues = "https://github.com/YanalSerhan/Network-Intrusion-Detection-System/issues"
 
 [dependency-groups]
@@ -250,6 +251,7 @@ include = [
     "/migrations",
     "/alembic.ini",
     "/README.md",
+    "/CHANGELOG.md",
     "/LICENSE",
     "/pyproject.toml",
 ]

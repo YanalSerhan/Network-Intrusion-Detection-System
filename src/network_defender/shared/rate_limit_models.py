@@ -9,6 +9,8 @@ Data Output: Typed RateLimitConfig objects consumed by ApiGatekeeper.
 # pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 
+from network_defender.shared.version import __version__
+
 
 class ServiceRateLimitConfig(BaseModel):
     """Rate-limit settings for a single external API service."""
@@ -25,7 +27,7 @@ class ServiceRateLimitConfig(BaseModel):
 class RateLimitConfig(BaseModel):
     """Top-level rate-limit config, keyed by service name."""
 
-    version: str = Field(default="1.00", description="Config schema version.")
+    version: str = Field(default=__version__, description="Config schema version.")
     services: dict[str, ServiceRateLimitConfig] = Field(
         default_factory=dict, description="Per-service rate-limit settings."
     )

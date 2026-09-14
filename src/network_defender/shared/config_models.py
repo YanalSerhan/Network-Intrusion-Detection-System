@@ -19,6 +19,7 @@ from network_defender.shared.config_pipeline import (
     RetentionConfig,
     ThreatIntelConfig,
 )
+from network_defender.shared.version import __version__
 
 __all__ = [
     "ApiConfig",
@@ -90,7 +91,7 @@ class DashboardConfig(BaseModel):
 class AppConfig(BaseModel):
     """Top-level application configuration assembled from setup.json."""
 
-    version: str = Field(default="1.00", description="Config schema version.")
+    version: str = Field(default=__version__, description="Config schema version.")
     capture: CaptureConfig = Field(default_factory=CaptureConfig)
     api: ApiConfig = Field(default_factory=ApiConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
