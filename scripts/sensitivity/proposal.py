@@ -80,11 +80,20 @@ UNSEPARABLE_BY_THRESHOLD: dict[str, str] = {
     ),
     "DnsTunnelingDetector": (
         "Encoded reputation lookups reach 75 queries a minute; the tunnel "
-        "reaches 100. Needs a registered-domain allowlist."
+        "reaches 100. The detector now takes a registered-domain allowlist, "
+        "which closes this with one entry — but it ships empty, because the "
+        "names worth trusting are a given site's own, so the overlap stands "
+        "until an operator fills it in."
     ),
     "DataExfiltrationDetector": (
-        "A nightly backup moves 50 MB and a staged archive 30 MB. Needs the "
-        "destination — internal, known-good, or neither."
+        "Narrower than it was. The detector now counts only bytes that leave "
+        "the estate, so the 50 MB nightly backup to an internal server is out "
+        "and a 30 MB staged archive is separable from it. What remains is a "
+        "video call, which reaches 20 MB a minute against the archive's 30: "
+        "a threshold of 30 MB would catch both attacks with a 1.5x margin, "
+        "and 30 MB a minute is four megabits a second, which an ordinary "
+        "call or a software update reaches. One corpus case is not enough "
+        "evidence for that trade; `allowed_destinations` is."
     ),
     "ArpSpoofingDetector": (
         "Duplicate-address detection after a lease renewal reaches 8 packets "

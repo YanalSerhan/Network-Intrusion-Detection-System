@@ -86,10 +86,13 @@ Ordered by what the evidence says matters, not by what is easiest.
 3. ~~**Fix the port-scan rule.**~~ Done in Milestone 21: the rule schema
    gained `distinct_field`, so a rule can express breadth rather than only
    volume, and each shipped rule now fires on its own capture and no other.
-4. **Give the five unseparable detectors the signal they need** rather than a
-   different number: a registered-domain allowlist for DNS tunnelling, a
-   destination classification for exfiltration, and destination reputation for
-   beaconing. [DETECTION_TUNING.md](DETECTION_TUNING.md) §4 names each.
+4. **Give the unseparable detectors the signal they need** rather than a
+   different number. Two of the five are done in Milestone 21: exfiltration
+   counts only bytes that leave the estate, which removes the nightly backup
+   outright, and DNS tunnelling takes a registered-domain allowlist, which
+   closes its overlap with one entry an operator supplies. Beaconing still
+   needs destination reputation, and ARP needs MAC-to-IP surveillance.
+   [DETECTION_TUNING.md](DETECTION_TUNING.md) §4 names each.
 
 All four are tracked under Milestone 21 in [TODO.md](TODO.md).
 
@@ -113,10 +116,11 @@ All four are tracked under Milestone 21 in [TODO.md](TODO.md).
 
 ### Later — detection quality
 
-8. **Signals the thresholds cannot supply.** A registered-domain allowlist for
-   DNS tunnelling and destination classification for exfiltration are the two
-   the corpus names specifically; both turn an unwinnable threshold choice
-   into a winnable one.
+8. **The signals still missing.** Destination reputation for beaconing — a
+   health check every ten seconds is as regular as any beacon and the detector
+   does not look at where it goes — and MAC-to-IP mapping surveillance for
+   ARP. The two the corpus named first, a domain allowlist and destination
+   classification, landed in Milestone 21.
 9. **Alert correlation into incidents**, so a scan, a brute force and lateral
    movement from one source arrive as one story.
 10. **Evaluation against labelled real captures.** The single biggest

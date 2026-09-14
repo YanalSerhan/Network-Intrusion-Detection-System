@@ -43,7 +43,8 @@
     "enabled": true,
     "time_window_seconds": 60,
     "query_count_threshold": 50,
-    "entropy_threshold": 4.5
+    "entropy_threshold": 4.5,
+    "allowed_domains": []
   },
   "BeaconingDetector": {
     "enabled": true,
@@ -63,7 +64,8 @@
   "DataExfiltrationDetector": {
     "enabled": true,
     "time_window_seconds": 60,
-    "bytes_out_threshold": 50000000
+    "bytes_out_threshold": 50000000,
+    "allowed_destinations": []
   },
   "LateralMovementDetector": {
     "enabled": true,

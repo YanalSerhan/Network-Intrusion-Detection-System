@@ -185,14 +185,28 @@ later alert as well.
 
 ## `detectors.json`
 
-Keyed by detector class name. Every detector accepts `enabled`; the rest are
-per-detector thresholds, e.g.:
+Keyed by detector class name. Every detector accepts `enabled` and
+`time_window_seconds`; the rest are per-detector thresholds, e.g.:
 
 ```json
 {
   "TcpPortScanDetector": { "enabled": true, "time_window_seconds": 10, "unique_ports_threshold": 15 }
 }
 ```
+
+`time_window_seconds` is how much traffic that detector considers, sliding over
+capture time. It is not the same knob as `detection.evaluation_interval_seconds`
+above, which is only how often each detector is asked — and until Milestone 21
+it was read by nothing at all, which cost five detectors their entire recall.
+See [DETECTION_TUNING.md](DETECTION_TUNING.md).
+
+Two detectors take a list rather than a number, and both ship empty because a
+useful default would be a guess about someone else's network:
+
+| Key | Detector | What it holds |
+|---|---|---|
+| `allowed_domains` | `DnsTunnelingDetector` | Registered domains whose queries are not counted — the domain your endpoint agent does its encoded lookups against. Matched on the registered domain, so one entry covers every hostname under it. |
+| `allowed_destinations` | `DataExfiltrationDetector` | Addresses or CIDR blocks whose bytes are not counted — a sanctioned backup or file-transfer endpoint. Internal destinations are already excluded by the detector, so this is for external services you have decided to trust. |
 
 ## Secrets
 

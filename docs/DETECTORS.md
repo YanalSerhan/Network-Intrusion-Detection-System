@@ -206,9 +206,18 @@ entropy threshold.
 Both halves of that claim are tested: a 300-query resolver with ordinary names
 is correctly ignored, and so are hexadecimal CDN cache keys.
 
+A third signal, `allowed_domains`, is the operator's rather than the
+detector's. Queries whose *registered domain* is on it are not counted at all —
+not counted and excused, since an allowed name must not dilute the
+high-entropy majority either way. Matching is on the registered domain because
+a tunnel's whole technique is that every query name is different, so an
+allowlist of hostnames would never match one.
+
 **Confuses with** an endpoint agent doing encoded reputation lookups, which is
-byte for byte the shape of a tunnel. Not separable by volume or entropy; needs
-a registered-domain allowlist.
+byte for byte the shape of a tunnel. Not separable by volume or entropy. One
+allowlist entry for the vendor's domain closes it, and the shipped list is
+empty on purpose: the names worth trusting are a given site's own, and a
+default list would be a guess about someone else's estate.
 **Measured recall as shipped: 0.50** — the 120-query tunnel, not the
 30-query one, which is quieter than an endpoint agent's reputation lookups.
 
@@ -252,19 +261,29 @@ list, not a tuning question about a number.
 
 ### DataExfiltrationDetector
 
-**Measures** total bytes sent per source. **Threshold**
-`bytes_out_threshold: 50000000` (50 MB). **Severity** CRITICAL.
+**Measures** bytes sent per source to destinations outside the estate.
+**Threshold** `bytes_out_threshold: 50000000` (50 MB). **Severity** CRITICAL.
 
-Volume alone, with no opinion on destination. A backup to cloud storage and a
-staged archive leaving for an attacker look identical on the wire, and
-deciding between them needs context a passive sensor does not have. The
-threshold is high on purpose: this detector earns its place by rarely firing.
+Only bytes that leave. A nightly backup to an internal file server moves more
+data than most attacks and is not exfiltration by any definition, so counting
+it was never a tuning problem a threshold could solve — the corpus case sat at
+exactly 50 MB, and every value that caught a 30 MB staged archive caught the
+backup too. "Inside" is the RFC 1918 blocks, unique-local IPv6, loopback and
+link-local; `allowed_destinations` adds sanctioned external endpoints, and
+ships empty because which services a site sanctions is the site's to say.
 
-**Confuses with** exactly that backup — 50 MB against a staged archive's 30
-MB. The ranges overlap and no threshold separates them; it needs destination
-classification.
+What it still has no opinion about is which *external* destination. A backup
+to cloud storage and a staged archive leaving for an attacker look identical
+on the wire. The threshold is high on purpose: this detector earns its place
+by rarely firing.
+
+**Confuses with** a video call, which reaches 20 MB a minute against a staged
+archive's 30. A threshold of 30 MB catches both attack cases with a 1.5x
+margin and is not taken: 30 MB a minute is four megabits a second, which an
+ordinary call or a software update reaches, and one corpus case is not enough
+evidence for that trade. `allowed_destinations` is the better instrument.
 **Measured recall as shipped: 0.50** — the 120 MB transfer, not the 30 MB
-staged archive, which is smaller than a nightly backup.
+staged archive.
 
 ### LateralMovementDetector
 
@@ -273,10 +292,14 @@ staged archive, which is smaller than a nightly backup.
 
 Fan-out is the signal, not volume: a workstation talks to a handful of
 servers, a compromised host looking for somewhere to go next talks to
-everything. Both endpoints must be private, which is what separates this from
-a port scan arriving from outside. Privacy is decided by the stdlib address
-parser rather than by string prefixes — prefix matching raised on malformed
-input, misread `172.5.0.1`, and ignored IPv6 unique-local space entirely.
+everything. Both endpoints must be internal, which is what separates this from
+a port scan arriving from outside. "Internal" is `detectors/addresses.py`, the
+same definition the exfiltration detector uses inverted, and it is decided by
+parsing the address rather than by string prefixes — prefix matching raised on
+malformed input, misread `172.5.0.1`, and ignored IPv6 unique-local space
+entirely. It is deliberately *not* the stdlib's `is_private`, which means "not
+globally reachable" and so counts every IANA special-purpose block, including
+the documentation ranges the test corpus uses for its external destinations.
 
 **Confuses with** a monitoring server polling 18 devices, and with
 configuration management reaching 14 hosts. Fan-out is their job.

@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from network_defender.constants import Protocol
+from network_defender.detectors.addresses import is_internal
 from network_defender.detectors.impl.beaconing import BeaconingConfig, BeaconingDetector
 from network_defender.detectors.impl.movement import LateralMovementConfig, LateralMovementDetector
 from network_defender.parser.models import ParsedPacket
@@ -31,7 +32,8 @@ def _packet(src: str, dst: str, when: datetime | None = None) -> ParsedPacket:
 
 
 # --------------------------------------------------------------------------
-# LateralMovementDetector._is_internal
+# addresses.is_internal — once LateralMovementDetector's private method, now
+# shared with the exfiltration detector, which needs the same answer inverted.
 # --------------------------------------------------------------------------
 
 
@@ -39,20 +41,17 @@ def _packet(src: str, dst: str, when: datetime | None = None) -> ParsedPacket:
     "ip", ["10.0.0.1", "192.168.1.1", "172.16.0.1", "172.31.255.254", "fd00::1", "127.0.0.1"]
 )
 def test_private_addresses_are_internal(ip: str) -> None:
-    detector = LateralMovementDetector(LateralMovementConfig())
-    assert detector._is_internal(ip) is True
+    assert is_internal(ip) is True
 
 
 @pytest.mark.parametrize("ip", ["8.8.8.8", "172.32.0.1", "172.15.0.1", "2001:4860:4860::8888"])
 def test_public_addresses_are_external(ip: str) -> None:
-    detector = LateralMovementDetector(LateralMovementConfig())
-    assert detector._is_internal(ip) is False
+    assert is_internal(ip) is False
 
 
 @pytest.mark.parametrize("ip", ["172.", "not-an-ip", "", "172.abc.1.1", "999.999.999.999"])
 def test_malformed_addresses_return_false_instead_of_raising(ip: str) -> None:
-    detector = LateralMovementDetector(LateralMovementConfig())
-    assert detector._is_internal(ip) is False
+    assert is_internal(ip) is False
 
 
 def test_ingest_survives_malformed_addresses() -> None:

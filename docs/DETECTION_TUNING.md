@@ -182,14 +182,43 @@ document did.
 | Detector | The overlap | The signal that would separate them |
 |---|---|---|
 | `BeaconingDetector` | A health check every ten seconds is as regular as a beacon and reaches the same count. | Destination reputation, or a known-good list. Not a different count. |
-| `DnsTunnelingDetector` | Encoded reputation lookups reach 75 queries a minute; the tunnel reaches 100. | A registered-domain allowlist. Entropy and volume are both already used and neither distinguishes an endpoint agent's encoded lookups from a tunnel. |
-| `DataExfiltrationDetector` | A nightly backup moves 50 MB; a staged archive moves 30 MB. | The destination — internal, known-good, or neither. The detector's docstring is explicit that it does not look, and this is what that costs. |
+| `DnsTunnelingDetector` | Encoded reputation lookups reach 75 queries a minute; the tunnel reaches 100. | A registered-domain allowlist — **built in Milestone 21**, and shipping empty. One entry for the vendor's domain closes this; the mechanism is the deliverable, the list is the operator's. |
+| `DataExfiltrationDetector` | A video call reaches 20 MB a minute; a staged archive reaches 30. | `allowed_destinations`. **Narrowed in Milestone 21**: the detector now counts only bytes that leave the estate, which removed the 50 MB nightly backup that used to be the overlap. See below. |
 | `ArpSpoofingDetector` | Duplicate-address detection after a lease renewal reaches 8 packets; a light poisoner sends 6. | MAC-to-IP mapping surveillance, which the detector's own docstring names as the thing it simplified away. The shipped threshold of 5 alerts on both and is kept: ARP poisoning is worth a false positive that one allowlist entry removes. |
 | `LateralMovementDetector` | A monitoring server polls 15 hosts; a contained lateral sweep reaches 12. | Which hosts are supposed to fan out. The shipped threshold of 20 is clean but misses the smaller sweep. |
 
-Four of the five are addressed in Milestone 21 by giving the detectors the
-missing signal rather than a different number; the fifth, ARP, keeps its
-deliberate false positive.
+### The two Milestone 21 closed, and how far
+
+**Exfiltration** counted every byte a host sent, so a nightly backup to an
+internal file server — 50 MB, exactly the shipped threshold — was the largest
+benign case and no threshold cleared it. Bytes that never leave the estate are
+not exfiltration by any definition, so this was a rule, not a number. With
+internal destinations excluded the detector's false positives on the corpus go
+to zero, and the overlap that remains is narrower and more honest: a video
+call at 20 MB a minute against a 30 MB staged archive.
+
+A threshold of 30 MB would catch both attack cases with a 1.5x margin over
+that call. It is not taken. 30 MB a minute is four megabits a second, which an
+ordinary video call or a software update reaches, and one corpus case is not
+enough evidence to bet an operator's console on. `allowed_destinations` is the
+better instrument, and it is now there to use.
+
+**DNS tunnelling** gained `allowed_domains`, matched on the *registered*
+domain rather than the hostname — a tunnel's whole technique is that every
+query name is different, so an allowlist of names would never match one, and
+an allowlist of suffixes would match anything ending in the right characters.
+An allowed query is not counted at all rather than counted and excused, so it
+cannot dilute the high-entropy majority either.
+
+The shipped list is empty, and the measured false positive therefore stands.
+Filling it with `rep.example` because that is what the corpus fixture uses
+would be fitting a default to a test, and the number it improved would mean
+nothing. The names worth trusting are a given site's own.
+
+That is the general shape of this section: where a detector is beaten by
+something it cannot see, the fix is to let it see — and where what it needs to
+see is local knowledge, the fix is a mechanism and an empty default, not a
+better guess.
 
 ## 5. Windows slide, and each episode is one alert
 

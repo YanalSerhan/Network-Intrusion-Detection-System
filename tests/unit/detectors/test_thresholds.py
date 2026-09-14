@@ -98,7 +98,9 @@ def _arp() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
 
 def _exfiltration() -> tuple[BaseDetector[Any], list[ParsedPacket]]:
     detector = DataExfiltrationDetector(DataExfiltrationConfig(bytes_out_threshold=THRESHOLD * 100))
-    return detector, [_packet(length=100)] * THRESHOLD
+    # An external destination: bytes that stay inside the estate are not
+    # exfiltration, so the shared `_packet` default of 10.0.0.1 counts nothing.
+    return detector, [_packet(length=100, dst_ip="8.8.8.8")] * THRESHOLD
 
 
 def _lateral() -> tuple[BaseDetector[Any], list[ParsedPacket]]:

@@ -825,7 +825,7 @@ DataExfiltrationDetector,10.0,exfil_30mb,exfiltration,1,
 DataExfiltrationDetector,10.0,exfil_120mb,exfiltration,1,20000000
 DataExfiltrationDetector,10.0,lateral_smb_15,exfiltration,0,
 DataExfiltrationDetector,10.0,lateral_smb_40,exfiltration,0,
-DataExfiltrationDetector,10.0,backup_upload_60mb,exfiltration,0,10000000
+DataExfiltrationDetector,10.0,backup_upload_60mb,exfiltration,0,
 DataExfiltrationDetector,10.0,video_call_25mb,exfiltration,0,
 DataExfiltrationDetector,10.0,snmp_poll_18_hosts,exfiltration,0,
 DataExfiltrationDetector,10.0,fileserver_clients_30,exfiltration,0,
@@ -874,7 +874,7 @@ DataExfiltrationDetector,30.0,exfil_30mb,exfiltration,1,10000000
 DataExfiltrationDetector,30.0,exfil_120mb,exfiltration,1,50000000
 DataExfiltrationDetector,30.0,lateral_smb_15,exfiltration,0,
 DataExfiltrationDetector,30.0,lateral_smb_40,exfiltration,0,
-DataExfiltrationDetector,30.0,backup_upload_60mb,exfiltration,0,30000000
+DataExfiltrationDetector,30.0,backup_upload_60mb,exfiltration,0,
 DataExfiltrationDetector,30.0,video_call_25mb,exfiltration,0,10000000
 DataExfiltrationDetector,30.0,snmp_poll_18_hosts,exfiltration,0,
 DataExfiltrationDetector,30.0,fileserver_clients_30,exfiltration,0,
@@ -923,7 +923,7 @@ DataExfiltrationDetector,60.0,exfil_30mb,exfiltration,1,30000000
 DataExfiltrationDetector,60.0,exfil_120mb,exfiltration,1,100000000
 DataExfiltrationDetector,60.0,lateral_smb_15,exfiltration,0,
 DataExfiltrationDetector,60.0,lateral_smb_40,exfiltration,0,
-DataExfiltrationDetector,60.0,backup_upload_60mb,exfiltration,0,50000000
+DataExfiltrationDetector,60.0,backup_upload_60mb,exfiltration,0,
 DataExfiltrationDetector,60.0,video_call_25mb,exfiltration,0,20000000
 DataExfiltrationDetector,60.0,snmp_poll_18_hosts,exfiltration,0,
 DataExfiltrationDetector,60.0,fileserver_clients_30,exfiltration,0,
@@ -972,7 +972,7 @@ DataExfiltrationDetector,300.0,exfil_30mb,exfiltration,1,30000000
 DataExfiltrationDetector,300.0,exfil_120mb,exfiltration,1,100000000
 DataExfiltrationDetector,300.0,lateral_smb_15,exfiltration,0,
 DataExfiltrationDetector,300.0,lateral_smb_40,exfiltration,0,
-DataExfiltrationDetector,300.0,backup_upload_60mb,exfiltration,0,50000000
+DataExfiltrationDetector,300.0,backup_upload_60mb,exfiltration,0,
 DataExfiltrationDetector,300.0,video_call_25mb,exfiltration,0,20000000
 DataExfiltrationDetector,300.0,snmp_poll_18_hosts,exfiltration,0,
 DataExfiltrationDetector,300.0,fileserver_clients_30,exfiltration,0,
@@ -1021,7 +1021,7 @@ DataExfiltrationDetector,3600.0,exfil_30mb,exfiltration,1,30000000
 DataExfiltrationDetector,3600.0,exfil_120mb,exfiltration,1,100000000
 DataExfiltrationDetector,3600.0,lateral_smb_15,exfiltration,0,
 DataExfiltrationDetector,3600.0,lateral_smb_40,exfiltration,0,
-DataExfiltrationDetector,3600.0,backup_upload_60mb,exfiltration,0,50000000
+DataExfiltrationDetector,3600.0,backup_upload_60mb,exfiltration,0,
 DataExfiltrationDetector,3600.0,video_call_25mb,exfiltration,0,20000000
 DataExfiltrationDetector,3600.0,snmp_poll_18_hosts,exfiltration,0,
 DataExfiltrationDetector,3600.0,fileserver_clients_30,exfiltration,0,
