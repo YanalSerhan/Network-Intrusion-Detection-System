@@ -11,11 +11,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from network_defender.api.schemas.common import PageMeta
 from network_defender.constants import Severity
 from network_defender.parser.models import ParsedPacket
 from network_defender.parser.projection import protocol_sections, scalar_fields
-
-from .common import PageMeta
 
 
 class PacketView(BaseModel):

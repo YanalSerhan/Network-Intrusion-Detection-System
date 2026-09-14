@@ -24,8 +24,7 @@ from network_defender.constants import (
     REPUTATION_SUSPICIOUS_THRESHOLD,
     ThreatVerdict,
 )
-
-from .models import ProviderResult, ThreatIntelResult
+from network_defender.services.threat_intel.models import ProviderResult, ThreatIntelResult
 
 
 def classify(score: float | None) -> ThreatVerdict:

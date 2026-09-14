@@ -21,7 +21,7 @@ timestamps and the memory to match.
 from collections import defaultdict, deque
 from collections.abc import Iterator
 
-from .sliding import WindowClock
+from network_defender.detectors.sliding import WindowClock
 
 #: Buckets per window. Memory per key is fixed at this regardless of window
 #: length or packet rate; resolution is one bucket.

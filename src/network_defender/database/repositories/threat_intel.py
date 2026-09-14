@@ -16,9 +16,9 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from ...services.threat_intel.models import ProviderResult
-from ..engine import session_scope
-from ..models_operational import ThreatIntelCacheRecord
+from network_defender.database.engine import session_scope
+from network_defender.database.models_operational import ThreatIntelCacheRecord
+from network_defender.services.threat_intel.models import ProviderResult
 
 
 class ThreatIntelCacheRepository:

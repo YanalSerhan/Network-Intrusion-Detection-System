@@ -20,7 +20,7 @@ count back to zero, and a naive subtraction would yield a large negative rate.
 import time
 from typing import Any
 
-from ..shared.base import LoggableMixin
+from network_defender.shared.base import LoggableMixin
 
 
 class StatisticsSampler(LoggableMixin):

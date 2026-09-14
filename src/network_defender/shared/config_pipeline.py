@@ -23,7 +23,11 @@ class DetectionConfig(BaseModel):
 
     evaluation_interval_seconds: float = Field(
         default=5.0,
-        description="How often stateful detectors are evaluated and their windows flushed.",
+        description=(
+            "How often stateful detectors are asked whether their window is "
+            "over threshold. Not how much traffic they consider: that is each "
+            "detector's own time_window_seconds."
+        ),
     )
     evaluate_rules: bool = Field(
         default=True, description="Evaluate YAML signature rules on every packet."

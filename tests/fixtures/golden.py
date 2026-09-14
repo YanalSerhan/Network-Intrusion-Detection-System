@@ -22,8 +22,7 @@ from scapy.utils import rdpcap
 from network_defender.parser.parser import PacketParser
 from network_defender.services.detection import DetectionService
 from network_defender.shared.paths import PROJECT_ROOT
-
-from .pcaps import GOLDEN_DIR, sample_pcap
+from tests.fixtures.pcaps import GOLDEN_DIR, sample_pcap
 
 #: Set to 1 to rewrite the golden files from the current behaviour. Every
 #: rewritten file must be reviewed in the diff before it is committed — an

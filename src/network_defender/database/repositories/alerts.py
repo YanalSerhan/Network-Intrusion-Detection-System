@@ -18,12 +18,16 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from ...constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
-from ...services.alerts.models import Alert
-from ...services.alerts.repository import AlertRepository
-from ..engine import session_scope
-from ..mappers import alert_to_record, apply_alert_to_record, record_to_alert
-from ..models import AlertRecord
+from network_defender.constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
+from network_defender.database.engine import session_scope
+from network_defender.database.mappers import (
+    alert_to_record,
+    apply_alert_to_record,
+    record_to_alert,
+)
+from network_defender.database.models import AlertRecord
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.repository import AlertRepository
 
 
 class SqlAlchemyAlertRepository(AlertRepository):

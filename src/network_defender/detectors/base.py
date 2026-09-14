@@ -10,10 +10,9 @@ across interpreter versions.
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
+from network_defender.detectors.edge import EdgeTriggeredMixin
+from network_defender.detectors.models import DetectionAlert, DetectorConfig
 from network_defender.parser.models import ParsedPacket
-
-from .edge import EdgeTriggeredMixin
-from .models import DetectionAlert, DetectorConfig
 
 TConfig = TypeVar("TConfig", bound=DetectorConfig)
 

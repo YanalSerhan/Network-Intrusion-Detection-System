@@ -18,10 +18,10 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import ARP
 from scapy.packet import Packet
 
-from ..constants import Protocol
-from .filters import detect_protocol
-from .models import PacketSummary
-from .tls_metadata import extract_tls_metadata
+from network_defender.capture.filters import detect_protocol
+from network_defender.capture.models import PacketSummary
+from network_defender.capture.tls_metadata import extract_tls_metadata
+from network_defender.constants import Protocol
 
 
 def summarise_packet(packet: Packet) -> PacketSummary:

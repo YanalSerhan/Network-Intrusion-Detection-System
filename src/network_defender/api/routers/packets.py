@@ -15,10 +15,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Path, Query
 
-from ..dependencies import AuthDep, PaginationDep, SdkDep
-from ..errors import NotFoundError
-from ..schemas.common import build_meta
-from ..schemas.resources import PacketPage, PacketView
+from network_defender.api.dependencies import AuthDep, PaginationDep, SdkDep
+from network_defender.api.errors import NotFoundError
+from network_defender.api.schemas.common import build_meta
+from network_defender.api.schemas.resources import PacketPage, PacketView
 
 router = APIRouter(prefix="/packets", tags=["packets"], dependencies=[AuthDep])
 

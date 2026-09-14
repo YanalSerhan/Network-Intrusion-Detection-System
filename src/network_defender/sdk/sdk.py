@@ -16,19 +16,19 @@ in `lifecycle`, and each operation group in its own module — so this file stay
 a map of the surface rather than a container for all of it.
 """
 
-from ..shared.config import load_app_config, load_rate_limit_config
-from ..shared.config_models import AppConfig
-from ..shared.rate_limit_models import RateLimitConfig
-from .alert_operations import AlertOperationsMixin
-from .builder import Callbacks, build_services
-from .capture_operations import CaptureOperationsMixin
-from .database_operations import DatabaseOperationsMixin
-from .health import HealthMixin
-from .lifecycle import LifecycleMixin
-from .maintenance_operations import MaintenanceOperationsMixin
-from .pipeline import PipelineMixin
-from .rule_operations import RuleOperationsMixin
-from .threat_intel_operations import ThreatIntelOperationsMixin
+from network_defender.sdk.alert_operations import AlertOperationsMixin
+from network_defender.sdk.builder import Callbacks, build_services
+from network_defender.sdk.capture_operations import CaptureOperationsMixin
+from network_defender.sdk.database_operations import DatabaseOperationsMixin
+from network_defender.sdk.health import HealthMixin
+from network_defender.sdk.lifecycle import LifecycleMixin
+from network_defender.sdk.maintenance_operations import MaintenanceOperationsMixin
+from network_defender.sdk.pipeline import PipelineMixin
+from network_defender.sdk.rule_operations import RuleOperationsMixin
+from network_defender.sdk.threat_intel_operations import ThreatIntelOperationsMixin
+from network_defender.shared.config import load_app_config, load_rate_limit_config
+from network_defender.shared.config_models import AppConfig
+from network_defender.shared.rate_limit_models import RateLimitConfig
 
 
 class NetworkDefenderSDK(

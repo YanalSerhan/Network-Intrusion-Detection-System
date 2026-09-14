@@ -5,7 +5,7 @@ from typing import Any
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .common import (
+from pcap_scenarios.common import (
     BULK_PAYLOAD,
     EXFIL_DESTINATION_IP,
     INTERNAL_HOST_IP,

@@ -12,8 +12,8 @@ investigation can tell whether a rule existed at the time of an alert.
 
 from typing import Any
 
-from ..rules.models import Rule
-from .models import RuleRecord
+from network_defender.database.models import RuleRecord
+from network_defender.rules.models import Rule
 
 
 def rule_to_record(rule: Rule, source_path: str | None, loaded_at: Any) -> RuleRecord:

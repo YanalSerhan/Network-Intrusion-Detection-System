@@ -13,10 +13,9 @@ Docs:     https://docs.abuseipdb.com/#check-endpoint
 from typing import Any
 
 from network_defender.constants import ProviderStatus
-
-from ..base import ThreatIntelProvider
-from ..http import get_json
-from ..models import ProviderResult
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.http import get_json
+from network_defender.services.threat_intel.models import ProviderResult
 
 ABUSEIPDB_URL = "https://api.abuseipdb.com/api/v2/check"
 #: Only consider reports from the last 90 days; older reports say little about

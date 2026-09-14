@@ -23,10 +23,9 @@ alerting. Failures are logged and swallowed.
 from typing import Protocol
 
 from network_defender.constants import TI_CACHE_TTL_SECONDS
+from network_defender.services.threat_intel.cache import CacheBackend, ThreatIntelCache
+from network_defender.services.threat_intel.models import ProviderResult
 from network_defender.shared.base import LoggableMixin
-
-from .cache import CacheBackend, ThreatIntelCache
-from .models import ProviderResult
 
 
 class DurableCacheBackend(Protocol):

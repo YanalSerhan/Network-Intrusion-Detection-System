@@ -13,7 +13,7 @@ empty, acquire() returns False and backpressure is signalled.
 import threading
 import time
 
-from ..constants import DEFAULT_PACKETS_PER_SECOND
+from network_defender.constants import DEFAULT_PACKETS_PER_SECOND
 
 
 class CaptureRateLimiter:

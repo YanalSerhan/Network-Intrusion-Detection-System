@@ -25,13 +25,12 @@ evaluation interval is held at its production value throughout.
 from typing import Any
 
 from network_defender.parser.models import ParsedPacket
-
-from .case import Case
-from .corpus import CORPUS
-from .detectors import build
-from .grid import EVALUATION_INTERVAL, THRESHOLDS, WINDOWS
-from .harness import parse_case, replay
-from .metrics import Confusion
+from sensitivity.case import Case
+from sensitivity.corpus import CORPUS
+from sensitivity.detectors import build
+from sensitivity.grid import EVALUATION_INTERVAL, THRESHOLDS, WINDOWS
+from sensitivity.harness import parse_case, replay
+from sensitivity.metrics import Confusion
 
 Row = dict[str, Any]
 

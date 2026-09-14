@@ -19,10 +19,9 @@ which the response cache absorbs after the first lookup.
 from typing import Any
 
 from network_defender.constants import ProviderStatus
-
-from ..base import ThreatIntelProvider
-from ..http import get_json
-from ..models import AsnInfo, GeoLocation, ProviderResult
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.http import get_json
+from network_defender.services.threat_intel.models import AsnInfo, GeoLocation, ProviderResult
 
 IP_API_URL = "http://ip-api.com/json/{ip}"
 GEO_FIELDS = "status,message,country,countryCode,regionName,city,lat,lon,timezone"

@@ -15,11 +15,11 @@ See docs/SENSITIVITY_ANALYSIS.md for the method and docs/DETECTION_TUNING.md
 for what the numbers came out as.
 """
 
-from .case import Case
-from .corpus import CORPUS, check_labels
-from .grid import THRESHOLDS, UNSWEPT, WINDOWS
-from .metrics import Confusion
-from .sweep import sweep
+from sensitivity.case import Case
+from sensitivity.corpus import CORPUS, check_labels
+from sensitivity.grid import THRESHOLDS, UNSWEPT, WINDOWS
+from sensitivity.metrics import Confusion
+from sensitivity.sweep import sweep
 
 __all__ = [
     "CORPUS",

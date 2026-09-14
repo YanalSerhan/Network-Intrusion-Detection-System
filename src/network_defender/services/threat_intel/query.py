@@ -17,11 +17,10 @@ Order of the guards matters:
 """
 
 from network_defender.constants import ProviderStatus
-
-from .base import ThreatIntelProvider
-from .cache import CacheBackend
-from .circuit_breaker import CircuitBreaker
-from .models import ProviderResult
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.cache import CacheBackend
+from network_defender.services.threat_intel.circuit_breaker import CircuitBreaker
+from network_defender.services.threat_intel.models import ProviderResult
 
 
 def query_provider(

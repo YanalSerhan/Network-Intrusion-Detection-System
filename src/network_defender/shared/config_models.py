@@ -13,7 +13,7 @@ and are re-exported here, so every consumer keeps importing one module.
 # pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 
-from .config_pipeline import (
+from network_defender.shared.config_pipeline import (
     DetectionConfig,
     MaintenanceConfig,
     RetentionConfig,

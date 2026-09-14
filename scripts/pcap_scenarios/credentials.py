@@ -6,7 +6,7 @@ from scapy.layers.http import HTTP, HTTPRequest
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .common import ATTACKER_IP, VICTIM_IP, at_intervals
+from pcap_scenarios.common import ATTACKER_IP, VICTIM_IP, at_intervals
 
 
 def ssh_brute_force() -> list[Any]:

@@ -16,9 +16,9 @@ synchronous `/alerts/{id}/enrich` endpoint share one guard per service.
 import threading
 import time
 
-from .gatekeeper_models import QueueStatus
-from .gatekeeper_window import DAY_SECONDS, WINDOW_SECONDS, FixedWindow
-from .rate_limit_models import ServiceRateLimitConfig
+from network_defender.shared.gatekeeper_models import QueueStatus
+from network_defender.shared.gatekeeper_window import DAY_SECONDS, WINDOW_SECONDS, FixedWindow
+from network_defender.shared.rate_limit_models import ServiceRateLimitConfig
 
 #: How long a caller waits for a per-minute slot before being shed. One full
 #: window: wait longer and the window has already rolled over, so a caller

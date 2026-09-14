@@ -17,21 +17,20 @@ Data Output: Persisted Alert records and dispatched notifications.
 """
 
 from network_defender.constants import AlertSource, AlertStatus
-
-from .confidence import score_alert, score_rule_match
-from .dedup import AlertDeduplicator
-from .dispatcher import NotificationDispatcher
-from .factory import build_alert, build_rule_alert
-from .mitre import lookup_mitre
-from .models import Alert
-from .notifications import (
+from network_defender.services.alerts.confidence import score_alert, score_rule_match
+from network_defender.services.alerts.dedup import AlertDeduplicator
+from network_defender.services.alerts.dispatcher import NotificationDispatcher
+from network_defender.services.alerts.factory import build_alert, build_rule_alert
+from network_defender.services.alerts.mitre import lookup_mitre
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.notifications import (
     EmailNotificationHook,
     NotificationHook,
     SlackNotificationHook,
     WebhookNotificationHook,
 )
-from .repository import AlertRepository, InMemoryAlertRepository
-from .service import AlertService
+from network_defender.services.alerts.repository import AlertRepository, InMemoryAlertRepository
+from network_defender.services.alerts.service import AlertService
 
 __all__ = [
     "Alert",

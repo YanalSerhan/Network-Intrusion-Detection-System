@@ -15,15 +15,14 @@ from typing import Any
 from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket
 from network_defender.rules.models import Rule
-
-from ...shared.base import BaseService
-from .dedup import AlertDeduplicator
-from .dispatcher import NotificationDispatcher
-from .factory import build_alert, build_rule_alert
-from .models import Alert
-from .queries import AlertQueryMixin
-from .repository import AlertRepository, InMemoryAlertRepository
-from .security_log import log_alert_raised, log_alert_suppressed
+from network_defender.services.alerts.dedup import AlertDeduplicator
+from network_defender.services.alerts.dispatcher import NotificationDispatcher
+from network_defender.services.alerts.factory import build_alert, build_rule_alert
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.queries import AlertQueryMixin
+from network_defender.services.alerts.repository import AlertRepository, InMemoryAlertRepository
+from network_defender.services.alerts.security_log import log_alert_raised, log_alert_suppressed
+from network_defender.shared.base import BaseService
 
 
 class AlertService(AlertQueryMixin, BaseService):

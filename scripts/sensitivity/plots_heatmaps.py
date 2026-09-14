@@ -25,7 +25,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
 
-from .style import FILL_RAMP, GRIDLINE, INK, SURFACE
+from sensitivity.style import FILL_RAMP, GRIDLINE, INK, SURFACE
 
 COLUMNS = 4
 

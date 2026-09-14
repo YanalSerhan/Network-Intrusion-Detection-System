@@ -19,15 +19,15 @@ from typing import Any
 from scapy.layers.inet import ICMP, IP, TCP, UDP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import (
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import (
     EDGE_SERVER,
     EPHEMERAL_BASE,
     MONITOR,
     WORKSTATION,
     client_range,
 )
-from .timing import spread
+from sensitivity.timing import spread
 
 FAMILY = "flood"
 

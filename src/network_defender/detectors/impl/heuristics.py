@@ -14,10 +14,9 @@ already has twice.
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
+from network_defender.detectors.impl.counting_endpoints import SourceCountingDetector
 from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
-
-from .counting_endpoints import SourceCountingDetector
 
 
 class ArpSpoofingConfig(DetectorConfig):

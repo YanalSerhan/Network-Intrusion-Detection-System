@@ -28,9 +28,9 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
-from ..shared.config_models import DatabaseConfig
-from ..shared.paths import resolve_project_path
-from ..shared.secrets import get_secret
+from network_defender.shared.config_models import DatabaseConfig
+from network_defender.shared.paths import resolve_project_path
+from network_defender.shared.secrets import get_secret
 
 SQLITE_PREFIX = "sqlite:///"
 MEMORY_URL = "sqlite://"

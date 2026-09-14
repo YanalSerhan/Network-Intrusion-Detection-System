@@ -13,11 +13,10 @@ from pydantic import Field
 
 from network_defender.constants import MitreTactic, Severity
 from network_defender.detectors.addresses import in_any, is_internal
+from network_defender.detectors.impl.breadth import BreadthDetector
+from network_defender.detectors.impl.counting_endpoints import SourceCountingDetector
 from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
-
-from .breadth import BreadthDetector
-from .counting_endpoints import SourceCountingDetector
 
 
 class DataExfiltrationConfig(DetectorConfig):

@@ -24,9 +24,9 @@ import logging.handlers
 import sys
 from typing import Any
 
-from ..shared.paths import CONFIG_DIR, resolve_project_path
-from .formatter import JsonFormatter
-from .redaction import RedactionFilter
+from network_defender.observability.formatter import JsonFormatter
+from network_defender.observability.redaction import RedactionFilter
+from network_defender.shared.paths import CONFIG_DIR, resolve_project_path
 
 LOGGER_APP = "network_defender"
 LOGGER_SECURITY = "network_defender.security"

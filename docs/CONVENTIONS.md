@@ -73,3 +73,28 @@ file trips the limit, split it by concern; do not raise the limit.
 
 Migrations are exempt. A migration is a historical record of what the schema
 was, and reformatting one to satisfy a rule adopted later would falsify it.
+
+## Imports
+
+**Absolute and package-qualified, everywhere.** `from
+network_defender.services.alerts.models import Alert`, never `from .models
+import Alert`. Ruff's `TID252` enforces it, across `src/`, `tests/` and
+`scripts/` alike.
+
+There was no convention here until Milestone 21, which meant there were two.
+Thirty-two files used both styles at once — `from ...shared.base import
+BaseService` three lines above `from .models import Alert`, in the same import
+block — and 117 files in `src/` used relative imports somewhere.
+
+Absolute is the one that survives being copied. A detector living outside this
+package must import `network_defender.detectors.base`; if the bundled
+detectors in `detectors/impl/` used relative imports, copying one as a
+template would produce a module that cannot resolve its own imports. That is
+the intended way to extend the system, so the templates have to be templates.
+It also reads the same everywhere: a reader seeing `from ..models import X`
+has to know which file they are in before they know what `..` means.
+
+The cost is real and worth naming: import lines get longer, and a few pushed
+their file over the 150-line limit. `services/detection.py` was one, which is
+how the rule pipeline came to be split out into `detection_rules.py` — the
+line limit doing the job it is there for rather than an unrelated casualty.

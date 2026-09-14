@@ -29,9 +29,9 @@ detecting.
 from collections.abc import Callable
 from typing import Any
 
-from ..shared.base import BaseService
-from ..shared.config_models import MaintenanceConfig
-from .evaluation_loop import PeriodicEvaluator
+from network_defender.services.evaluation_loop import PeriodicEvaluator
+from network_defender.shared.base import BaseService
+from network_defender.shared.config_models import MaintenanceConfig
 
 
 class MaintenanceService(BaseService):

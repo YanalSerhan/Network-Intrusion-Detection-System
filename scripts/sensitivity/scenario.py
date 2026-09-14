@@ -18,8 +18,8 @@ threshold recommendation is trading against.
 
 from typing import Any
 
-from .case import Case
-from .corpus import CORPUS
+from sensitivity.case import Case
+from sensitivity.corpus import CORPUS
 
 BY_NAME: dict[str, Case] = {case.name: case for case in CORPUS}
 

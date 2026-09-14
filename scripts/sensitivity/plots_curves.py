@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from .style import PRECISION_COLOR, RECALL_COLOR, window_color
+from sensitivity.style import PRECISION_COLOR, RECALL_COLOR, window_color
 
 #: Above this, a threshold is labelled in megabytes: only the exfiltration
 #: detector's axis reaches it, and eight digits per tick is unreadable.

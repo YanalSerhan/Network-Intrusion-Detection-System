@@ -20,12 +20,16 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from .config_env import apply_overrides, collect_overrides
-from .config_errors import ConfigurationError, describe_validation_error, load_json_file
-from .config_models import AppConfig
-from .paths import CONFIG_DIR
-from .rate_limit_models import RateLimitConfig
-from .secrets import get_secret
+from network_defender.shared.config_env import apply_overrides, collect_overrides
+from network_defender.shared.config_errors import (
+    ConfigurationError,
+    describe_validation_error,
+    load_json_file,
+)
+from network_defender.shared.config_models import AppConfig
+from network_defender.shared.paths import CONFIG_DIR
+from network_defender.shared.rate_limit_models import RateLimitConfig
+from network_defender.shared.secrets import get_secret
 
 SETUP_FILE = "setup.json"
 RATE_LIMITS_FILE = "rate_limits.json"

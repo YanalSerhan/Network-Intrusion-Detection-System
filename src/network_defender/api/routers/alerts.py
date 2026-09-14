@@ -16,12 +16,17 @@ from uuid import UUID
 
 from fastapi import APIRouter, Path, Query
 
-from ...constants import AlertStatus, Severity
-from ..dependencies import AuthDep, PaginationDep, SdkDep
-from ..errors import NotFoundError
-from ..schemas.alerts import AlertDetail, AlertPage, AlertStatusUpdate, AlertSummary
-from ..schemas.common import build_meta
-from ..schemas.resources import PacketView
+from network_defender.api.dependencies import AuthDep, PaginationDep, SdkDep
+from network_defender.api.errors import NotFoundError
+from network_defender.api.schemas.alerts import (
+    AlertDetail,
+    AlertPage,
+    AlertStatusUpdate,
+    AlertSummary,
+)
+from network_defender.api.schemas.common import build_meta
+from network_defender.api.schemas.resources import PacketView
+from network_defender.constants import AlertStatus, Severity
 
 router = APIRouter(prefix="/alerts", tags=["alerts"], dependencies=[AuthDep])
 

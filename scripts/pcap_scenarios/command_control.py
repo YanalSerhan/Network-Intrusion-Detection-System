@@ -7,7 +7,7 @@ from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import IP, TCP, UDP
 from scapy.layers.l2 import Ether
 
-from .common import (
+from pcap_scenarios.common import (
     EXFIL_DESTINATION_IP,
     INTERNAL_HOST_IP,
     RANDOM_SEED,

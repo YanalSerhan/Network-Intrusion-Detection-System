@@ -17,12 +17,12 @@ from typing import Annotated
 
 from fastapi import Depends, Query, Request
 
-from ..constants import ALERT_QUERY_DEFAULT_LIMIT, ENV_API_KEY
-from ..sdk.sdk import NetworkDefenderSDK
-from ..shared.credentials import matches as credentials_match
-from ..shared.secrets import get_secret
-from .errors import UnauthorisedError
-from .schemas.common import MAX_PAGE_SIZE, PaginationParams
+from network_defender.api.errors import UnauthorisedError
+from network_defender.api.schemas.common import MAX_PAGE_SIZE, PaginationParams
+from network_defender.constants import ALERT_QUERY_DEFAULT_LIMIT, ENV_API_KEY
+from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.shared.credentials import matches as credentials_match
+from network_defender.shared.secrets import get_secret
 
 API_KEY_HEADER = "X-API-Key"
 

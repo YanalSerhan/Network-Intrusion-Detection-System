@@ -12,9 +12,8 @@ from fastapi.testclient import TestClient
 from network_defender.api.app import create_app
 from network_defender.sdk.sdk import NetworkDefenderSDK
 from network_defender.services.alerts.models import Alert
-
-from .builders import make_detection, make_packet
-from .constants import PUBLIC_IP
+from tests.fixtures.builders import make_detection, make_packet
+from tests.fixtures.constants import PUBLIC_IP
 
 
 @pytest.fixture()

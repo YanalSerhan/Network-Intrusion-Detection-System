@@ -18,7 +18,7 @@ thousands over a minute.
 from collections import defaultdict, deque
 from collections.abc import Iterator
 
-from .sliding import WindowClock
+from network_defender.detectors.sliding import WindowClock
 
 
 class SlidingTimestamps:

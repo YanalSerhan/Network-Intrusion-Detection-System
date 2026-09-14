@@ -12,12 +12,12 @@ interchangeable behind one port.
 
 from typing import Any
 
-from ..constants import AlertSource, AlertStatus, MitreTactic, Severity
-from ..parser.models import ParsedPacket
-from ..parser.projection import protocol_sections, scalar_fields
-from ..services.alerts.models import Alert
-from ..services.threat_intel.models import ThreatIntelResult
-from .models import AlertRecord, PacketRecord
+from network_defender.constants import AlertSource, AlertStatus, MitreTactic, Severity
+from network_defender.database.models import AlertRecord, PacketRecord
+from network_defender.parser.models import ParsedPacket
+from network_defender.parser.projection import protocol_sections, scalar_fields
+from network_defender.services.alerts.models import Alert
+from network_defender.services.threat_intel.models import ThreatIntelResult
 
 #: Domain fields copied verbatim in both directions.
 _ALERT_FIELDS = (

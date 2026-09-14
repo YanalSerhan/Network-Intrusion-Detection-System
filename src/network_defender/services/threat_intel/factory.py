@@ -12,20 +12,19 @@ violated by forgetting to wire it up.
 """
 
 from network_defender.constants import ENV_ABUSEIPDB_API_KEY
-from network_defender.shared.config_models import ThreatIntelConfig
-from network_defender.shared.gatekeeper import ApiGatekeeper
-from network_defender.shared.secrets import get_secret
-
-from .base import ThreatIntelProvider
-from .cache import ThreatIntelCache
-from .circuit_breaker import CircuitBreaker
-from .providers import (
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.cache import ThreatIntelCache
+from network_defender.services.threat_intel.circuit_breaker import CircuitBreaker
+from network_defender.services.threat_intel.providers import (
     AbuseIpDbProvider,
     IpApiAsnProvider,
     IpApiGeolocationProvider,
     RdapWhoisProvider,
 )
-from .service import ThreatIntelService
+from network_defender.services.threat_intel.service import ThreatIntelService
+from network_defender.shared.config_models import ThreatIntelConfig
+from network_defender.shared.gatekeeper import ApiGatekeeper
+from network_defender.shared.secrets import get_secret
 
 #: Provider class -> (config name, rate-limit bucket). The two ip-api providers
 #: deliberately share one bucket: they hit the same upstream host and must be

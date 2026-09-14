@@ -14,7 +14,7 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import ARP
 from scapy.packet import Packet
 
-from .models import TcpFlags
+from network_defender.parser.models import TcpFlags
 
 # TLS record content-type for handshake messages (RFC 5246 §6.2.1)
 _TLS_CONTENT_TYPE_HANDSHAKE = 0x16

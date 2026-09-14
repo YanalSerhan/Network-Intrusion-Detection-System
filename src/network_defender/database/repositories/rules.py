@@ -17,10 +17,10 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from ...rules.models import Rule
-from ..engine import session_scope
-from ..mappers_rules import rule_to_record
-from ..models import RuleRecord
+from network_defender.database.engine import session_scope
+from network_defender.database.mappers_rules import rule_to_record
+from network_defender.database.models import RuleRecord
+from network_defender.rules.models import Rule
 
 
 class RuleRepository:

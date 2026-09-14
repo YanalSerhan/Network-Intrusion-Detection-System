@@ -22,9 +22,9 @@ from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import IP, UDP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import COMPROMISED_HOST, EPHEMERAL_BASE, PUBLIC_RESOLVER, WORKSTATION
-from .timing import spread
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import COMPROMISED_HOST, EPHEMERAL_BASE, PUBLIC_RESOLVER, WORKSTATION
+from sensitivity.timing import spread
 
 FAMILY = "dns"
 

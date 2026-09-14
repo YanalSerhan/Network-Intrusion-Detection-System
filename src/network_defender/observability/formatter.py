@@ -23,8 +23,8 @@ import traceback
 from datetime import UTC, datetime
 from typing import Any
 
-from .context import get_correlation_id
-from .redaction import redact_text
+from network_defender.observability.context import get_correlation_id
+from network_defender.observability.redaction import redact_text
 
 #: Attributes the logging module puts on every record. Anything outside this
 #: set came from `extra=` and is caller-supplied context worth emitting.

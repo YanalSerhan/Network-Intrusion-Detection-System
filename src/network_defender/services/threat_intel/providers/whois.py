@@ -17,10 +17,9 @@ that differs per registry.
 from typing import Any
 
 from network_defender.constants import ProviderStatus
-
-from ..base import ThreatIntelProvider
-from ..http import get_json
-from ..models import ProviderResult, WhoisInfo
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.http import get_json
+from network_defender.services.threat_intel.models import ProviderResult, WhoisInfo
 
 RDAP_URL = "https://rdap.org/ip/{ip}"
 

@@ -12,10 +12,9 @@ from network_defender.constants import AlertSource
 from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket
 from network_defender.rules.models import Rule
-
-from .confidence import score_alert, score_rule_match
-from .mitre import lookup_mitre
-from .models import Alert
+from network_defender.services.alerts.confidence import score_alert, score_rule_match
+from network_defender.services.alerts.mitre import lookup_mitre
+from network_defender.services.alerts.models import Alert
 
 
 def build_alert(detection: DetectionAlert, packet: ParsedPacket | None = None) -> Alert:

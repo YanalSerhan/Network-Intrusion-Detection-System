@@ -9,12 +9,12 @@ Data Input:  A Scapy Packet.
 Data Output: Typed field values for ParsedPacket.
 """
 
-from .application_extractors import (
+from network_defender.parser.application_extractors import (
     extract_dns_fields,
     extract_http_fields,
     extract_tls_fields,
 )
-from .transport_extractors import (
+from network_defender.parser.transport_extractors import (
     extract_ip_addresses,
     extract_ports,
     extract_tcp_flags,

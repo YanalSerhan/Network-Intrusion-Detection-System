@@ -12,14 +12,14 @@ running, and the two change for unrelated reasons.
 
 from typing import Any
 
-from ..constants import PROJECT_VERSION
-from ..services.alerts.service import AlertService
-from ..services.capture import CaptureService
-from ..services.database import DatabaseService
-from ..services.detection import DetectionService
-from ..services.maintenance import MaintenanceService
-from ..services.parser import PacketParser
-from ..services.threat_intel.service import ThreatIntelService
+from network_defender.constants import PROJECT_VERSION
+from network_defender.services.alerts.service import AlertService
+from network_defender.services.capture import CaptureService
+from network_defender.services.database import DatabaseService
+from network_defender.services.detection import DetectionService
+from network_defender.services.maintenance import MaintenanceService
+from network_defender.services.parser import PacketParser
+from network_defender.services.threat_intel.service import ThreatIntelService
 
 
 class HealthMixin:

@@ -22,11 +22,11 @@ import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
-from ...constants import LIVE_POLL_SECONDS, LIVE_RECENT_ALERT_LIMIT
-from ...sdk.sdk import NetworkDefenderSDK
-from ...shared.base import LoggableMixin
-from .connections import ConnectionManager
-from .payloads import build_alert_frame, build_stats_frame
+from network_defender.api.live.connections import ConnectionManager
+from network_defender.api.live.payloads import build_alert_frame, build_stats_frame
+from network_defender.constants import LIVE_POLL_SECONDS, LIVE_RECENT_ALERT_LIMIT
+from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.shared.base import LoggableMixin
 
 
 class LiveBroadcaster(LoggableMixin):

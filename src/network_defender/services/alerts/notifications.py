@@ -18,9 +18,8 @@ one broken channel can never stop alert persistence (fail-open).
 from abc import ABC, abstractmethod
 
 from network_defender.constants import SEVERITY_ORDER, Severity
+from network_defender.services.alerts.models import Alert
 from network_defender.shared.base import LoggableMixin
-
-from .models import Alert
 
 
 class NotificationHook(LoggableMixin, ABC):

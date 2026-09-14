@@ -15,10 +15,9 @@ from typing import Any
 
 from scapy.packet import Packet
 
-from ..capture.filters import detect_protocol
-from ..capture.packet_summary import summarise_packet
-from ..shared.base import BaseService, ValidatableMixin
-from .extractors import (
+from network_defender.capture.filters import detect_protocol
+from network_defender.capture.packet_summary import summarise_packet
+from network_defender.parser.extractors import (
     extract_dns_fields,
     extract_http_fields,
     extract_ip_addresses,
@@ -26,7 +25,8 @@ from .extractors import (
     extract_tcp_flags,
     extract_tls_fields,
 )
-from .models import ParsedPacket
+from network_defender.parser.models import ParsedPacket
+from network_defender.shared.base import BaseService, ValidatableMixin
 
 
 class PacketParser(BaseService, ValidatableMixin):

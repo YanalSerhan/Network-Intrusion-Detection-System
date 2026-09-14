@@ -24,8 +24,7 @@ from network_defender.constants import (
     AlertStatus,
     Severity,
 )
-
-from .models import Alert
+from network_defender.services.alerts.models import Alert
 
 
 class AlertRepository(ABC):

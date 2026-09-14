@@ -8,7 +8,7 @@ expects and what CI uses.
 
 import sys
 
-from .cli.main import main
+from network_defender.cli.main import main
 
 if __name__ == "__main__":
     sys.exit(main())

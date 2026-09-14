@@ -22,7 +22,7 @@ import pandas as pd
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-from .style import GRIDLINE, INK, MUTED, PRECISION_COLOR, RECALL_COLOR
+from sensitivity.style import GRIDLINE, INK, MUTED, PRECISION_COLOR, RECALL_COLOR
 
 #: One bar per half-minute. Fine enough to separate the five attacks, coarse
 #: enough that a five-minute evaluation interval still lands in its own bar.

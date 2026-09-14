@@ -15,15 +15,15 @@ from uuid import UUID, uuid4
 from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, JsonDict, UtcDateTime
-from .column_widths import (
+from network_defender.database.base import Base, JsonDict, UtcDateTime
+from network_defender.database.column_widths import (
     ENUM_LENGTH,
     GROUP_BY_LENGTH,
     IP_ADDRESS_LENGTH,
     RULE_NAME_LENGTH,
     STATUS_LENGTH,
 )
-from .types import GUID
+from network_defender.database.types import GUID
 
 
 class AlertRecord(Base):

@@ -18,9 +18,9 @@ from typing import Any
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import ATTACKER, EDGE_SERVER, LOAD_BALANCER, MONITOR, WORKSTATION
-from .timing import spread
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import ATTACKER, EDGE_SERVER, LOAD_BALANCER, MONITOR, WORKSTATION
+from sensitivity.timing import spread
 
 FAMILY = "recon"
 BOTH_SCANS = {"TcpPortScanDetector", "SynScanDetector"}

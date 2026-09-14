@@ -10,8 +10,8 @@ Data Output: Structured PacketSummary objects and CaptureStatus snapshots.
 Data Setup:  CaptureConfig injected into CaptureService constructor.
 """
 
-from .models import CaptureStatus, PacketSummary, ProtocolFilterConfig
-from .service import CaptureService
+from network_defender.capture.models import CaptureStatus, PacketSummary, ProtocolFilterConfig
+from network_defender.capture.service import CaptureService
 
 __all__ = [
     "CaptureService",

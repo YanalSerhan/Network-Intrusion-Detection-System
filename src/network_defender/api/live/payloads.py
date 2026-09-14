@@ -14,9 +14,9 @@ returns, so the client has one alert type rather than two that drift apart.
 from datetime import UTC, datetime
 from typing import Any
 
-from ...sdk.sdk import NetworkDefenderSDK
-from ...services.alerts.models import Alert
-from ..schemas.alerts import AlertSummary
+from network_defender.api.schemas.alerts import AlertSummary
+from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.services.alerts.models import Alert
 
 FRAME_ALERTS = "alerts"
 FRAME_STATS = "stats"

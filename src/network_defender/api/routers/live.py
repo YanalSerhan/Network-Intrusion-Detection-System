@@ -15,10 +15,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
-from ...constants import ENV_API_KEY
-from ...shared.credentials import matches as credentials_match
-from ...shared.secrets import get_secret
-from ..live.broadcaster import LiveBroadcaster
+from network_defender.api.live.broadcaster import LiveBroadcaster
+from network_defender.constants import ENV_API_KEY
+from network_defender.shared.credentials import matches as credentials_match
+from network_defender.shared.secrets import get_secret
 
 router = APIRouter(tags=["live"])
 

@@ -19,14 +19,14 @@ mixin installs the missing link:
 
 from scapy.packet import Packet
 
-from ..parser.models import ParsedPacket
-from ..rules.models import Rule
-from ..services.alerts import AlertService
-from ..services.capture import CaptureService
-from ..services.database import DatabaseService
-from ..services.detection import DetectionService
-from ..services.parser import PacketParser
-from ..shared.base import LoggableMixin
+from network_defender.parser.models import ParsedPacket
+from network_defender.rules.models import Rule
+from network_defender.services.alerts import AlertService
+from network_defender.services.capture import CaptureService
+from network_defender.services.database import DatabaseService
+from network_defender.services.detection import DetectionService
+from network_defender.services.parser import PacketParser
+from network_defender.shared.base import LoggableMixin
 
 
 class PipelineMixin(LoggableMixin):

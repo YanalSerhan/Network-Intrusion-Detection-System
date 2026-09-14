@@ -19,10 +19,9 @@ Contract for implementors
 from abc import ABC, abstractmethod
 
 from network_defender.constants import TI_HTTP_TIMEOUT_SECONDS
+from network_defender.services.threat_intel.models import ProviderResult
 from network_defender.shared.base import LoggableMixin
 from network_defender.shared.gatekeeper import ApiGatekeeper
-
-from .models import ProviderResult
 
 
 class ThreatIntelProvider(LoggableMixin, ABC):

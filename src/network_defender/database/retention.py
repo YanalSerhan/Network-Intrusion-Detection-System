@@ -31,10 +31,10 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import Delete, delete
 from sqlalchemy.orm import Session, sessionmaker
 
-from ..shared.base import LoggableMixin
-from .engine import session_scope
-from .models import AlertRecord, PacketRecord
-from .models_operational import StatisticsRecord, ThreatIntelCacheRecord
+from network_defender.database.engine import session_scope
+from network_defender.database.models import AlertRecord, PacketRecord
+from network_defender.database.models_operational import StatisticsRecord, ThreatIntelCacheRecord
+from network_defender.shared.base import LoggableMixin
 
 
 @dataclass(frozen=True)

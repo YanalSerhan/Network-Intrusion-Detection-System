@@ -23,9 +23,9 @@ the detector's implementation, not something an operator tunes.
 
 from typing import Any
 
-from ...constants import CONFIG_FILE_DETECTORS
-from ...shared.config_errors import load_json_file
-from ...shared.paths import CONFIG_DIR
+from network_defender.constants import CONFIG_FILE_DETECTORS
+from network_defender.shared.config_errors import load_json_file
+from network_defender.shared.paths import CONFIG_DIR
 
 #: Detector name -> (evidence key holding the observed magnitude,
 #:                   configuration field holding that detector's threshold).

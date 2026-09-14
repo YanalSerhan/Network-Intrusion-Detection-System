@@ -19,10 +19,10 @@ import time
 from pathlib import Path
 from types import FrameType
 
-from ..constants import PROJECT_VERSION
-from ..sdk.sdk import NetworkDefenderSDK
-from ..shared.config import load_app_config
-from .collector import ReplayCollector
+from network_defender.cli.collector import ReplayCollector
+from network_defender.constants import PROJECT_VERSION
+from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.shared.config import load_app_config
 
 #: How long a replay waits after the last packet before reporting. The
 #: detectors decide on a timer, so a replay that exits immediately reads an

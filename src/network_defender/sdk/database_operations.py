@@ -16,11 +16,11 @@ the presentation layer.
 from typing import Any
 from uuid import UUID
 
-from ..database.mappers_rules import rule_record_to_dict
-from ..parser.models import ParsedPacket
-from ..services.database import DatabaseService
-from ..shared.config_models import AppConfig
-from ..shared.secrets import describe_secrets
+from network_defender.database.mappers_rules import rule_record_to_dict
+from network_defender.parser.models import ParsedPacket
+from network_defender.services.database import DatabaseService
+from network_defender.shared.config_models import AppConfig
+from network_defender.shared.secrets import describe_secrets
 
 
 class DatabaseOperationsMixin:

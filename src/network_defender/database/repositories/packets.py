@@ -14,10 +14,10 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from ...parser.models import ParsedPacket
-from ..engine import session_scope
-from ..mappers import packet_to_record, record_to_packet
-from ..models import PacketRecord
+from network_defender.database.engine import session_scope
+from network_defender.database.mappers import packet_to_record, record_to_packet
+from network_defender.database.models import PacketRecord
+from network_defender.parser.models import ParsedPacket
 
 #: Cap on evidence packets returned for one alert, so a flood's detail view
 #: cannot pull tens of thousands of rows into the API response.

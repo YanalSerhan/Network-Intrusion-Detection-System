@@ -6,8 +6,13 @@ forcing a change to detection or persistence, and so list endpoints can return
 a compact projection rather than every field of every record.
 """
 
-from .alerts import AlertDetail, AlertPage, AlertStatusUpdate, AlertSummary
-from .common import (
+from network_defender.api.schemas.alerts import (
+    AlertDetail,
+    AlertPage,
+    AlertStatusUpdate,
+    AlertSummary,
+)
+from network_defender.api.schemas.common import (
     MAX_PAGE_SIZE,
     ErrorDetail,
     ErrorResponse,
@@ -15,7 +20,7 @@ from .common import (
     PaginationParams,
     build_meta,
 )
-from .operations import (
+from network_defender.api.schemas.operations import (
     ComponentHealth,
     ConfigResponse,
     HealthResponse,
@@ -24,7 +29,14 @@ from .operations import (
     StatisticsSummary,
     TopTalker,
 )
-from .resources import PacketPage, PacketView, RulePage, RuleReloadResult, RuleToggle, RuleView
+from network_defender.api.schemas.resources import (
+    PacketPage,
+    PacketView,
+    RulePage,
+    RuleReloadResult,
+    RuleToggle,
+    RuleView,
+)
 
 __all__ = [
     "MAX_PAGE_SIZE",

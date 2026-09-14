@@ -30,8 +30,7 @@ from network_defender.constants import (
     SEVERITY_ORDER,
     Severity,
 )
-
-from .reference_thresholds import evidence_key, reference_magnitude
+from network_defender.services.alerts.reference_thresholds import evidence_key, reference_magnitude
 
 #: How many times over its own threshold a detector must fire before the
 #: evidence term saturates. Keeps one huge burst from implying certainty.

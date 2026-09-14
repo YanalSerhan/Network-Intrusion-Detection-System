@@ -17,7 +17,7 @@ from typing import Any
 
 from starlette.websockets import WebSocket
 
-from ...shared.base import LoggableMixin
+from network_defender.shared.base import LoggableMixin
 
 
 class ConnectionManager(LoggableMixin):

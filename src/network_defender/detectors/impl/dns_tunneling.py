@@ -15,11 +15,10 @@ from pydantic import Field
 from network_defender.constants import MitreTactic, Protocol, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.domains import is_allowlisted
+from network_defender.detectors.impl.entropy import shannon_entropy
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
 from network_defender.detectors.window_counts import SlidingCounter
 from network_defender.parser.models import ParsedPacket
-
-from .entropy import shannon_entropy
 
 
 class DnsTunnelingConfig(DetectorConfig):

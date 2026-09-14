@@ -19,9 +19,9 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from .gatekeeper_limits import GatekeeperError, RateLimitGuard
-from .gatekeeper_models import QueueStatus
-from .rate_limit_models import ServiceRateLimitConfig
+from network_defender.shared.gatekeeper_limits import GatekeeperError, RateLimitGuard
+from network_defender.shared.gatekeeper_models import QueueStatus
+from network_defender.shared.rate_limit_models import ServiceRateLimitConfig
 
 logger = logging.getLogger("network_defender.audit")
 

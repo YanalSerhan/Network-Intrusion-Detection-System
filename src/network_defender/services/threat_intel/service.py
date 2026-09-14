@@ -16,15 +16,14 @@ degrades enrichment instead of suppressing alerts.
 
 from typing import TYPE_CHECKING, Any
 
+from network_defender.services.threat_intel.aggregation import aggregate
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.services.threat_intel.cache import CacheBackend, ThreatIntelCache
+from network_defender.services.threat_intel.circuit_breaker import CircuitBreaker
+from network_defender.services.threat_intel.eligibility import eligible_ips, is_eligible
+from network_defender.services.threat_intel.models import ProviderResult, ThreatIntelResult
+from network_defender.services.threat_intel.query import query_provider
 from network_defender.shared.base import BaseService
-
-from .aggregation import aggregate
-from .base import ThreatIntelProvider
-from .cache import CacheBackend, ThreatIntelCache
-from .circuit_breaker import CircuitBreaker
-from .eligibility import eligible_ips, is_eligible
-from .models import ProviderResult, ThreatIntelResult
-from .query import query_provider
 
 if TYPE_CHECKING:  # Import for typing only: Alert already imports our models.
     from network_defender.services.alerts.models import Alert

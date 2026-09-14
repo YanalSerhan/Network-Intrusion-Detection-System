@@ -16,11 +16,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from network_defender.api.schemas.common import PageMeta
 from network_defender.constants import AlertSource, AlertStatus, MitreTactic, Severity
 from network_defender.services.alerts.models import Alert
 from network_defender.services.threat_intel.models import ThreatIntelResult
-
-from .common import PageMeta
 
 
 class AlertSummary(BaseModel):

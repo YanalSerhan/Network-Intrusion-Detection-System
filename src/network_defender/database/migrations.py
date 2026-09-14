@@ -22,7 +22,7 @@ from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Engine
 
-from ..shared.paths import PROJECT_ROOT
+from network_defender.shared.paths import PROJECT_ROOT
 
 ALEMBIC_INI = PROJECT_ROOT / "alembic.ini"
 MIGRATIONS_DIR = PROJECT_ROOT / "migrations"

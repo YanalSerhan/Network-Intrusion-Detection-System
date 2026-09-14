@@ -10,13 +10,14 @@ Why this exists
 Stateful detectors accumulate counters in `ingest()` and only emit alerts when
 `evaluate()` is called. Without a periodic trigger nothing ever calls it: the
 counters grow forever and no alert is ever raised. This loop closes that gap
-and doubles as the window flush, since detectors reset their state on evaluate.
+and is only that: each detector's own window expires by age, so this decides
+how soon an alert can surface rather than how much traffic is considered.
 """
 
 import threading
 from collections.abc import Callable
 
-from ..shared.base import LoggableMixin
+from network_defender.shared.base import LoggableMixin
 
 
 class PeriodicEvaluator(LoggableMixin):
@@ -79,7 +80,7 @@ class PeriodicEvaluator(LoggableMixin):
         """
         Invoke the callback a single time, swallowing any exception.
 
-        Exposed so callers can force an evaluation (e.g. at shutdown, to flush
+        Exposed so callers can force an evaluation (e.g. at shutdown, to report
         pending detector state) without waiting for the next tick.
         """
         try:

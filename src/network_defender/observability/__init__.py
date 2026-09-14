@@ -6,15 +6,15 @@ thread hand-offs, separate application/security/audit streams, and redaction
 that runs on the handler so no call site can forget it.
 """
 
-from .context import (
+from network_defender.observability.context import (
     bind_correlation_id,
     correlation_scope,
     get_correlation_id,
     new_correlation_id,
     set_correlation_id,
 )
-from .formatter import JsonFormatter
-from .logging_setup import (
+from network_defender.observability.formatter import JsonFormatter
+from network_defender.observability.logging_setup import (
     LOGGER_APP,
     LOGGER_AUDIT,
     LOGGER_SECURITY,
@@ -22,7 +22,12 @@ from .logging_setup import (
     get_security_logger,
     setup_logging,
 )
-from .redaction import REDACTED, RedactionFilter, redact_text, redact_value
+from network_defender.observability.redaction import (
+    REDACTED,
+    RedactionFilter,
+    redact_text,
+    redact_value,
+)
 
 __all__ = [
     "LOGGER_APP",

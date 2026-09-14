@@ -18,10 +18,9 @@ scanner was trying not to be logged.
 from pydantic import Field
 
 from network_defender.constants import MitreTactic, Protocol, Severity
+from network_defender.detectors.impl.breadth import BreadthDetector
 from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
-
-from .breadth import BreadthDetector
 
 
 class PortBreadthDetector[TConfig: DetectorConfig](BreadthDetector[TConfig]):

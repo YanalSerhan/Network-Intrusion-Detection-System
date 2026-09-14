@@ -10,6 +10,6 @@ Data Input:  See network_defender.capture.service.CaptureService.
 Data Output: See network_defender.capture.service.CaptureService.
 """
 
-from ..capture.service import CaptureService
+from network_defender.capture.service import CaptureService
 
 __all__ = ["CaptureService"]

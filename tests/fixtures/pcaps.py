@@ -22,8 +22,7 @@ from scapy.layers.l2 import Ether
 from scapy.utils import wrpcap
 
 from network_defender.sdk.sdk import NetworkDefenderSDK
-
-from .constants import PUBLIC_IP
+from tests.fixtures.constants import PUBLIC_IP
 
 #: Enough distinct destination ports to clear the port-scan threshold in
 #: config/detectors.json with room to spare.

@@ -11,7 +11,7 @@ false negative in every row forever, and the metrics stay plausible while
 measuring nothing.
 """
 
-from . import (
+from sensitivity import (
     corpus_arp,
     corpus_baseline,
     corpus_beaconing,
@@ -21,7 +21,7 @@ from . import (
     corpus_floods,
     corpus_recon,
 )
-from .case import Case
+from sensitivity.case import Case
 
 MODULES = (
     corpus_recon,

@@ -20,8 +20,8 @@ through the extension point that already exists for the purpose rather than by
 adding a query the SDK would then have to keep.
 """
 
-from ..services.alerts.models import Alert
-from ..services.alerts.notifications import NotificationHook
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.notifications import NotificationHook
 
 
 class ReplayCollector(NotificationHook):

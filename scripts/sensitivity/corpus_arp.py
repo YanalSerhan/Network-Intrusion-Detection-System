@@ -17,9 +17,9 @@ from typing import Any
 
 from scapy.layers.l2 import ARP, Ether
 
-from .case import Case, attack, benign
-from .hosts import EDGE_SERVER, WORKSTATION
-from .timing import spread
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import EDGE_SERVER, WORKSTATION
+from sensitivity.timing import spread
 
 FAMILY = "arp"
 

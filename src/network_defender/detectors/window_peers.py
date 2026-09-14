@@ -21,7 +21,7 @@ should mean.
 from collections import defaultdict
 from collections.abc import Iterator
 
-from .sliding import WindowClock
+from network_defender.detectors.sliding import WindowClock
 
 
 class SlidingPeers:

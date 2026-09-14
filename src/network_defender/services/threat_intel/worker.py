@@ -20,10 +20,9 @@ from collections.abc import Callable
 from network_defender.constants import TI_QUEUE_MAX_DEPTH, TI_WORKER_POLL_SECONDS
 from network_defender.observability import get_correlation_id
 from network_defender.services.alerts.models import Alert
+from network_defender.services.threat_intel.service import ThreatIntelService
+from network_defender.services.threat_intel.worker_loop import EnrichmentLoopMixin
 from network_defender.shared.base import LoggableMixin
-
-from .service import ThreatIntelService
-from .worker_loop import EnrichmentLoopMixin
 
 #: Named so it is identifiable in a thread dump.
 WORKER_THREAD_NAME = "threat-intel-enrichment"

@@ -13,8 +13,8 @@ from scapy.layers.dns import DNSQR
 from scapy.layers.http import HTTPRequest
 from scapy.packet import Packet
 
-from ..capture.tls_metadata import extract_tls_metadata
-from .models import DnsFields, HttpFields, TlsFields
+from network_defender.capture.tls_metadata import extract_tls_metadata
+from network_defender.parser.models import DnsFields, HttpFields, TlsFields
 
 # TLS record content-type for handshake messages (RFC 5246 §6.2.1)
 _TLS_CONTENT_TYPE_HANDSHAKE = 0x16

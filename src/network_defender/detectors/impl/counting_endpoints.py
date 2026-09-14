@@ -19,10 +19,9 @@ which the sensitivity corpus measures rather than assumes — see
 docs/DETECTION_TUNING.md.
 """
 
+from network_defender.detectors.impl.counting import CountingDetector
 from network_defender.detectors.models import DetectorConfig
 from network_defender.parser.models import ParsedPacket
-
-from .counting import CountingDetector
 
 
 class DestinationCountingDetector[TConfig: DetectorConfig](CountingDetector[TConfig]):

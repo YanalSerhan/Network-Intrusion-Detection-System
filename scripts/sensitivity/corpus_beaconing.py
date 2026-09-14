@@ -22,8 +22,8 @@ from typing import Any
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import (
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import (
     C2_SERVER,
     CLOUD_STORAGE,
     COMPROMISED_HOST,
@@ -31,7 +31,7 @@ from .hosts import (
     MONITOR,
     WORKSTATION,
 )
-from .timing import cadence
+from sensitivity.timing import cadence
 
 FAMILY = "beaconing"
 

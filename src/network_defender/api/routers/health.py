@@ -18,9 +18,13 @@ has no credentials, and they expose no alert data.
 
 from fastapi import APIRouter, Response, status
 
-from ...constants import PROJECT_VERSION
-from ..dependencies import SdkDep
-from ..schemas.operations import ComponentHealth, HealthResponse, LivenessResponse
+from network_defender.api.dependencies import SdkDep
+from network_defender.api.schemas.operations import (
+    ComponentHealth,
+    HealthResponse,
+    LivenessResponse,
+)
+from network_defender.constants import PROJECT_VERSION
 
 router = APIRouter(prefix="/health", tags=["health"])
 

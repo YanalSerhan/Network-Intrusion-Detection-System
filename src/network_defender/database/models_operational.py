@@ -13,8 +13,8 @@ from typing import Any
 from sqlalchemy import Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, JsonDict, UtcDateTime
-from .column_widths import IP_ADDRESS_LENGTH, PROVIDER_LENGTH
+from network_defender.database.base import Base, JsonDict, UtcDateTime
+from network_defender.database.column_widths import IP_ADDRESS_LENGTH, PROVIDER_LENGTH
 
 
 class ThreatIntelCacheRecord(Base):

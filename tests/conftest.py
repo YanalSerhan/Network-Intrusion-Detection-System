@@ -20,11 +20,11 @@ from network_defender.shared.config_models import AppConfig, DatabaseConfig
 from network_defender.shared.rate_limit_models import RateLimitConfig
 
 # Re-exported so pytest collects them as fixtures for the whole suite.
-from .fixtures.alerts import detection, packet, rule  # noqa: F401
-from .fixtures.api import client, seeded_alert, seeded_rules  # noqa: F401
-from .fixtures.capture import capture_config, service  # noqa: F401
-from .fixtures.dashboard import built_dashboard  # noqa: F401
-from .fixtures.database import (  # noqa: F401
+from tests.fixtures.alerts import detection, packet, rule  # noqa: F401
+from tests.fixtures.api import client, seeded_alert, seeded_rules  # noqa: F401
+from tests.fixtures.capture import capture_config, service  # noqa: F401
+from tests.fixtures.dashboard import built_dashboard  # noqa: F401
+from tests.fixtures.database import (  # noqa: F401
     alert_repo,
     engine,
     packet_repo,
@@ -33,16 +33,16 @@ from .fixtures.database import (  # noqa: F401
     stats_repo,
     ti_repo,
 )
-from .fixtures.logs import handler  # noqa: F401
-from .fixtures.parser import started_parser  # noqa: F401
-from .fixtures.pcaps import running_sdk, scan_pcap  # noqa: F401
-from .fixtures.sdk import (  # noqa: F401
+from tests.fixtures.logs import handler  # noqa: F401
+from tests.fixtures.parser import started_parser  # noqa: F401
+from tests.fixtures.pcaps import running_sdk, scan_pcap  # noqa: F401
+from tests.fixtures.sdk import (  # noqa: F401
     enrichment_sdk,
     maintenance_sdk,
     readonly_sdk,
     sdk,
 )
-from .fixtures.threat_intel import _no_proxy_env, gatekeeper  # noqa: F401
+from tests.fixtures.threat_intel import _no_proxy_env, gatekeeper  # noqa: F401
 
 
 @pytest.fixture(autouse=True)

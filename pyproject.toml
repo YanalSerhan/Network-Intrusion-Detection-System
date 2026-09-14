@@ -99,7 +99,7 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "D", "C90", "PLR", "ARG", "RET"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "D", "C90", "PLR", "ARG", "RET", "TID"]
 # D212 wants the summary on the same line as the opening quotes; this project
 # puts it on the next line (D213) and has done since the first module. One of
 # the pair has to be off, and changing 300 files to satisfy a linter default
@@ -109,6 +109,18 @@ extend-select = ["D213"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+# One import style, enforced rather than agreed. Before this the tree used
+# both and thirty-two files used both at once — `from ...shared.base import
+# BaseService` three lines above `from .models import Alert`, in the same
+# block. Absolute is the one that survives being copied: a third-party
+# detector living outside this package must import `network_defender.x`, so
+# if the bundled detectors used relative imports, copying one as a template
+# would produce a module that cannot resolve its own imports. PEP 8 prefers
+# absolute too, and `parents` alone would have left the same mix one level
+# down.
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

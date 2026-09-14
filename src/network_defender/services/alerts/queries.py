@@ -14,9 +14,8 @@ from datetime import datetime
 from uuid import UUID
 
 from network_defender.constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
-
-from .models import Alert
-from .repository import AlertRepository
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.repository import AlertRepository
 
 
 class AlertQueryMixin:

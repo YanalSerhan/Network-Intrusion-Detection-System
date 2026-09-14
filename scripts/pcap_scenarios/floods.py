@@ -5,7 +5,7 @@ from typing import Any
 from scapy.layers.inet import ICMP, IP, TCP, UDP
 from scapy.layers.l2 import ARP, Ether
 
-from .common import ATTACKER_IP, VICTIM_IP, at_intervals
+from pcap_scenarios.common import ATTACKER_IP, VICTIM_IP, at_intervals
 
 #: A gratuitous ARP is announced to the whole segment, not to one host.
 BROADCAST_MAC = "ff:ff:ff:ff:ff:ff"

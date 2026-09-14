@@ -10,8 +10,8 @@ Data Output: ParsedPacket models consumed by the Detection Engine.
 Data Setup:  PacketParser requires no external configuration.
 """
 
-from .models import DnsFields, HttpFields, ParsedPacket, TcpFlags, TlsFields
-from .parser import PacketParser
+from network_defender.parser.models import DnsFields, HttpFields, ParsedPacket, TcpFlags, TlsFields
+from network_defender.parser.parser import PacketParser
 
 __all__ = [
     "PacketParser",

@@ -19,7 +19,7 @@ migration.
 
 from typing import Any
 
-from .models import ParsedPacket
+from network_defender.parser.models import ParsedPacket
 
 #: The optional protocol-specific sections a packet may carry.
 PROTOCOL_SECTIONS = ("tcp_flags", "dns", "http", "tls")

@@ -6,9 +6,13 @@ every connected WebSocket client, so database load stays constant regardless of
 how many dashboards are open (ADR 8).
 """
 
-from .broadcaster import LiveBroadcaster
-from .connections import ConnectionManager
-from .payloads import build_alert_frame, build_error_frame, build_stats_frame
+from network_defender.api.live.broadcaster import LiveBroadcaster
+from network_defender.api.live.connections import ConnectionManager
+from network_defender.api.live.payloads import (
+    build_alert_frame,
+    build_error_frame,
+    build_stats_frame,
+)
 
 __all__ = [
     "ConnectionManager",

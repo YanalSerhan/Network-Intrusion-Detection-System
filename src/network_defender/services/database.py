@@ -12,18 +12,22 @@ cause surfaces several frames down a stack trace.
 
 from typing import Any
 
-from ..database.engine import create_db_engine, create_session_factory, resolve_database_url
-from ..database.migrations import current_revision, upgrade_to_head
-from ..database.repositories import (
+from network_defender.database.engine import (
+    create_db_engine,
+    create_session_factory,
+    resolve_database_url,
+)
+from network_defender.database.migrations import current_revision, upgrade_to_head
+from network_defender.database.repositories import (
     PacketRepository,
     RuleRepository,
     SqlAlchemyAlertRepository,
     StatisticsRepository,
     ThreatIntelCacheRepository,
 )
-from ..database.retention import RetentionPolicy, RetentionService
-from ..shared.base import BaseService
-from ..shared.config_models import DatabaseConfig
+from network_defender.database.retention import RetentionPolicy, RetentionService
+from network_defender.shared.base import BaseService
+from network_defender.shared.config_models import DatabaseConfig
 
 
 class DatabaseService(BaseService):
@@ -107,6 +111,6 @@ class DatabaseService(BaseService):
         For tests and throwaway databases only. Production schemas must go
         through migrations so their revision is recorded and upgradeable.
         """
-        from ..database.base import Base
+        from network_defender.database.base import Base
 
         Base.metadata.create_all(self.engine)

@@ -14,9 +14,9 @@ circuit breaker unavoidable.
 from typing import Any
 from uuid import UUID
 
-from ..services.alerts import Alert, AlertService
-from ..services.threat_intel import ThreatIntelResult, ThreatIntelService
-from ..services.threat_intel.worker import EnrichmentWorker
+from network_defender.services.alerts import Alert, AlertService
+from network_defender.services.threat_intel import ThreatIntelResult, ThreatIntelService
+from network_defender.services.threat_intel.worker import EnrichmentWorker
 
 
 class ThreatIntelOperationsMixin:

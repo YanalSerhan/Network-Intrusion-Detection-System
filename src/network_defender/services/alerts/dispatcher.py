@@ -10,10 +10,9 @@ side channel — a broken Slack webhook must never prevent an alert from being
 detected, scored, or persisted.
 """
 
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.notifications import NotificationHook
 from network_defender.shared.base import LoggableMixin
-
-from .models import Alert
-from .notifications import NotificationHook
 
 
 class NotificationDispatcher(LoggableMixin):

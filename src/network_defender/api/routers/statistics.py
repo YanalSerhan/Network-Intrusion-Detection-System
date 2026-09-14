@@ -10,8 +10,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from ..dependencies import AuthDep, SdkDep
-from ..schemas.operations import StatisticsPoint, StatisticsSummary, TopTalker
+from network_defender.api.dependencies import AuthDep, SdkDep
+from network_defender.api.schemas.operations import StatisticsPoint, StatisticsSummary, TopTalker
 
 router = APIRouter(prefix="/statistics", tags=["statistics"], dependencies=[AuthDep])
 

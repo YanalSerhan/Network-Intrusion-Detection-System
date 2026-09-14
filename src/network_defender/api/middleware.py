@@ -24,8 +24,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from ..observability import correlation_scope, get_correlation_id
-from ..observability.logging_setup import get_audit_logger
+from network_defender.observability import correlation_scope, get_correlation_id
+from network_defender.observability.logging_setup import get_audit_logger
 
 CORRELATION_HEADER = "X-Correlation-ID"
 

@@ -17,9 +17,9 @@ visible instead of silent.
 
 from fastapi import APIRouter
 
-from ...constants import ENV_ABUSEIPDB_API_KEY, ENV_API_KEY
-from ..dependencies import AuthDep, SdkDep
-from ..schemas.operations import ConfigResponse
+from network_defender.api.dependencies import AuthDep, SdkDep
+from network_defender.api.schemas.operations import ConfigResponse
+from network_defender.constants import ENV_ABUSEIPDB_API_KEY, ENV_API_KEY
 
 router = APIRouter(prefix="/config", tags=["config"], dependencies=[AuthDep])
 

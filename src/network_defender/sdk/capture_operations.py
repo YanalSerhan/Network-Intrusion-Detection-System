@@ -11,12 +11,12 @@ from pathlib import Path
 
 from scapy.packet import Packet
 
-from ..capture.interface_discovery import list_interfaces
-from ..capture.models import CaptureStatus
-from ..parser.models import ParsedPacket
-from ..services.capture import CaptureService
-from ..services.parser import PacketParser
-from ..shared.gatekeeper import ApiGatekeeper
+from network_defender.capture.interface_discovery import list_interfaces
+from network_defender.capture.models import CaptureStatus
+from network_defender.parser.models import ParsedPacket
+from network_defender.services.capture import CaptureService
+from network_defender.services.parser import PacketParser
+from network_defender.shared.gatekeeper import ApiGatekeeper
 
 
 class CaptureOperationsMixin:

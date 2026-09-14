@@ -15,9 +15,8 @@ from pathlib import Path
 import pandas as pd
 
 from network_defender.shared.paths import PROJECT_ROOT
-
-from .detectors import shipped_value
-from .grid import THRESHOLDS
+from sensitivity.detectors import shipped_value
+from sensitivity.grid import THRESHOLDS
 
 RESULTS_DIR = PROJECT_ROOT / "research"
 

@@ -19,8 +19,7 @@ from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket, TcpFlags
 from network_defender.rules.models import Rule, RuleCondition
 from network_defender.services.alerts.models import Alert
-
-from .constants import INTERNAL_PEER_IP, PUBLIC_IP
+from tests.fixtures.constants import INTERNAL_PEER_IP, PUBLIC_IP
 
 
 def make_alert(

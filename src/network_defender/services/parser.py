@@ -10,6 +10,6 @@ Data Input:  See network_defender.parser.parser.PacketParser.
 Data Output: See network_defender.parser.parser.PacketParser.
 """
 
-from ..parser.parser import PacketParser
+from network_defender.parser.parser import PacketParser
 
 __all__ = ["PacketParser"]

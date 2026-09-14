@@ -19,21 +19,21 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from ..database.retention import RetentionPolicy
-from ..services.alerts import AlertService
-from ..services.capture import CaptureService
-from ..services.database import DatabaseService
-from ..services.detection import DetectionService
-from ..services.maintenance import MaintenanceService
-from ..services.parser import PacketParser
-from ..services.statistics_sampler import StatisticsSampler
-from ..services.threat_intel.factory import build_service
-from ..services.threat_intel.service import ThreatIntelService
-from ..services.threat_intel.tiered_cache import TieredThreatIntelCache
-from ..services.threat_intel.worker import EnrichmentWorker
-from ..shared.config_models import AppConfig
-from ..shared.gatekeeper import ApiGatekeeper
-from ..shared.rate_limit_models import RateLimitConfig
+from network_defender.database.retention import RetentionPolicy
+from network_defender.services.alerts import AlertService
+from network_defender.services.capture import CaptureService
+from network_defender.services.database import DatabaseService
+from network_defender.services.detection import DetectionService
+from network_defender.services.maintenance import MaintenanceService
+from network_defender.services.parser import PacketParser
+from network_defender.services.statistics_sampler import StatisticsSampler
+from network_defender.services.threat_intel.factory import build_service
+from network_defender.services.threat_intel.service import ThreatIntelService
+from network_defender.services.threat_intel.tiered_cache import TieredThreatIntelCache
+from network_defender.services.threat_intel.worker import EnrichmentWorker
+from network_defender.shared.config_models import AppConfig
+from network_defender.shared.gatekeeper import ApiGatekeeper
+from network_defender.shared.rate_limit_models import RateLimitConfig
 
 
 @dataclass

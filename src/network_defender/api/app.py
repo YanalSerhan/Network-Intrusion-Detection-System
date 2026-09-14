@@ -24,13 +24,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from ..constants import API_PREFIX, API_TITLE, PROJECT_VERSION
-from ..observability import setup_logging
-from ..sdk.sdk import NetworkDefenderSDK
-from .errors import register_error_handlers
-from .live.broadcaster import LiveBroadcaster
-from .middleware import CorrelationMiddleware
-from .routers import (
+from network_defender.api.errors import register_error_handlers
+from network_defender.api.live.broadcaster import LiveBroadcaster
+from network_defender.api.middleware import CorrelationMiddleware
+from network_defender.api.routers import (
     alerts,
     config,
     dashboard,
@@ -40,7 +37,10 @@ from .routers import (
     rules,
     statistics,
 )
-from .security_headers import SecurityHeadersMiddleware
+from network_defender.api.security_headers import SecurityHeadersMiddleware
+from network_defender.constants import API_PREFIX, API_TITLE, PROJECT_VERSION
+from network_defender.observability import setup_logging
+from network_defender.sdk.sdk import NetworkDefenderSDK
 
 DESCRIPTION = """
 REST API for **Network Defender**, a modular Python network intrusion

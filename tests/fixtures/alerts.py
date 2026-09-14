@@ -5,9 +5,8 @@ import pytest
 from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket
 from network_defender.rules.models import Rule
-
-from .builders import make_detection, make_packet, make_rule
-from .constants import INTERNAL_IP, INTERNAL_PEER_IP
+from tests.fixtures.builders import make_detection, make_packet, make_rule
+from tests.fixtures.constants import INTERNAL_IP, INTERNAL_PEER_IP
 
 
 @pytest.fixture()

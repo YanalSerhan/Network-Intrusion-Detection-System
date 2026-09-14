@@ -17,7 +17,7 @@ import os
 
 from dotenv import load_dotenv
 
-from .paths import PROJECT_ROOT
+from network_defender.shared.paths import PROJECT_ROOT
 
 _ENV_FILE = PROJECT_ROOT / ".env"
 _loaded = False

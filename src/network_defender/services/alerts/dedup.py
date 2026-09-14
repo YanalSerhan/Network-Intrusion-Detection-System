@@ -23,8 +23,7 @@ from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
 
 from network_defender.constants import DEDUP_MAX_TRACKED_KEYS, DEDUP_WINDOW_SECONDS
-
-from .models import Alert
+from network_defender.services.alerts.models import Alert
 
 DedupKey = tuple[str, str, str, str]
 

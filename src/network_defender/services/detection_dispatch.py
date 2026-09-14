@@ -17,10 +17,10 @@ record about that finding, not only in whatever happens next.
 import logging
 from collections.abc import Callable
 
-from ..detectors.models import DetectionAlert
-from ..observability import correlation_scope
-from ..parser.models import ParsedPacket
-from ..rules.models import Rule
+from network_defender.detectors.models import DetectionAlert
+from network_defender.observability import correlation_scope
+from network_defender.parser.models import ParsedPacket
+from network_defender.rules.models import Rule
 
 logger = logging.getLogger("network_defender.security")
 

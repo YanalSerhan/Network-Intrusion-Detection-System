@@ -10,15 +10,15 @@ repository ports, and the engine is the only place a URL or dialect appears.
 Moving from SQLite to PostgreSQL is therefore a configuration change.
 """
 
-from .base import Base
-from .engine import (
+from network_defender.database.base import Base
+from network_defender.database.engine import (
     create_db_engine,
     create_session_factory,
     resolve_database_url,
     session_scope,
 )
-from .models import AlertRecord, PacketRecord, RuleRecord
-from .models_operational import StatisticsRecord, ThreatIntelCacheRecord
+from network_defender.database.models import AlertRecord, PacketRecord, RuleRecord
+from network_defender.database.models_operational import StatisticsRecord, ThreatIntelCacheRecord
 
 __all__ = [
     "AlertRecord",

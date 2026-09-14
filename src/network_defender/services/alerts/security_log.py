@@ -15,8 +15,8 @@ correlation ID (added by the formatter) ties it to everything else that
 happened while handling the same finding.
 """
 
-from ...observability import get_security_logger
-from .models import Alert
+from network_defender.observability import get_security_logger
+from network_defender.services.alerts.models import Alert
 
 
 def log_alert_raised(alert: Alert) -> None:

@@ -19,9 +19,8 @@ from pathlib import Path
 from typing import Any, TypeVar, get_origin
 
 from network_defender.constants import CONFIG_FILE_DETECTORS
-
-from .base import BaseDetector
-from .models import DetectorConfig
+from network_defender.detectors.base import BaseDetector
+from network_defender.detectors.models import DetectorConfig
 
 logger = logging.getLogger(__name__)
 

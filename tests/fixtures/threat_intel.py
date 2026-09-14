@@ -6,8 +6,7 @@ import respx
 
 from network_defender.shared.gatekeeper import ApiGatekeeper
 from network_defender.shared.rate_limit_models import ServiceRateLimitConfig
-
-from .constants import PUBLIC_IP
+from tests.fixtures.constants import PUBLIC_IP
 
 #: httpx honours these by default (trust_env=True), which is what we want in
 #: production behind a corporate proxy. In tests it means the client is built

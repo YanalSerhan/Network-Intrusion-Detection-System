@@ -21,7 +21,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from .config_coerce import coerce, field_annotation
+from network_defender.shared.config_coerce import coerce, field_annotation
 
 #: Prefix marking an override. Namespaced so unrelated variables in a shared
 #: container environment cannot collide with configuration.

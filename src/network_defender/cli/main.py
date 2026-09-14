@@ -19,8 +19,14 @@ untested, because there was nothing to test.
 import argparse
 from pathlib import Path
 
-from ..constants import PROJECT_VERSION
-from .commands import REPLAY_SETTLE_SECONDS, run_api, run_replay, run_sensor, run_version
+from network_defender.cli.commands import (
+    REPLAY_SETTLE_SECONDS,
+    run_api,
+    run_replay,
+    run_sensor,
+    run_version,
+)
+from network_defender.constants import PROJECT_VERSION
 
 
 def build_parser() -> argparse.ArgumentParser:

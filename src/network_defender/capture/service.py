@@ -17,12 +17,12 @@ from typing import Any
 from scapy.packet import Packet
 from scapy.sendrecv import AsyncSniffer
 
-from ..shared.base import BaseService
-from ..shared.config_models import CaptureConfig
-from .filters import apply_protocol_filter, validate_bpf_filter
-from .models import CaptureStatus, ProtocolFilterConfig
-from .pcap_replay import PcapReplayMixin
-from .rate_limiter import CaptureRateLimiter
+from network_defender.capture.filters import apply_protocol_filter, validate_bpf_filter
+from network_defender.capture.models import CaptureStatus, ProtocolFilterConfig
+from network_defender.capture.pcap_replay import PcapReplayMixin
+from network_defender.capture.rate_limiter import CaptureRateLimiter
+from network_defender.shared.base import BaseService
+from network_defender.shared.config_models import CaptureConfig
 
 # Type alias for packet consumer callbacks
 PacketCallback = Callable[[Packet], None]

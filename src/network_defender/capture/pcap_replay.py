@@ -19,7 +19,7 @@ from typing import Any
 
 from scapy.packet import Packet
 
-from .pcap_io import read_pcap, write_pcap
+from network_defender.capture.pcap_io import read_pcap, write_pcap
 
 
 class PcapReplayMixin:

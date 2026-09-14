@@ -15,10 +15,9 @@ untagged ones are what someone reads and dismisses.
 from typing import Any
 
 from network_defender.parser.models import ParsedPacket
-
-from .detectors import build, detector_names
-from .harness import replay_timeline
-from .scenario import BY_NAME, attack_spans
+from sensitivity.detectors import build, detector_names
+from sensitivity.harness import replay_timeline
+from sensitivity.scenario import BY_NAME, attack_spans
 
 
 def _attributable(detector: str, raised_at: float, lookback: float) -> bool:

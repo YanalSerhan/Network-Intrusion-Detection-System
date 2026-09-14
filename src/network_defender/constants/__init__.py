@@ -6,7 +6,7 @@ Split across three modules by subject and re-exported here, so every existing
 breaches the 150-line limit (ADR 4).
 """
 
-from .domain import (
+from network_defender.constants.domain import (
     CONFIG_FILE_DETECTORS,
     CONFIG_FILE_LOGGING,
     CONFIG_FILE_RATE_LIMITS,
@@ -19,7 +19,7 @@ from .domain import (
     MitreTactic,
     Severity,
 )
-from .integrations import (
+from network_defender.constants.integrations import (
     API_PREFIX,
     API_TITLE,
     API_VERSION,
@@ -41,7 +41,7 @@ from .integrations import (
     ProviderStatus,
     ThreatVerdict,
 )
-from .runtime import (
+from network_defender.constants.runtime import (
     ALERT_QUERY_DEFAULT_LIMIT,
     ALERT_STORE_MAX_RECORDS,
     CONFIDENCE_BASE,

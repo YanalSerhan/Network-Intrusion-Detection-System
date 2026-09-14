@@ -14,9 +14,9 @@ maintenance scheduler, not the read queries the API serves.
 from collections.abc import Callable
 from typing import Any
 
-from ..capture.models import CaptureStatus
-from ..services.database import DatabaseService
-from ..services.statistics_sampler import StatisticsSampler, build_snapshot_payload
+from network_defender.capture.models import CaptureStatus
+from network_defender.services.database import DatabaseService
+from network_defender.services.statistics_sampler import StatisticsSampler, build_snapshot_payload
 
 
 class MaintenanceOperationsMixin:

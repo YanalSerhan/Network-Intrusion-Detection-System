@@ -35,15 +35,15 @@ project's `1.00` to `1.0` in installed distribution metadata, so compare
 parsed versions rather than strings if the two ever have to agree.
 """
 
-from .constants import AlertSource, AlertStatus, MitreTactic, Protocol, Severity
-from .detectors.base import BaseDetector
-from .detectors.models import DetectionAlert, DetectorConfig
-from .parser.models import ParsedPacket
-from .sdk.sdk import NetworkDefenderSDK
-from .services.alerts.models import Alert
-from .services.alerts.notifications import NotificationHook
-from .services.threat_intel.base import ThreatIntelProvider
-from .shared.version import __version__
+from network_defender.constants import AlertSource, AlertStatus, MitreTactic, Protocol, Severity
+from network_defender.detectors.base import BaseDetector
+from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.parser.models import ParsedPacket
+from network_defender.sdk.sdk import NetworkDefenderSDK
+from network_defender.services.alerts.models import Alert
+from network_defender.services.alerts.notifications import NotificationHook
+from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.shared.version import __version__
 
 __all__ = [
     # Run it.

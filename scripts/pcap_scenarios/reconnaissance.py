@@ -5,7 +5,7 @@ from typing import Any
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .common import ATTACKER_IP, VICTIM_IP, at_intervals
+from pcap_scenarios.common import ATTACKER_IP, VICTIM_IP, at_intervals
 
 
 def tcp_port_scan() -> list[Any]:

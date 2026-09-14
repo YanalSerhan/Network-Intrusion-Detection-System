@@ -17,17 +17,17 @@ detectors runnable without root.
 was never started.
 """
 
-from ..observability import setup_logging
-from ..services.alerts.service import AlertService
-from ..services.capture import CaptureService
-from ..services.database import DatabaseService
-from ..services.detection import DetectionService
-from ..services.maintenance import MaintenanceService
-from ..services.parser import PacketParser
-from ..services.statistics_sampler import StatisticsSampler
-from ..services.threat_intel.service import ThreatIntelService
-from ..services.threat_intel.worker import EnrichmentWorker
-from ..shared.base import LoggableMixin
+from network_defender.observability import setup_logging
+from network_defender.services.alerts.service import AlertService
+from network_defender.services.capture import CaptureService
+from network_defender.services.database import DatabaseService
+from network_defender.services.detection import DetectionService
+from network_defender.services.maintenance import MaintenanceService
+from network_defender.services.parser import PacketParser
+from network_defender.services.statistics_sampler import StatisticsSampler
+from network_defender.services.threat_intel.service import ThreatIntelService
+from network_defender.services.threat_intel.worker import EnrichmentWorker
+from network_defender.shared.base import LoggableMixin
 
 #: Components the API needs; capture and detection run in the sensor container.
 READONLY_REQUIRED = ("database", "alerting")

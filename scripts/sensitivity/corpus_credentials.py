@@ -19,8 +19,8 @@ from scapy.layers.http import HTTP, HTTPRequest
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import (
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import (
     ATTACKER,
     AUTOMATION_HOST,
     EDGE_SERVER,
@@ -28,7 +28,7 @@ from .hosts import (
     NAT_GATEWAY,
     internal_range,
 )
-from .timing import spread
+from sensitivity.timing import spread
 
 FAMILY = "credentials"
 

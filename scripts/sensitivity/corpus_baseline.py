@@ -19,9 +19,9 @@ from pcap_scenarios.baseline import benign as ordinary_traffic
 from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 
-from .case import Case, attack, benign
-from .hosts import C2_SERVER, COMPROMISED_HOST, WORKSTATION
-from .timing import spread
+from sensitivity.case import Case, attack, benign
+from sensitivity.hosts import C2_SERVER, COMPROMISED_HOST, WORKSTATION
+from sensitivity.timing import spread
 
 FAMILY = "baseline"
 

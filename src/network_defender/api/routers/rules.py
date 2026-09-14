@@ -17,11 +17,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path
 
-from ...database.column_widths import RULE_NAME_LENGTH
-from ..dependencies import AuthDep, PaginationDep, SdkDep
-from ..errors import NotFoundError
-from ..schemas.common import build_meta
-from ..schemas.resources import RulePage, RuleReloadResult, RuleToggle, RuleView
+from network_defender.api.dependencies import AuthDep, PaginationDep, SdkDep
+from network_defender.api.errors import NotFoundError
+from network_defender.api.schemas.common import build_meta
+from network_defender.api.schemas.resources import RulePage, RuleReloadResult, RuleToggle, RuleView
+from network_defender.database.column_widths import RULE_NAME_LENGTH
 
 #: Bounded to the column that stores it. Without a limit the name is
 #: unbounded free text that is reflected back in a 404 message and written to

@@ -7,7 +7,7 @@ from scapy.layers.http import HTTP, HTTPRequest
 from scapy.layers.inet import ICMP, IP, TCP, UDP
 from scapy.layers.l2 import Ether
 
-from .common import INTERNAL_HOST_IP, at_intervals
+from pcap_scenarios.common import INTERNAL_HOST_IP, at_intervals
 
 
 def benign() -> list[Any]:

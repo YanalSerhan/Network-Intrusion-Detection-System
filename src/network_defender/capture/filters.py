@@ -15,8 +15,8 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import ARP, Ether
 from scapy.packet import Packet
 
-from ..constants import Protocol
-from .models import ProtocolFilterConfig
+from network_defender.capture.models import ProtocolFilterConfig
+from network_defender.constants import Protocol
 
 # Optional compile_filter — only available on Linux/macOS with libpcap.
 # On Windows the function reference stays None and validation is skipped.

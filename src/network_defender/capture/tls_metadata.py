@@ -18,7 +18,7 @@ metadata degrades an alert, an exception would drop the packet.
 from scapy.layers.inet import TCP
 from scapy.packet import Packet
 
-from ..constants import TlsHandshakeType
+from network_defender.constants import TlsHandshakeType
 
 #: TLS record content-type marking a handshake message.
 _TLS_CONTENT_TYPE_HANDSHAKE = 0x16

@@ -13,9 +13,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from ..constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
-from ..detectors.models import DetectionAlert
-from ..services.alerts import Alert, AlertService, NotificationHook
+from network_defender.constants import ALERT_QUERY_DEFAULT_LIMIT, AlertStatus, Severity
+from network_defender.detectors.models import DetectionAlert
+from network_defender.services.alerts import Alert, AlertService, NotificationHook
 
 
 class AlertOperationsMixin:

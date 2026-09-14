@@ -23,8 +23,7 @@ from collections import OrderedDict
 from typing import Protocol
 
 from network_defender.constants import TI_CACHE_MAX_ENTRIES, TI_CACHE_TTL_SECONDS
-
-from .models import ProviderResult
+from network_defender.services.threat_intel.models import ProviderResult
 
 CacheKey = tuple[str, str]
 

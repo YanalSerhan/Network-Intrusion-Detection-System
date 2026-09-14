@@ -22,8 +22,7 @@ from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert
 from network_defender.parser.models import ParsedPacket
 from network_defender.parser.parser import PacketParser
-
-from .case import Case
+from sensitivity.case import Case
 
 
 def parse_case(case: Case) -> list[ParsedPacket]:
