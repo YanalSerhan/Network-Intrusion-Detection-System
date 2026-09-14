@@ -5,10 +5,18 @@ Data Setup:  None.
 Data Input:  A parsed packet.
 Data Output: The address to count against, and how to name it on the alert.
 
-Split from `counting` so the base class file stays inside the 150-line limit,
-and because these two are the decision worth reading on its own: a flood is
-attributed to its victim and a brute force to its attacker, for reasons the
-`counting` module docstring sets out.
+Split from `counting` because this is the decision worth reading on its own,
+and it is not arbitrary:
+
+  * Floods key on the **destination**. A flood is usually distributed, which
+    is the point of it, so per-source counters never individually reach a
+    threshold while the victim is what every packet has in common.
+  * Credential guessing and ARP abuse key on the **source**. One host is doing
+    the work, and the attacker is the identity an analyst needs named.
+
+The cost of the first choice is that a busy server is shaped like a victim,
+which the sensitivity corpus measures rather than assumes — see
+docs/DETECTION_TUNING.md.
 """
 
 from network_defender.detectors.models import DetectorConfig

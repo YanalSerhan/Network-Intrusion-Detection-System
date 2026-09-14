@@ -50,3 +50,12 @@ class DetectorConfig(BaseModel):
     """
 
     enabled: bool = Field(default=True, description="Whether the detector is enabled.")
+    time_window_seconds: int = Field(
+        default=60,
+        gt=0,
+        description=(
+            "How much recent traffic the detector considers. Declared here so "
+            "every detector has one; subclasses override the default with the "
+            "span their own signal needs."
+        ),
+    )

@@ -12,12 +12,13 @@ from typing import Any, Generic, TypeVar
 
 from network_defender.parser.models import ParsedPacket
 
+from .edge import EdgeTriggeredMixin
 from .models import DetectionAlert, DetectorConfig
 
 TConfig = TypeVar("TConfig", bound=DetectorConfig)
 
 
-class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
+class BaseDetector(EdgeTriggeredMixin, ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     """
     The lifecycle every heuristic detector implements.
 
@@ -30,6 +31,18 @@ class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     Detectors are stateful by design. `ingest` is on the hot path and must be
     cheap; the expensive decision belongs in `evaluate`, which the service
     calls on a timer.
+
+    How much traffic a detector considers and how often it is asked are two
+    different things, and conflating them was a real defect: until Milestone
+    21 every detector held state until `evaluate()` cleared it, so the window
+    was whatever the shared evaluation interval happened to be — five seconds
+    — while nine detectors were configured for sixty or more. Five of them
+    could not reach their thresholds at all.
+
+    Now `time_window_seconds` is the detector's own memory and the evaluation
+    interval is only how often it is asked. A detector expires its own state
+    against capture time; `evaluate()` reports what is currently in the window
+    and must not clear it.
     """
 
     def __init__(self, config: TConfig) -> None:
@@ -41,6 +54,12 @@ class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
                 registry against config/detectors.json.
         """
         self.config = config
+        self._reported: set[str] = set()
+
+    @property
+    def window_seconds(self) -> float:
+        """How much recent capture time this detector considers."""
+        return float(self.config.time_window_seconds)
 
     @property
     @abstractmethod
@@ -64,14 +83,16 @@ class BaseDetector(ABC, Generic[TConfig]):  # noqa: UP046 - see module docstring
     @abstractmethod
     def evaluate(self) -> list[DetectionAlert]:
         """
-        Decide what the accumulated state means, and start a fresh window.
+        Report what the last `window_seconds` of traffic means.
 
-        Implementations must clear their state before returning. A window that
-        is never cleared grows without bound and, worse, keeps re-alerting on
-        traffic that has already been reported.
+        Implementations must **not** clear their state — the window expires on
+        its own against capture time. What they must do is drop expired
+        observations as they read them, so state stays bounded by one window's
+        worth of traffic rather than growing forever, and raise each finding
+        once via `report_once` rather than on every evaluation.
 
         Returns:
-            Alerts for whatever crossed a threshold this window.
+            Alerts for whatever crossed a threshold since the last call.
         """
         pass
 

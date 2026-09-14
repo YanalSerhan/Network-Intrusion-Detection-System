@@ -1,32 +1,26 @@
 """
 The shape every threshold-counting detector shares.
 
-Data Setup:  A per-endpoint counter, reset every evaluation window.
+Data Setup:  A per-endpoint sliding counter, expiring on the detector's window.
 Data Input:  Parsed packets, one at a time.
-Data Output: One DetectionAlert per endpoint that crossed its threshold.
+Data Output: One DetectionAlert per endpoint that newly crossed its threshold.
 
 Six detectors were doing the same four things: decide whether a packet counts,
-add one to a tally keyed by an address, alert on the tallies that cross a
-threshold, and clear the window. Written out six times it was six chances to
+add to a tally keyed by an address, alert on the tallies that cross a
+threshold, and forget what is old. Written out six times it was six chances to
 fix a bug in one and miss five — and the mutation spot check found exactly
 that, with `>=` weakened to `>` surviving in most of them.
 
-Which endpoint the tally is keyed on is the one real difference, and it is a
-decision worth being explicit about:
-
-  * Floods key on the **destination**. A flood is usually distributed, which is
-    the point of it, so per-source counters never individually reach a
-    threshold while the victim is what every packet has in common.
-  * Credential guessing and ARP abuse key on the **source**. One host is doing
-    the work, and the attacker is the identity an analyst needs named.
+Which endpoint the tally is keyed on is the one real difference, and
+`counting_endpoints` next door holds that decision.
 """
 
 from abc import abstractmethod
-from collections import defaultdict
 
 from network_defender.constants import MitreTactic, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.window_counts import SlidingCounter
 from network_defender.parser.models import ParsedPacket
 
 
@@ -35,8 +29,8 @@ class CountingDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
     Counts qualifying packets per endpoint and alerts past a threshold.
 
     Subclasses supply what varies: which packets count, which endpoint to
-    blame, how many are too many, how bad it is, and what to say. Everything
-    else — the tally, the alert, clearing the window — is shared.
+    blame, how many are too many, how bad it is, and what to say. The tally,
+    the window it expires on, and the alert are shared.
     """
 
     #: Evidence key the alert reports the tally under. Confidence scoring
@@ -58,7 +52,7 @@ class CountingDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
             config: The subclass's configuration, already validated.
         """
         super().__init__(config)
-        self._counts: defaultdict[str, int] = defaultdict(int)
+        self._counts = SlidingCounter(self.window_seconds)
 
     @abstractmethod
     def counts(self, packet: ParsedPacket) -> bool:
@@ -113,26 +107,42 @@ class CountingDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
             Keyword arguments naming it as source or destination.
         """
 
+    def amount(self, packet: ParsedPacket) -> int:
+        """
+        Return how much this packet adds — one, unless volume is the measure.
+
+        Args:
+            packet: A packet that has already passed `counts`.
+
+        Returns:
+            The amount to add to the tally.
+        """
+        del packet
+        return 1
+
     def ingest(self, packet: ParsedPacket) -> None:
         """Add the packet to its endpoint's tally if it qualifies."""
         if not self.counts(packet):
             return
         address = self.endpoint(packet)
         if address:
-            self._counts[address] += 1
+            self._counts.record(address, packet.timestamp.timestamp(), self.amount(packet))
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Emit one alert per endpoint over threshold, then clear the window."""
-        alerts = [
-            self.emit_alert(
-                severity=self.severity,
-                tactic=self.tactic,
-                description=self.describe(count),
-                evidence={self.evidence_key: count},
-                **self.attribute(address),
-            )
-            for address, count in self._counts.items()
-            if count >= self.threshold
-        ]
-        self._counts.clear()
+        """Report each endpoint that has newly crossed its threshold."""
+        alerts = []
+        live: set[str] = set()
+        for address, count in self._counts.totals():
+            live.add(address)
+            if self.report_once(address, count >= self.threshold):
+                alerts.append(
+                    self.emit_alert(
+                        severity=self.severity,
+                        tactic=self.tactic,
+                        description=self.describe(count),
+                        evidence={self.evidence_key: count},
+                        **self.attribute(address),
+                    )
+                )
+        self.forget_absent(live)
         return alerts

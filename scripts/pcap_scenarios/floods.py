@@ -32,12 +32,23 @@ def syn_flood() -> list[Any]:
 
 
 def udp_flood() -> list[Any]:
-    """250 datagrams at a non-DNS port, so only the UDP flood detector sees them."""
+    """
+    250 datagrams at a non-DNS port, inside one second.
+
+    The rate is the point and it used to be wrong. At the default interval
+    these 250 packets spanned two and a half seconds — a hundred a second,
+    against a threshold of two hundred a second — and the capture only tripped
+    the detector because every detector's window was, in effect, the whole
+    replay. Once the window became the configured one second, this stopped
+    being a flood, which is the correct reading of a hundred packets a second.
+    """
     return at_intervals(
         [
             Ether() / IP(src=ATTACKER_IP, dst=VICTIM_IP) / UDP(sport=40000 + i, dport=9999)
             for i in range(250)
-        ]
+        ],
+        step=0.003,
+        jitter=0.001,
     )
 
 

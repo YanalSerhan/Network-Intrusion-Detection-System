@@ -17,11 +17,11 @@ between them is the whole point of having two detectors.
 """
 
 from abc import abstractmethod
-from collections import defaultdict
 
 from network_defender.constants import MitreTactic, Severity
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
+from network_defender.detectors.window_peers import SlidingPeers
 from network_defender.parser.models import ParsedPacket
 
 
@@ -30,8 +30,8 @@ class BreadthDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
     Counts distinct peers per source and alerts past a threshold.
 
     Subclasses supply which packets count, what a "peer" is for them, how many
-    are too many, and what to say. The set, the alert and clearing the window
-    are shared.
+    are too many, and what to say. The peer set, the window it expires on, and
+    the alert are shared.
     """
 
     #: Evidence key the alert reports the count under. Confidence scoring
@@ -53,7 +53,7 @@ class BreadthDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
             config: The subclass's configuration, already validated.
         """
         super().__init__(config)
-        self._peers: defaultdict[str, set[str]] = defaultdict(set)
+        self._peers = SlidingPeers(self.window_seconds)
 
     @abstractmethod
     def counts(self, packet: ParsedPacket) -> bool:
@@ -105,20 +105,23 @@ class BreadthDetector[TConfig: DetectorConfig](BaseDetector[TConfig]):
             return
         peer = self.peer(packet)
         if peer is not None:
-            self._peers[packet.src_ip].add(peer)
+            self._peers.record(packet.src_ip, peer, packet.timestamp.timestamp())
 
     def evaluate(self) -> list[DetectionAlert]:
-        """Emit one alert per source over threshold, then clear the window."""
-        alerts = [
-            self.emit_alert(
-                severity=self.severity,
-                tactic=self.tactic,
-                src_ip=src_ip,
-                description=self.describe(len(peers)),
-                evidence={self.evidence_key: len(peers)},
-            )
-            for src_ip, peers in self._peers.items()
-            if len(peers) >= self.threshold
-        ]
-        self._peers.clear()
+        """Report each source that has newly crossed its threshold."""
+        alerts = []
+        live: set[str] = set()
+        for src_ip, count in self._peers.counts():
+            live.add(src_ip)
+            if self.report_once(src_ip, count >= self.threshold):
+                alerts.append(
+                    self.emit_alert(
+                        severity=self.severity,
+                        tactic=self.tactic,
+                        src_ip=src_ip,
+                        description=self.describe(count),
+                        evidence={self.evidence_key: count},
+                    )
+                )
+        self.forget_absent(live)
         return alerts

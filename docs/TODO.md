@@ -428,7 +428,7 @@
 - [ ] Add a plugin/extension architecture for detectors and threat intel providers (documented extension points, lifecycle hooks)
 - [ ] Document how to extend Network Defender without modifying core code
 - [ ] Verify components are reusable, decoupled, and independently testable (building-block review)
-- [ ] Make `time_window_seconds` real: each detector should expire its own state on its own window rather than every detector sharing `detection.evaluation_interval_seconds`. Measured cost of the current behaviour: five detectors at 0.00 recall, three more at or below 0.5 — see `docs/DETECTION_TUNING.md`
+- [x] Make `time_window_seconds` real: each detector expires its own state on its own window rather than every detector sharing `detection.evaluation_interval_seconds`
 - [ ] Replace the tumbling evaluation window with a sliding one, so a detection no longer depends on where a burst falls relative to a boundary fixed at process start
 - [ ] Raise `detection.evaluation_interval_seconds` to 60 and apply the three threshold changes in `docs/DETECTION_TUNING.md` §2, as the interim configuration until per-detector windows exist
 - [ ] Give `DnsTunnelingDetector` a registered-domain allowlist and `DataExfiltrationDetector` a destination classification — the corpus shows neither is separable from its benign twin by threshold alone
