@@ -427,7 +427,7 @@
 - [x] Start global version at `1.00`; bump on meaningful changes; keep code, config, and rate-limit versions in sync
 - [x] Add a plugin/extension architecture for detectors and threat intel providers (documented extension points, lifecycle hooks)
 - [x] Document how to extend Network Defender without modifying core code
-- [ ] Verify components are reusable, decoupled, and independently testable (building-block review)
+- [x] Verify components are reusable, decoupled, and independently testable (building-block review)
 - [x] Make `time_window_seconds` real: each detector expires its own state on its own window rather than every detector sharing `detection.evaluation_interval_seconds`
 - [x] Replace the tumbling evaluation window with a sliding one, so a detection no longer depends on where a burst falls relative to a boundary fixed at process start
 - [x] Re-measure the sweep against the fixed windows and apply the resulting configuration. Supersedes the interim plan of raising `detection.evaluation_interval_seconds` to 60: with per-detector windows live the interval is no longer a detection parameter, so it stays at 5.0 and four thresholds move instead

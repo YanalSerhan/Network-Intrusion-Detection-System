@@ -20,8 +20,8 @@ is rate-limited, and a rule a plugin can opt out of is not a rule.
 import inspect
 import logging
 
-from network_defender.plugins.discovery import PROVIDER_GROUP, discover_modules
 from network_defender.services.threat_intel.base import ThreatIntelProvider
+from network_defender.shared.extension_discovery import PROVIDER_GROUP, discover_modules
 
 logger = logging.getLogger(__name__)
 

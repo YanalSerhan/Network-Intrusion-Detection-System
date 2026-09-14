@@ -28,7 +28,7 @@ from typing import Any
 from network_defender.constants import CONFIG_FILE_DETECTORS
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.registry_config import build_config
-from network_defender.plugins.discovery import (
+from network_defender.shared.extension_discovery import (
     DETECTOR_GROUP,
     discover_modules,
     import_package_modules,

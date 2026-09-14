@@ -71,7 +71,16 @@ def _detector_config() -> dict[str, dict[str, Any]]:
 
 
 def reset_cache() -> None:
-    """Drop the cached configuration, so a test can vary it."""
+    """
+    Drop the cached configuration, so the next read picks up the file.
+
+    Called by AlertService on start. The registry re-reads detectors.json
+    every time detectors are loaded, and this did not: a sensor restarted in
+    the same process after an operator edited a threshold scored its
+    confidences against the old one. Nothing failed, because a plausible
+    number is indistinguishable from a correct one — which is the same way the
+    two hardcoded thresholds this module replaced went unnoticed.
+    """
     global _cache
     _cache = None
 

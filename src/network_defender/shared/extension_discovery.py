@@ -6,6 +6,14 @@ Data Setup:  Entry points declared by installed distributions, plus module
 Data Input:  An entry-point group name, a list of module paths, or a package.
 Data Output: Imported modules, with every failure isolated and logged.
 
+It lives in `shared/` rather than in `plugins/` for a reason the building-block
+review found: `plugins/__init__.py` is a façade that imports from `detectors`
+and `services`, so a detector importing `plugins.discovery` made the package
+depend on the façade that depends on it. It worked, because the import was of
+a submodule rather than of a partially-initialised package — which is the kind
+of thing that works until someone adds a line to an `__init__`. Discovery is
+needed by two layers and is not domain logic, which is what `shared/` is for.
+
 Two routes in, because there are two kinds of author.
 
 **Entry points** are for a packaged extension. A distribution declares

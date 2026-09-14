@@ -28,6 +28,16 @@ CONFIG_FILE_LOGGING = "logging_config.json"
 CONFIG_FILE_DETECTORS = "detectors.json"
 
 # ---------------------------------------------------------------------------
+# Domain limits
+# ---------------------------------------------------------------------------
+#: Longest a rule's name may be. A domain rule rather than a storage detail:
+#: the API bounds the path parameter with it and the ORM column is sized to
+#: it, and the building-block review found the API importing the *column
+#: width* to get at it — an HTTP router reaching into the persistence schema
+#: for a number that was never about persistence.
+RULE_NAME_MAX_LENGTH = 128
+
+# ---------------------------------------------------------------------------
 # Severity levels (used by Alert model and detectors)
 # ---------------------------------------------------------------------------
 

@@ -194,7 +194,7 @@ a bad value fails fast and names itself. See
 | **Start here** | [Example attacks](docs/EXAMPLE_ATTACKS.md) · [How detections work](docs/DETECTORS.md) · [Dashboard](docs/UI.md) |
 | **Running it** | [Configuration](docs/CONFIGURATION.md) · [REST API](docs/API.md) · [Observability](docs/OBSERVABILITY.md) · [Credentials](docs/CREDENTIALS.md) |
 | **Understanding it** | [Architecture](docs/ARCHITECTURE.md) · [Alert system](docs/ALERT_SYSTEM.md) · [Threat intel](docs/THREAT_INTEL.md) · [Rule schema](docs/RULE_SCHEMA.md) |
-| **Judging it** | [Threat model](docs/THREAT_MODEL.md) · [Detection tuning](docs/DETECTION_TUNING.md) · [Sensitivity method](docs/SENSITIVITY_ANALYSIS.md) · [Roadmap and limitations](docs/ROADMAP.md) |
+| **Judging it** | [Threat model](docs/THREAT_MODEL.md) · [Building blocks](docs/BUILDING_BLOCKS.md) · [Detection tuning](docs/DETECTION_TUNING.md) · [Sensitivity method](docs/SENSITIVITY_ANALYSIS.md) · [Roadmap and limitations](docs/ROADMAP.md) |
 | **Working on it** | [Contributing](CONTRIBUTING.md) · [Developer guide](docs/DEVELOPER_GUIDE.md) · [Testing](docs/TESTING.md) · [Conventions](docs/CONVENTIONS.md) |
 | **Extending it** | [Writing a detector, provider or channel](docs/EXTENDING.md) · [Rule schema](docs/RULE_SCHEMA.md) · [Changelog](CHANGELOG.md) |
 | **History** | [PLAN](docs/PLAN.md) · [PRD](docs/PRD.md) · [Code review](docs/CODE_REVIEW.md) · [TODO](docs/TODO.md) |

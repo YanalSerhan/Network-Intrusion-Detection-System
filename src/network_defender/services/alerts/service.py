@@ -20,6 +20,7 @@ from network_defender.services.alerts.dispatcher import NotificationDispatcher
 from network_defender.services.alerts.factory import build_alert, build_rule_alert
 from network_defender.services.alerts.models import Alert
 from network_defender.services.alerts.queries import AlertQueryMixin
+from network_defender.services.alerts.reference_thresholds import reset_cache
 from network_defender.services.alerts.repository import AlertRepository, InMemoryAlertRepository
 from network_defender.services.alerts.security_log import log_alert_raised, log_alert_suppressed
 from network_defender.shared.base import BaseService
@@ -62,8 +63,12 @@ class AlertService(AlertQueryMixin, BaseService):
         self._suppressed = 0
 
     def _do_start(self) -> None:
-        """Reset correlation state so a restart never inherits a stale window."""
+        """Reset correlation state and re-read thresholds; a restart inherits nothing."""
         self.deduplicator.reset()
+        # The detector registry re-reads detectors.json on every load; this
+        # cache did not, so a restart after an operator edited a threshold
+        # scored confidence against the value from before the edit.
+        reset_cache()
         self.logger.info("AlertService started.")
 
     def _do_stop(self) -> None:

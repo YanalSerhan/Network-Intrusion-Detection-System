@@ -13,7 +13,7 @@ from importlib.metadata import EntryPoint
 
 import pytest
 
-from network_defender.plugins import discovery
+from network_defender.shared import extension_discovery as discovery
 
 GROUP = "network_defender.detectors"
 PLUGIN = "tests.fixtures.example_plugin.detectors"

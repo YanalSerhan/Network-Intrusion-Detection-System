@@ -12,15 +12,15 @@ See docs/EXTENDING.md for what each contract requires.
 
 from network_defender.detectors.base import BaseDetector
 from network_defender.detectors.models import DetectionAlert, DetectorConfig
-from network_defender.plugins.discovery import (
-    DETECTOR_GROUP,
-    PROVIDER_GROUP,
-    discover_modules,
-)
 from network_defender.services.alerts.models import Alert
 from network_defender.services.alerts.notifications import NotificationHook
 from network_defender.services.threat_intel.base import ThreatIntelProvider
 from network_defender.services.threat_intel.models import ProviderResult
+from network_defender.shared.extension_discovery import (
+    DETECTOR_GROUP,
+    PROVIDER_GROUP,
+    discover_modules,
+)
 
 __all__ = [
     "DETECTOR_GROUP",

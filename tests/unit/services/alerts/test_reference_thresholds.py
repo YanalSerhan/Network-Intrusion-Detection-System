@@ -22,6 +22,7 @@ from network_defender.services.alerts.reference_thresholds import (
     reference_magnitude,
     reset_cache,
 )
+from network_defender.services.alerts.service import AlertService
 from network_defender.shared.paths import CONFIG_DIR
 
 
@@ -88,3 +89,32 @@ def test_a_missing_configuration_file_does_not_break_scoring(
 
     assert reference_magnitude("TcpPortScanDetector") is None
     assert 0.0 < score_alert("TcpPortScanDetector", Severity.HIGH, {"unique_ports": 60}) <= 1.0
+
+
+def test_restarting_the_alert_service_picks_up_an_edited_threshold(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Regression: the cache outlived a restart while the registry did not.
+
+    An operator who edits detectors.json and restarts the sensor in the same
+    process used to get confidence scored against the value from before the
+    edit — silently, because a plausible number looks exactly like a correct
+    one.
+    """
+    config = tmp_path / CONFIG_FILE_DETECTORS
+    config.write_text(json.dumps({"SynFloodDetector": {"syn_count_threshold": 40}}))
+    monkeypatch.setattr(reference_thresholds, "CONFIG_DIR", tmp_path)
+    reset_cache()
+
+    service = AlertService()
+    service.start()
+    assert reference_magnitude("SynFloodDetector") == 40.0
+
+    service.stop()
+    config.write_text(json.dumps({"SynFloodDetector": {"syn_count_threshold": 90}}))
+    service.start()
+    try:
+        assert reference_magnitude("SynFloodDetector") == 90.0
+    finally:
+        service.stop()

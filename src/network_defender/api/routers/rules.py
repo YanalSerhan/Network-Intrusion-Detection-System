@@ -21,13 +21,13 @@ from network_defender.api.dependencies import AuthDep, PaginationDep, SdkDep
 from network_defender.api.errors import NotFoundError
 from network_defender.api.schemas.common import build_meta
 from network_defender.api.schemas.resources import RulePage, RuleReloadResult, RuleToggle, RuleView
-from network_defender.database.column_widths import RULE_NAME_LENGTH
+from network_defender.constants import RULE_NAME_MAX_LENGTH
 
 #: Bounded to the column that stores it. Without a limit the name is
 #: unbounded free text that is reflected back in a 404 message and written to
 #: a log line — neither is an injection, but both are work an unauthenticated
 #: caller should not be able to ask for by the megabyte.
-NameParam = Annotated[str, Path(description="Rule name.", max_length=RULE_NAME_LENGTH)]
+NameParam = Annotated[str, Path(description="Rule name.", max_length=RULE_NAME_MAX_LENGTH)]
 
 router = APIRouter(prefix="/rules", tags=["rules"], dependencies=[AuthDep])
 
