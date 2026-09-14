@@ -163,9 +163,18 @@ three calls deep and every hop is synchronous:
 
 `ingest` is on the hot path and must be cheap — a counter update, not a
 decision. The decision lives in `evaluate`, which runs on a timer. Ingest
-throughput measures around 95 000 packets/second against a 500 pkt/s floor;
-[TESTING.md](TESTING.md) explains why the floor is set two orders of magnitude
-below the measurement.
+throughput measures tens of thousands of packets per second against a 500
+pkt/s floor; [TESTING.md](TESTING.md) explains why the floor is set well below
+the measurement.
+
+**That figure is the fast half of the pipeline, and quoting it alone is
+misleading.** Parsing is the ceiling: Scapy dissects on the order of a
+thousand packets per second, so end to end the sensor is a
+thousand-packet-per-second device whatever the detectors can absorb. Detection
+being two orders of magnitude faster than parsing is why `ingest` staying
+cheap is a rule rather than a worry, and it is also why optimising a detector
+would buy nothing. [QUALITY.md](QUALITY.md) has the measured numbers and what
+follows from them.
 
 ## Deployment
 

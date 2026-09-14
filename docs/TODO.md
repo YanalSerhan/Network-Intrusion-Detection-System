@@ -434,7 +434,7 @@
 - [x] Give `DnsTunnelingDetector` a registered-domain allowlist and `DataExfiltrationDetector` a destination classification — the corpus shows neither is separable from its benign twin by threshold alone
 - [x] Fix `rules/tcp_port_scan.yaml`: it counts SYN packets, not unique destination ports, so it labels a SYN flood, an SSH brute force, a bulk transfer and lateral movement as port scans. Either give the rule schema a distinct-value threshold or retire the rule, which the heuristic detector already covers correctly — see `docs/EXAMPLE_ATTACKS.md`
 - [x] Make a threshold rule fire once per window rather than once per packet past the threshold: `hits >= threshold` stays true for the rest of the window, so `lateral_movement.pcap` raises twelve alerts for one behaviour
-- [ ] Map project quality against ISO/IEC 25010 characteristics (functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, portability) and document gaps
+- [x] Map project quality against ISO/IEC 25010 characteristics (functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, portability) and document gaps
 
 ---
 
