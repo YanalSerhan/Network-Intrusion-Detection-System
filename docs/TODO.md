@@ -422,7 +422,7 @@
 ## Milestone 21 — Packaging, Versioning & Extensibility
 
 - [x] Package the project as an installable Python package (`pyproject.toml` metadata complete: name, description, license, authors, dependencies with pinned versions)
-- [ ] Verify `src/network_defender/__init__.py` exposes public API and `__version__`
+- [x] Verify `src/network_defender/__init__.py` exposes public API and `__version__`
 - [ ] Verify all imports are relative/package-qualified (no absolute path imports)
 - [ ] Start global version at `1.00`; bump on meaningful changes; keep code, config, and rate-limit versions in sync
 - [ ] Add a plugin/extension architecture for detectors and threat intel providers (documented extension points, lifecycle hooks)
